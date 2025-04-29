@@ -66,6 +66,10 @@
         height: 100%;
         display: flex;
         flex-direction: row;
+
+        @media (max-width: 1560px){
+          width: 65%;
+        }
   
         .header-child-1_right_phone {
             width: 33%;
@@ -147,6 +151,10 @@
         flex-direction: row;
         justify-content: center;
         align-items: center;
+
+        @media (max-width: 1500px){
+          width: 60%;
+        }
         
 
       .header-child-2_mid_heigt{
@@ -206,6 +214,16 @@
           font-size: 25px;
           font-weight: 500;
           border: 2px solid black;
+
+          @media (max-width: 1657px){
+            padding: 8px 15px;
+            min-width: 150px;
+          }
+
+          @media (max-width: 1617px){
+            padding: 8px 10px;
+            min-width: 175px;
+          }
           
           &::after{
                 content: "";
@@ -231,6 +249,10 @@
         justify-content: center;
         align-items: center;
 
+        @media (max-width: 1500px){
+          width: 15%;
+        }
+
         img{
           height: 56px;
           margin-top: 5px;
@@ -239,5 +261,6 @@
 
     }
   }
+
+  /*Menu hamburguesa apartir de 1250px*/
   </style>
-  
