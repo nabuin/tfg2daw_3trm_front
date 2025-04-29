@@ -28,12 +28,12 @@
           </div>
 
           <div class="header-child-2_right">
-            <img src="../imgs/icons/User_Logo.svg">          
+            <img src="../imgs/icons/User_Logo.svg">
           </div>
       </div>
     </div>
   </template>
-  
+
   <style lang="scss" scoped>
   h6{
     color: white;
@@ -41,18 +41,18 @@
   }
   .header {
     height: 150px;
-  
+
     .header-child-1 {
 
       background-color: black;
       height: 50px;
       display: flex;
       flex-direction: row;
-  
+
       .header-child-1_left {
         width: 50%;
         height: 100%;
-  
+
         .header-child-1_left_info {
             display: flex;
             height: 100%;
@@ -60,7 +60,7 @@
             align-items: center;
         }
       }
-  
+
       .header-child-1_right {
         width: 50%;
         height: 100%;
@@ -70,7 +70,7 @@
         @media (max-width: 1560px){
           width: 65%;
         }
-  
+
         .header-child-1_right_phone {
             width: 33%;
             display: flex;
@@ -126,12 +126,12 @@
                 background-size: contain;
                 background-repeat: no-repeat;
                 background-position: center;
-                background-image: url('../imgs/icons/Map-Pin.svg');
+                background-image: url('../imgs/icons/ubi.svg');
             }
         }
       }
     }
-  
+
     .header-child-2 {
       height: 100px;
       display: flex;
@@ -146,7 +146,7 @@
       }
       .header-child-2_mid{
         height: 100%;
-        width: 50%;      
+        width: 50%;
         display: flex;
         flex-direction: row;
         justify-content: center;
@@ -155,13 +155,13 @@
         @media (max-width: 1500px){
           width: 60%;
         }
-        
+
 
       .header-child-2_mid_heigt{
         display: flex;
         flex-direction: row;
         height: 65px;
-      
+
         .header-child-2_mid_bienvenido{
           display: flex;
           align-items: center;
@@ -224,7 +224,7 @@
             padding: 8px 10px;
             min-width: 175px;
           }
-          
+
           &::after{
                 content: "";
                 display: inline-block;
@@ -236,9 +236,9 @@
                 background-position: center;
                 background-image: url('../imgs/icons/Vector.svg');
             }
-          
+
         }
-      
+
       }
 
       }
