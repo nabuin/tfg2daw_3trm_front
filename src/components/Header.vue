@@ -12,7 +12,25 @@
           <div class="header-child-1_right_ubi"><h6>C/ Rodrigo Rebolledo 67</h6></div>
         </div>
       </div>
-      <div class="header-child-2"></div>
+      <div class="header-child-2">
+          <div class="header-child-2_left">
+            <img src="../imgs/logo.svg">
+          </div>
+
+          <div class="header-child-2_mid">
+            <div class="header-child-2_mid_heigt">
+            <div class="header-child-2_mid_bienvenido">Bienvenido</div>
+            <div class="header-child-2_mid_espacios">Espácios</div>
+            <div class="header-child-2_mid_precios">Precios</div>
+            <div class="header-child-2_mid_servicios">Sérvicios</div>
+            <div class="header-child-2_mid_masInfo">Mas Info </div>
+            </div>
+          </div>
+
+          <div class="header-child-2_right">
+            <img src="../imgs/icons/User_Logo.svg">          
+          </div>
+      </div>
     </div>
   </template>
   
@@ -112,6 +130,113 @@
   
     .header-child-2 {
       height: 100px;
+      display: flex;
+      flex-direction: row;
+
+      .header-child-2_left{
+        height: 100%;
+        width: 25%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .header-child-2_mid{
+        height: 100%;
+        width: 50%;      
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        
+
+      .header-child-2_mid_heigt{
+        display: flex;
+        flex-direction: row;
+        height: 65px;
+      
+        .header-child-2_mid_bienvenido{
+          display: flex;
+          align-items: center;
+          margin: 5px 0px 0 25px;
+          padding-right: 25px;
+          font-size: 25px;
+          font-weight: 500;
+          display: flex;
+          flex-direction: row;
+          border-right: 2px solid black;
+        }
+
+        .header-child-2_mid_espacios{
+          display: flex;
+          align-items: center;
+          margin: 5px 0px 0 25px;
+          padding-right: 25px;
+          font-size: 25px;
+          font-weight: 500;
+          flex-direction: row;
+          border-right: 2px solid black;
+        }
+
+        .header-child-2_mid_precios{
+          display: flex;
+          align-items: center;
+          margin: 5px 0px 0 25px;
+          padding-right: 25px;
+          font-size: 25px;
+          font-weight: 500;
+          flex-direction: row;
+          border-right: 2px solid black;
+        }
+
+        .header-child-2_mid_servicios{
+          display: flex;
+          align-items: center;
+          margin: 5px 0px 0 25px;
+          padding-right: 25px;
+          font-size: 25px;
+          font-weight: 500;
+          flex-direction: row;
+          border-right: 2px solid black;
+        }
+        .header-child-2_mid_masInfo{
+          display: flex;
+          align-items: center;
+          margin: 5px 0px 0 25px;
+          padding: 25px;
+          font-size: 25px;
+          font-weight: 500;
+          border: 2px solid black;
+          
+          &::after{
+                content: "";
+                display: inline-block;
+                width: 17px;
+                height: 17px;
+                margin-left: 15px;
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                background-image: url('../imgs/icons/Vector.svg');
+            }
+          
+        }
+      
+      }
+
+      }
+      .header-child-2_right{
+        height: 100%;
+        width: 25%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        img{
+          height: 56px;
+          margin-top: 5px;
+        }
+      }
+
     }
   }
   </style>
