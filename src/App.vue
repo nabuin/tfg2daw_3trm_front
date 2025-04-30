@@ -24,7 +24,6 @@ export default {
 <style scoped lang="scss">
 
 .layout {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
