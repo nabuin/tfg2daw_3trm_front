@@ -234,7 +234,7 @@
                 background-size: contain;
                 background-repeat: no-repeat;
                 background-position: center;
-                background-image: url('../imgs/icons/Vector.svg');
+                background-image: url('../imgs/icons/arrow.svg');
             }
 
         }
