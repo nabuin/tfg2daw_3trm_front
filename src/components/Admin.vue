@@ -227,4 +227,132 @@ export default {
 
 
 }
+@media (min-width: 768px) {
+  .admin-panel {
+    padding: 30px;
+
+    &__title {
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    &__top-navigation {
+      display: flex;
+      justify-content: center;
+      border-bottom: 2px solid #ddd;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+    }
+
+    &__top-nav-item {
+      flex-basis: auto;
+      margin-right: 25px;
+      margin-bottom: 0;
+      padding: 15px 20px;
+      border-radius: 8px;
+
+     
+
+      &.activo {
+        background-color: #e0e0e0;
+      }
+    }
+
+    &__top-nav-icon {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #dbd8d8;
+
+      img {
+          max-width: 60%;
+          max-height: 60%;
+      }
+    }
+
+    &__top-nav-text {
+      font-size: 16px;
+    text-align: center;
+      white-space: nowrap;
+    }
+
+    &__content-section {
+      padding: 20px;
+     border: 1px solid #ddd;
+      border-radius: 8px;
+     margin-bottom: 25px;
+      background-color: white;
+
+      h3 {
+        font-size: 20px;
+      margin-bottom: 15px;
+        text-align: center;
+      }
+    }
+
+    &__section {
+      margin-bottom: 20px;
+      border: 1px solid #dbd8d8;
+      border-radius: 8px;
+    }
+
+    &__section-title {
+      display: flex;
+     align-items: center;
+      width: 100%;
+      padding: 12px 18px;   
+         background-color: #dbd8d8;
+      border: none;
+    border-bottom: 1px solid #ddd;
+     text-align: center;
+    font-weight: bold;
+      cursor: pointer;
+     box-sizing: border-box;
+      font-size: 16px;
+      border-radius: 8px 8px;
+
+      &:hover {
+        background-color: #dbd8d8;
+      }
+    }
+
+    &__section-content {
+      padding: 20px;
+     background-color: white;
+      border-radius: 0 0 8px 8px;
+    }
+
+    &__action-item {
+     display: flex;
+   gap: 20px;
+    margin-bottom: 15px;
+      align-items: center;
+    flex-direction: row;
+      justify-content: center;
+    }
+
+    &__input {
+      padding: 10px;
+    border: 1px solid #dbd8d8;
+    border-radius: 5px;
+     font-size: 16px;
+      width: 60%;
+     box-sizing: border-box;
+    }
+
+    &__button {
+      padding: 10px 20px;
+      border: 1px solid black;
+    border-radius: 5px;
+      background-color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  }
+}
 </style>
