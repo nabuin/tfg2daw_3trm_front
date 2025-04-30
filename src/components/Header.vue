@@ -136,6 +136,7 @@
       height: 100px;
       display: flex;
       flex-direction: row;
+      background: #e5e5e5;
 
       .header-child-2_left{
         height: 100%;
