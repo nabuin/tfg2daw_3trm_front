@@ -7,6 +7,7 @@ export default {
   components: {
     Header,
     Footer,
+    RouterView
   }
 };
 </script>
@@ -14,7 +15,7 @@ export default {
 <template>
   <div class="layout">
     <Header />
-    <RouterLink />
+    <RouterView />
     <Footer />
   </div>
 </template>
