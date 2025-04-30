@@ -9,7 +9,8 @@
         @click="botonActual = 'usuarios'"
       >
         <div class="admin-panel__top-nav-icon">
-          </div>
+          <img src="../imgs/icons/admin-usuario.svg" alt="Icono Usuarios" />
+        </div>
         <span class="admin-panel__top-nav-text">Usuarios/Roles</span>
       </button>
       <button
@@ -18,7 +19,8 @@
         @click="botonActual = 'salas'"
       >
         <div class="admin-panel__top-nav-icon">
-          </div>
+          <img src="../imgs/icons/admin-oficina.svg" alt="Icono Salas/Sedes" />
+        </div>
         <span class="admin-panel__top-nav-text">Salas/Sedes</span>
       </button>
       <button
@@ -27,7 +29,8 @@
         @click="botonActual = 'zonas'"
       >
         <div class="admin-panel__top-nav-icon">
-          </div>
+          <img  src="../imgs/icons/admin-zonas.svg" alt="Icono Zonas/Puestos" />
+        </div>
         <span class="admin-panel__top-nav-text">Zonas/Puestos</span>
       </button>
       <button
@@ -36,7 +39,8 @@
         @click="botonActual = 'reservas'"
       >
         <div class="admin-panel__top-nav-icon">
-          </div>
+          <img  src="../imgs/icons/admin-calendario.svg" alt="Icono Reservas/Disponibilidad" />
+        </div>
         <span class="admin-panel__top-nav-text">Reservas/Disponibilidad</span>
       </button>
     </nav>
@@ -83,8 +87,8 @@
 export default {
   data() {
     return {
-      botonActual: 'usuarios', // por defecto
-      seccionActiva: null, // desplegable de cada bloque
+      botonActual: 'usuarios',
+      seccionActiva: null
     };
   },
   methods: {
@@ -97,18 +101,17 @@ export default {
 
 <style lang="scss">
 .admin-panel {
-  width: 90%;
-  max-width: 800px;
-  padding: 20px;
+  width: 100%;
+  padding: 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-family: sans-serif;
-  margin: 20px auto;
+  margin: 10px auto;
   box-sizing: border-box;
 
   &__title {
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 20px;
+    margin-bottom: 15px;
     text-align: center;
     color: black;
     background-color: rgb(190, 190, 190);
@@ -116,56 +119,58 @@ export default {
 
   &__top-navigation {
     display: flex;
-    width: 100%;
+    flex-wrap: wrap;
     border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    justify-content: space-around;
   }
 
   &__top-nav-item {
-    flex: 1;
+    flex-basis: calc(50% - 10px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px 15px;
+    padding: 10px;
     background-color: #f9f9f9;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s;
     box-sizing: border-box;
-
-    &:hover {
-      background-color: #eee;
-    }
-
-    &.activo {
-      background-color: white;
-    }
+    margin-bottom: 10px;
   }
 
   &__top-nav-icon {
     width: 30px;
     height: 30px;
-    border: 1px solid #333;
     border-radius: 5px;
     margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
   }
 
   &__top-nav-text {
-    font-size: 14px;
+    font-size: 12px;
     text-align: center;
+    white-space: nowrap;
   }
 
   &__content-section {
-    padding: 15px;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 3px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     background-color: white;
   }
 
   &__section {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 3px;
   }
@@ -174,7 +179,7 @@ export default {
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 10px 15px;
+    padding: 8px 12px;
     background-color: #f9f9f9;
     border: none;
     border-bottom: 1px solid #ddd;
@@ -182,6 +187,7 @@ export default {
     font-weight: bold;
     cursor: pointer;
     box-sizing: border-box;
+    font-size: 14px;
 
     &:hover {
       background-color: #eee;
@@ -189,33 +195,36 @@ export default {
   }
 
   &__section-content {
-    padding: 15px;
+    padding: 10px;
     background-color: white;
   }
 
   &__action-item {
     display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
     align-items: center;
+    flex-direction: column;
   }
 
   &__input {
-    padding: 8px;
+    padding: 6px;
     border: 1px solid #ccc;
     border-radius: 3px;
-    font-size: 14px;
+    font-size: 12px;
     width: 100%;
     box-sizing: border-box;
   }
 
   &__button {
-    padding: 8px 12px;
+    padding: 6px 10px;
     border: 1px solid #333;
     border-radius: 3px;
     background-color: #f9f9f9;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
   }
+
+
 }
 </style>
