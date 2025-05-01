@@ -354,5 +354,107 @@ export default {
       font-size: 16px;
     }
   }
+
+
+  @media (min-width: 1200px) {
+  .admin-panel {
+     max-width: 1200px;
+    margin: 30px auto;
+    padding: 40px;
+
+    &__title {
+      font-size: 32px;
+      margin-bottom: 40px;
+    }
+
+    &__top-navigation {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+    }
+
+    &__top-nav-item {
+      flex-basis: auto;
+    display: flex;
+      flex-direction: column;
+     align-items: center;
+    justify-content: center;
+      margin-right: 50px;
+      margin-bottom: 0;
+     padding: 18px 15px;
+      border-radius: 8px;
+      box-sizing: border-box;
+
+      &.activo {
+       background-color: #e0e0e0;
+      }
+    }
+
+    &__top-nav-icon {
+      width: 60px;
+    height: 60px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      display: flex;
+    align-items: center;
+      justify-content: center;
+
+      img {
+        max-width: 70%;
+        max-height: 70%;
+      }
+    }
+
+    &__top-nav-text {
+     font-size: 18px;
+    text-align: center;
+     white-space: nowrap;
+    }
+
+    &__content-section {
+    padding: 30px;
+     margin-bottom: 30px;
+
+      h3 {
+      font-size: 24px;
+       margin-bottom: 20px;
+       text-align: left;
+      }
+    }
+
+    &__section {
+    margin-bottom: 25px;
+    }
+
+    &__section-title {
+     padding: 15px 20px;
+      font-size: 18px;
+    }
+
+    &__section-content {
+      padding: 25px;
+    }
+
+    &__action-item {
+      gap: 30px;
+      margin-bottom: 20px;
+    flex-direction: row;
+      justify-content: space-between;
+    }
+
+    &__input {
+      padding: 12px;
+    font-size: 18px;
+    }
+
+    &__button {
+      padding: 12px;
+     font-size: 18px;
+    }
+  }
+}
+
+
 }
 </style>
