@@ -32,7 +32,7 @@
 <style scoped lang="scss">
 .div-block-info {
 
-    padding: 25px 0 25px 0;
+    padding: 25px 0 50px 0;
 
     .div-block-info_center {
 
@@ -95,12 +95,13 @@
                     height: 200px;
                     width: 350px;
                 }
+
                 img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
             }
         }
 
@@ -120,7 +121,7 @@
 
             .div-block-info_center-text {
                 height: 300px;
-                width: 500px;
+                width: 430px;
                 margin-left: 25px;
                 display: flex;
                 flex-direction: column;
