@@ -7,6 +7,7 @@ export default {
   components: {
     Header,
     Footer,
+    RouterView
   }
 };
 </script>
@@ -14,7 +15,7 @@ export default {
 <template>
   <div class="layout">
     <Header />
-    <RouterLink />
+    <RouterView />
     <Footer />
   </div>
 </template>
@@ -23,7 +24,6 @@ export default {
 <style scoped lang="scss">
 
 .layout {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }

@@ -136,6 +136,7 @@
       height: 100px;
       display: flex;
       flex-direction: row;
+      background: #e5e5e5;
 
       .header-child-2_left{
         height: 100%;
@@ -234,7 +235,7 @@
                 background-size: contain;
                 background-repeat: no-repeat;
                 background-position: center;
-                background-image: url('../imgs/icons/Vector.svg');
+                background-image: url('../imgs/icons/arrow.svg');
             }
 
         }
