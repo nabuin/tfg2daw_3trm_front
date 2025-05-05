@@ -45,9 +45,15 @@
 
 <style scoped lang="scss">
 .servicios-block {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 25px 0 25px 0;
+
   .servicios-block_height-horiz {
     height: auto;
-    margin: 50px 500px;
+    height: 872px;
+    width: 702px;
 
     .servicios-block_height-horiz_block {
       height: 50%;
