@@ -45,6 +45,7 @@
   width: 100%;
   display: flex;
   flex-direction: row;
+  padding-top: 25px;
 
   .footer-child-1 {
     width: 30%;
@@ -179,6 +180,7 @@
     display: flex;
     flex-direction: column;
     height: auto;
+    padding-top: 0;
 
     .footer-child-1 {
       width: 100%;
