@@ -172,5 +172,50 @@
     }
   }
 
+
+  @media (max-width:900px) {
+
+
+    display: flex;
+    flex-direction: column;
+    height: auto;
+
+    .footer-child-1 {
+      width: 100%;
+      height: 50%;
+
+      padding: 40px;
+    }
+
+    .footer-child-2 {
+      width: 100%;
+      height: 50%;
+
+      .footer-child-2_info {
+        border-radius: 0;
+      }
+    }
+
+  }
+
+  @media (max-width:500px) {
+    .footer-child-2_info {
+      display: flex !important;
+      flex-direction: column !important;
+
+      .footer-child-2_info-block_1 {
+        width: 100% !important;
+        height: 50% !important;
+
+        padding-top: 40px !important;
+      }
+
+      .footer-child-2_info-block_2 {
+        width: 100% !important;
+        height: 50% !important;
+      }
+    }
+  }
+
 }
 </style>
