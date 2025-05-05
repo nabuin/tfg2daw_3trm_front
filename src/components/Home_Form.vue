@@ -64,6 +64,11 @@
         margin-bottom: 2rem;
         gap: 11rem;
 
+
+        @media(max-width:800px){
+                gap: 10% !important;
+            }
+
         .form__ubicacion {
             display: flex;
             height: 100%;
@@ -72,8 +77,9 @@
             gap: 8px;
             margin-top: 0.5rem;
             font-size: 1.2rem;
-
             flex-direction: column;
+            text-align: center;
+
 
             &::before {
                 content: "";
@@ -95,8 +101,8 @@
             gap: 8px;
             margin-top: 0.5rem;
             font-size: 1.2rem;
-
             flex-direction: column;
+            text-align: center;
 
             &::before {
                 content: "";
@@ -115,7 +121,7 @@
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        width: 1100px;
+        max-width: 1100px;
     }
 
     .form__fila {
