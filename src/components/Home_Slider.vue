@@ -26,7 +26,7 @@
   width: 100%;
 
   &__img {
-    background-image: url('../imgs/slider/habitacion-vacia-sillas-escritorios_23-2149008873.avif');
+    background-image: url('../imgs/slider/slider-img-1.avif');
     background-size: cover;
     background-position: center;
     width: 100%;
@@ -34,7 +34,7 @@
   }
 
   &__img-2 {
-    background-image: url('../imgs/slider/Ascend-desk-with-panels-escritorio-con-paneles (1).webp');
+    background-image: url('../imgs/slider/slider-img-2.webp');
     background-size: cover;
     background-position: center;
     width: 100%;
