@@ -7,7 +7,8 @@
     </v-row>
   
     <v-row class="services-section__row"> <!-- FILA 1-->
-      <v-col class="services-section__item"> <div class="services-section__item-content">
+      <v-col cols="12" class="services-section__item"> <div class="services-section__item-content">
+        <!-- con cols 12 ocupa todo el plano horizontal disponible, para el mobile first en el que estarán todas una debajo de otras-->
           <v-avatar  class="services-section__icon">
             <img src="../imgs/icons/clock.svg" alt="Icono de Servicio" class="services-section__img-icon">
           </v-avatar> <!-- icono de ejemplo, luego se pondrán los que toquen, quizas estaticos o de la bbdd -->
@@ -30,7 +31,7 @@
     </v-row>
 
     <v-row class="services-section__row"> <!-- FILA 2, repitiendo la fila 1-->
-      <v-col class="services-section__item"> <div class="services-section__item-content">
+      <v-col cols="12" class="services-section__item"> <div class="services-section__item-content">
           <v-avatar  class="services-section__icon">
              <img src="../imgs/icons/clock.svg" alt="Icono de Servicio" class="services-section__img-icon">
           </v-avatar>
@@ -53,7 +54,7 @@
     </v-row>
 
     <v-row class="services-section__row"> <!-- FILA 3, repitiendo la fila 1 -->
-      <v-col class="services-section__item"> <div class="services-section__item-content">
+      <v-col cols="12" class="services-section__item"> <div class="services-section__item-content">
           <v-avatar  class="services-section__icon">
              <img src="../imgs/icons/clock.svg" alt="Icono de Servicio" class="services-section__img-icon">
           </v-avatar>
@@ -79,8 +80,11 @@
 
 <style lang="scss" scoped>
 .services-section {
-  padding-top: 32px;
-  padding-bottom: 32px;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  padding-left: 10%;
+  padding-right: 10%;
+
 
   &__header {
     text-align: center;
@@ -90,6 +94,7 @@
   &__title {
     font-size: 32px;
     font-weight: bold;
+    text-align: center;
   }
 
 
@@ -102,7 +107,7 @@
   }
 
   &__icon {
-    background-color: #E0E0E0;
+    background-color: #ffffff;
   display: flex;
     justify-content: center;
     align-items: center;
@@ -125,8 +130,9 @@
   }
 
   &__item-description {
-    font-size: 14px;
-    color: black;
+    font-size: 17px;
+    color: grey;
+    font-weight: bold;
   }
 }
 </style>
