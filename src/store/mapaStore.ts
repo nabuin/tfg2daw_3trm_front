@@ -15,6 +15,7 @@ interface Sede {
 
 export function useMapaStore() {
   const coordenadas = ref<Sede[]>([]);
+  const sedeSeleccionadaId = ref<number | null>(null);
 
   const obtenerCoordenadas = async () => {
     try {
@@ -26,5 +27,5 @@ export function useMapaStore() {
     }
   };
 
-  return { coordenadas, obtenerCoordenadas };
+  return { coordenadas, obtenerCoordenadas, sedeSeleccionadaId };
 }
