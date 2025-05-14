@@ -23,6 +23,7 @@ export default defineComponent({
 }
 
 h1 {
+  text-align: center;
   margin-bottom: 15px;
   color: #333;
   font-family: Arial, sans-serif;
