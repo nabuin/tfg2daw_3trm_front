@@ -12,9 +12,9 @@
 
 <script lang="ts">
 
-//Importamos todo lo necesario para  que puedas funcionas
 import { defineComponent, onMounted } from 'vue';
 import { useMapaStore } from '../store/mapaStore';
+import { useRouter } from 'vue-router';  // Importamos router
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerUrl from '../imgs/icons/marker.png';
@@ -22,86 +22,74 @@ import markerUrl from '../imgs/icons/marker.png';
 export default defineComponent({
   name: 'Sedes_Mapa',
   setup() {
-    // Obtenemos acceso al store que maneja las coordenadas y la sede seleccionada
     const store = useMapaStore();
+    const router = useRouter();
 
-    // Función que inicializa el mapa Leaflet
     const inicializarMapa = () => {
-      // Creamos el mapa en el div con id 'mapa', centrado en Madrid y con zoom 6
-      // Además desactivamos el control de zoom para evitar que aparezca
       const mapa = L.map('mapa', {
         center: [40.4168, -3.7038],
         zoom: 6,
         zoomControl: false
       });
 
-      // Añadimos la capa de mapa base usando OpenStreetMap y su atribución (al parece obligatoria)
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
       }).addTo(mapa);
 
-      // Recorremos todas las sedes que tenemos en el store
       store.coordenadas.value.forEach((sede) => {
-        // Convertimos latitud y longitud (strings) a numeros para Leaflet
         const lat = parseFloat(sede.latitud);
         const lng = parseFloat(sede.longitud);
 
-        // Comprobamos que las coordenadas son válidas (no NaN)
         if (!isNaN(lat) && !isNaN(lng)) {
-          // Creamos un icono personalizado para el marcador usando la imagen importada
           const icono = L.icon({
-            iconUrl: markerUrl,       // URL del icono importado
-            iconSize: [32, 32],       // Tamaño del icono (ancho x alto)
-            iconAnchor: [16, 32],     // Punto del icono que se sitúa en la coordenada (centrado abajo)
-            popupAnchor: [0, -30]     // Punto desde el icono donde se abrirá el popup
+            iconUrl: markerUrl,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -30]
           });
 
-          // Añadimos el marcador con el icono en las coordenadas dadas
           L.marker([lat, lng], { icon: icono })
-            .addTo(mapa)  // Lo añadimos al mapa
-            // Creamos el popup con HTML personalizado para mostrar información y un botón
+            .addTo(mapa)
             .bindPopup(`
               <div class="popup-content" style="width: 250px;">
                 <div class="popup-title">${sede.direccion}, ${sede.ciudad}</div>
                 <div class="popup-text">${sede.pais}, ${sede.codigoPostal}</div>
                 <div class="popup-subtext">Planta: ${sede.planta}</div>
-                <button class="popup-button" data-id="${sede.idSede}">
+                <a href="#" class="popup-button" data-id="${sede.idSede}">
                   Seleccionar sede
-                </button>
+                </a>
               </div>
             `);
         }
       });
 
-      // Añadimos un listener global para detectar clicks en botones de los popups
       document.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
-        // Si el elemento clickeado es un botón con clase sigue
         if (target && target.classList.contains('popup-button')) {
-          // Obtenemos el id almacenado en el atributo data-id
+          event.preventDefault();
           const id = target.getAttribute('data-id');
           if (id) {
-            // Guardamos la sede seleccionada en el store, convirtiendo a número
             store.sedeSeleccionadaId.value = Number(id);
-            // Para debug, mostramos en consola la sede seleccionada
-            console.log('Sede seleccionada ID:', store.sedeSeleccionadaId.value);
+            router.push('/sedes/salas');
           }
         }
       });
     };
 
-    // Cuando el componente se monta, obtenemos las coordenadas y luego inicializamos el mapa
     onMounted(async () => {
       await store.obtenerCoordenadas();
       inicializarMapa();
     });
 
-    // Retornamos la variable reactiva para poder usarla en el template
     return {
       sedeSeleccionadaId: store.sedeSeleccionadaId
     };
   },
 });
+
+
+
+
 </script>
 
 
@@ -203,8 +191,9 @@ h1 {
 
 }
 
-
-button.popup-button {
+button.popup-button,
+a.popup-button {
+  display: inline-block;
   width: 100%;
   padding: 10px 0;
   background-color: #1976d2;
@@ -217,13 +206,16 @@ button.popup-button {
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   text-align: center;
   box-shadow: 0 2px 6px rgba(25, 118, 210, 0.4);
+  text-decoration: none;
+  user-select: none;
+}
 
-  &:hover {
-    background-color: white;
-    color: #1976d2;
-    border-color: #1976d2;
-    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.6);
-  }
+button.popup-button:hover,
+a.popup-button:hover {
+  background-color: white;
+  color: #1976d2;
+  border-color: #1976d2;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.6);
 }
 
 
