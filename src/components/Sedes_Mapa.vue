@@ -11,10 +11,10 @@
 </template>
 
 <script lang="ts">
-
 import { defineComponent, onMounted } from 'vue';
 import { useMapaStore } from '../store/mapaStore';
-import { useRouter } from 'vue-router';  // Importamos router
+import { useRouter } from 'vue-router';
+import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerUrl from '../imgs/icons/marker.png';
@@ -24,16 +24,17 @@ export default defineComponent({
   setup() {
     const store = useMapaStore();
     const router = useRouter();
+    const sedeSeleccionadaStore = useSedeSeleccionadaStore();
 
     const inicializarMapa = () => {
       const mapa = L.map('mapa', {
         center: [40.4168, -3.7038],
         zoom: 6,
-        zoomControl: false
+        zoomControl: false,
       });
 
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
+        attribution: '© OpenStreetMap',
       }).addTo(mapa);
 
       store.coordenadas.value.forEach((sede) => {
@@ -45,7 +46,7 @@ export default defineComponent({
             iconUrl: markerUrl,
             iconSize: [32, 32],
             iconAnchor: [16, 32],
-            popupAnchor: [0, -30]
+            popupAnchor: [0, -30],
           });
 
           L.marker([lat, lng], { icon: icono })
@@ -69,7 +70,8 @@ export default defineComponent({
           event.preventDefault();
           const id = target.getAttribute('data-id');
           if (id) {
-            store.sedeSeleccionadaId.value = Number(id);
+            console.log('Sede seleccionada desde mapa:', id);
+            sedeSeleccionadaStore.setId(Number(id));
             router.push('/sedes/salas');
           }
         }
@@ -82,14 +84,10 @@ export default defineComponent({
     });
 
     return {
-      sedeSeleccionadaId: store.sedeSeleccionadaId
+      sedeSeleccionadaId: store.sedeSeleccionadaId,
     };
   },
 });
-
-
-
-
 </script>
 
 
@@ -186,9 +184,6 @@ h1 {
     color: #666;
     margin-bottom: 14px;
   }
-
-
-
 }
 
 button.popup-button,
@@ -217,8 +212,6 @@ a.popup-button:hover {
   border-color: #1976d2;
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.6);
 }
-
-
 
 .leaflet-control-zoom.leaflet-bar.leaflet-control {
   display: none !important;
