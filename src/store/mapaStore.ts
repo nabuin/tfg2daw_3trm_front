@@ -19,13 +19,23 @@ export function useMapaStore() {
 
   const obtenerCoordenadas = async () => {
     try {
-      const res = await fetch('https://localhost:7179/api/Sedes');
-      if (!res.ok) throw new Error('Error en la solicitud');
-      coordenadas.value = await res.json();
+      const response = await fetch('https://localhost:7179/api/Sedes');
+      if (!response.ok) {
+        throw new Error('Error en la solicitud');
+      }
+      const data = await response.json();
+  
+      if (Array.isArray(data.$values)) { //comprueba que lo que devuelve es valido o no
+        coordenadas.value = data.$values; //Si lo es, le damos su valor a coordenadas.value
+      } else { // Si no
+        coordenadas.value = []; //Hacemos como que no existe
+      }
     } catch (error) {
       console.error('Error al obtener sedes:', error);
+      coordenadas.value = [];
     }
   };
+  
 
   return { coordenadas, obtenerCoordenadas, sedeSeleccionadaId };
 }
