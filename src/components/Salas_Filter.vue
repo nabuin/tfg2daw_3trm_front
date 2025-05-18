@@ -2,30 +2,33 @@
   <div>
     <div class="form-width">
       <form @submit.prevent="buscarSalas" class="filtro-form">
+        <!-- Fecha Inicio -->
         <div class="form-group">
-          <label for="fechaInicio" class="form-label">Fecha Inicio (dd/mm/aaaa):</label>
+          <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
           <input
             type="date"
             id="fechaInicio"
             v-model="fechaInicio"
             required
-            :max="fechaFin || null"
+            :min="hoyStr"
             class="form-input form-input-date"
           />
         </div>
 
+        <!-- Fecha Fin -->
         <div class="form-group">
-          <label for="fechaFin" class="form-label">Fecha Fin (dd/mm/aaaa):</label>
+          <label for="fechaFin" class="form-label">Fecha Fin:</label>
           <input
             type="date"
             id="fechaFin"
             v-model="fechaFin"
             required
-            :min="fechaInicio || null"
+            :min="fechaInicio"
             class="form-input form-input-date"
           />
         </div>
 
+        <!-- Hora Inicio -->
         <div class="form-group">
           <label for="horaInicio" class="form-label">Hora Inicio:</label>
           <select
@@ -35,7 +38,9 @@
             class="form-input form-select"
           >
             <option disabled value="">Selecciona hora</option>
-            <option v-for="hora in horas" :key="hora" :value="hora">{{ hora }}</option>
+            <option v-for="hora in horas" :key="hora" :value="hora">
+              {{ hora }}
+            </option>
           </select>
         </div>
 
@@ -48,7 +53,9 @@
             class="form-input form-select"
           >
             <option disabled value="">Selecciona hora</option>
-            <option v-for="hora in horas" :key="hora" :value="hora">{{ hora }}</option>
+            <option v-for="hora in horasFin" :key="hora" :value="hora">
+              {{ hora }}
+            </option>
           </select>
         </div>
 
@@ -58,97 +65,113 @@
       </form>
     </div>
 
-
     <ul v-if="salasDisponibles.length > 0">
       <li v-for="sala in salasDisponibles" :key="sala.idSala">
         {{ sala.nombre }} - Capacidad: {{ sala.capacidad }}
       </li>
     </ul>
+
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
 import { useSalasStore } from '../store/salasStore';
 import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
 
 export default defineComponent({
   setup() {
     const { salasDisponibles, error, loading, obtenerSalasDisponibles } = useSalasStore();
-    const sedeSeleccionadaStore = useSedeSeleccionadaStore(); // store con el id de la sede elegida
+    const { id: sedeId } = useSedeSeleccionadaStore();
 
-    // Datos para el filtro de fechas y horas
+    // Fecha de hoy en formato YYYY-MM-DD
     const hoy = new Date();
     const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth() + 1).padStart(2, "0");
-    const dd = String(hoy.getDate()).padStart(2, "0");
-    const hoyStr = `${yyyy}-${mm}-${dd}`; // fecha actual con el formato que acepta la api
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    const hoyStr = `${yyyy}-${mm}-${dd}`;
 
-    const fechaInicio = ref(hoyStr); // datos por default, el dia de hoy
-    const fechaFin = ref(hoyStr);  // datos por default, el dia de hoy
-    const horaInicio = ref(""); // hora de inicio seleccionada, inicializada en null
-    const horaFin = ref(""); // hora de fin seleccionada, inicializada en null
-    const horas = ref([]);
+    // Modelos reactivos de fecha y hora
+    const fechaInicio = ref(hoyStr);
+    const fechaFin = ref(hoyStr);
 
-    // crear horas dinánicamente
- const generarHoras = () => {
-  const horasArray = []; // Array donde se guardarán las horas
-  for (let h = 8; h < 19; h++) { // desde 08 hasta 19, que son los tramos horarios definidos en la bbdd
-    const hh = String(h).padStart(2, "0"); // Convierte a string con dos digidos y el 0 primero si es solo 1, ejemplo: si es 3 será 03, si es 12 seguirá siendo 12
-    horasArray.push(`${hh}:00`); // Solo agrega horas exactas, ya que los tramos horarios predefinidos son de horas puntas
-  }
-
-      horas.value = horasArray;
+    const horas = ref<string[]>([]);
+    const generarHoras = () => {
+      const arr: string[] = [];
+      for (let h = 8; h <= 19; h++) {
+        const hh = String(h).padStart(2, '0');
+        arr.push(`${hh}:00`);
+      }
+      horas.value = arr;
     };
-
-    // Inicializar las horas
     generarHoras();
 
+    // Valores por defecto de las horas
+    const horaInicio = ref(horas.value[0]);
+    const horaFin = ref(horas.value[horas.value.length - 1]);
+
+    // Opciones dinámicas para horaFin cuando es el mismo día
+    const horasFin = computed(() => {
+      if (fechaInicio.value === fechaFin.value && horaInicio.value) {
+        return horas.value.filter(h => h > horaInicio.value);
+      }
+      return horas.value;
+    });
+
+    // Si cambia fecha/hora y horaFin ya no es válida, la reseteamos
+    watch(
+      [fechaInicio, fechaFin, horaInicio],
+      () => {
+        if (
+          fechaInicio.value === fechaFin.value &&
+          horaFin.value &&
+          horaFin.value <= horaInicio.value
+        ) {
+          horaFin.value = horasFin.value[horasFin.value.length - 1] || '';
+        }
+      }
+    );
+
     const buscarSalas = async () => {
-      // Validar que la fecha inicio no sea posterior a la final
       if (fechaFin.value < fechaInicio.value) {
-        alert("La fecha fin no puede ser anterior a la fecha inicio.");
+        alert('La fecha fin no puede ser anterior a la fecha inicio.');
         return;
       }
-      // si es el mismo dia la fecha de inicio y fin, se validan que la hora de comienzo sea menor q la de fin
-      if (fechaInicio.value === fechaFin.value && horaFin.value <= horaInicio.value) {
-        alert(
-          "Si la fecha inicio y fecha fin son iguales, la hora fin debe ser mayor que la hora inicio."
-        );
+      if (
+        fechaInicio.value === fechaFin.value &&
+        horaFin.value <= horaInicio.value
+      ) {
+        alert('Si fecha inicio y fin son iguales, la hora fin debe ser mayor.');
         return;
       }
 
-      // Llamar a la funcion del store con los datos escogidos en la web
       await obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
         fechaFin: fechaFin.value,
         horaInicio: horaInicio.value,
-        horaFin: horaFin.value
+        horaFin: horaFin.value,
+        sedeId
       });
-
-      console.log('Salas cargadas:', salasDisponibles.value); // debug
     };
 
-    const idSeleccionada = computed(() => sedeSeleccionadaStore.id); // obtener el id de la sede de su store
-
-      // return de toda la data necesaria
     return {
       salasDisponibles,
       error,
       loading,
       buscarSalas,
-      idSeleccionada,
       fechaInicio,
       fechaFin,
       horaInicio,
       horaFin,
-      horas
+      horas,
+      horasFin,
+      hoyStr
     };
-  },
+  }
 });
 </script>
 
-  <style scoped lang="scss">
+<style scoped lang="scss">
 .form-width {
   display: flex;
   background-color: black;
@@ -231,5 +254,4 @@ export default defineComponent({
     }
   }
 }
-
-  </style>
+</style>

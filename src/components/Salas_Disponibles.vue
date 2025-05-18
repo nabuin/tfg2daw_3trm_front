@@ -4,7 +4,7 @@
     <div v-if="loading">Cargando...</div>
     <div v-if="error" style="color: red;">{{ error }}</div>
     <div v-if="!loading && salasDisponibles.length === 0 && !error">
-      No hay salas disponibles para esa búsqueda.
+      No hay salas disponibles para esa búsqueda. aaaa
     </div>
 
     <div v-if="salasDisponibles.length > 0">
