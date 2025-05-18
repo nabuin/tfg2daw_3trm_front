@@ -25,7 +25,8 @@
             :key="slot.idTramoHorario"
             :class="{
               'tramo-slot': true,
-              'unavailable': !slot.estado // Clase para tramos no disponibles
+              'unavailable': !slot.estado, 
+              'selected': isSlotSelected(puesto.idPuestoTrabajo, slot.idTramoHorario)
             }"
             @click="handleSlotClick(puesto, slot)"
           >
@@ -35,7 +36,43 @@
         </div>
       </div>
 
+      <!-- Sección de Resumen y Botón de Compra -->
+      <div class="resumen-section" v-if="selectedSlots.length > 0">
+        <h3>Resumen de Selección</h3>
+        <p>Has seleccionado {{ selectedSlots.length }} tramo(s) horario(s)</p>
+        <div class="selected-items">
+          <div 
+            v-for="(slot, index) in selectedSlots" 
+            :key="index" 
+            class="selected-item"
+          >
+            Puesto: {{ slot.idPuestoTrabajo }}, Horario: {{ slot.horaInicio.substring(0, 5) }}
+            <button @click="removeSlot(index)" class="remove-button">X</button>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button 
+            @click="resetSelection" 
+            class="cancel-button" 
+            :disabled="isReserving"
+          >
+            Cancelar
+          </button>
+          <button 
+            @click="handleSubmit" 
+            class="submit-button" 
+            :disabled="isReserving || selectedSlots.length === 0"
+          >
+            {{ isReserving ? 'Procesando...' : 'Confirmar Reserva' }}
+          </button>
+        </div>
+        
+        <!-- condicional si se efectua bien o si da un error como el 409 si algo ya esta seleccionado -->
+        <p v-if="reservationSuccess" class="success-message">{{ reservationSuccess }}</p>
+        <p v-if="reservationError" class="error-message">{{ reservationError }}</p>
       </div>
+    </div>
   </div>
 </template>
 
@@ -43,7 +80,8 @@
 import { defineComponent, onMounted, watch } from 'vue';
 import { usePuestosStore } from '../store/asientosStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore'; 
-import { useFiltrosStore } from '../store/filtrosStore'; 
+import { useFiltrosStore } from '../store/filtrosStore';
+import { useReservasStore } from '../store/reservasStore';
 
 import { storeToRefs } from 'pinia';
 
@@ -52,16 +90,25 @@ export default defineComponent({
     const puestosStore = usePuestosStore();
     const salaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
+    const reservasStore = useReservasStore();
+
+    // Obtener los estados del store de reservas
+    const { 
+      selectedSlots, 
+      isReserving,
+      reservationError,
+      reservationSuccess,
+      isSlotSelected 
+    } = storeToRefs(reservasStore);
 
     onMounted(() => {
-   
-       if (salaStore.id !== null) {
-       }
+      if (salaStore.id !== null) {
+        puestosStore.obtenerPuestosDisponibles();
+      }
     });
 
     watch(
       () => [
-        // Watch filters to reload seats
         salaStore.id,
         filtrosStore.fechaInicio,
         filtrosStore.fechaFin,
@@ -69,43 +116,64 @@ export default defineComponent({
         filtrosStore.horaFin,
       ],
       () => {
-        // Reload seats when filters change, if a room is selected
         if (salaStore.id !== null) {
           puestosStore.obtenerPuestosDisponibles();
         } else {
-           // Clear the list if the room becomes null
-           puestosStore.puestosDisponibles = [];
+          puestosStore.puestosDisponibles = [];
         }
       },
-      { immediate: true } // Initial load when component mounts AND when filters change for the first time
+      { immediate: true }
     );
 
-    // ** Function to handle clicking a time slot **
+    // Función para manejar los clics en los tramos horarios
     const handleSlotClick = (puesto: any, slot: any) => {
-      // This function is now simplified - no reservation store logic
-      if (slot.estado) {
-        console.log(`Clicked available slot: Puesto ID ${puesto.idPuestoTrabajo}, Tramo ID ${slot.idTramoHorario}`);
-        // Add basic click feedback or logging here
-      } else {
-        console.log(`Clicked unavailable slot: Puesto ID ${puesto.idPuestoTrabajo}, Tramo ID ${slot.idTramoHorario}`);
-        // Add basic feedback for unavailable slots
+      if (!slot.estado) {
+        console.warn("Tramo no disponible");
+        return;
       }
+      
+      // Usa la función del store para gestionar la selección
+      reservasStore.toggleSlotSelection(puesto, slot);
     };
 
+    // funcion eliminar un tramo clickado
+    const removeSlot = (index: number) => {
+      selectedSlots.value.splice(index, 1);
+    };
+
+    // Funcion para cuando se le de a comprar
+    const handleSubmit = () => {
+      // ID de usuario fijo como 1
+      const userId = 1;
+      const description = "Reserva";
+      
+      // Llamar a la función de creación de reserva
+      reservasStore.createReservation(userId, description);
+    };
 
     return {
-      // From puestosStore:
-      ...storeToRefs(puestosStore), // Exposes puestosDisponibles, loading, error reactively
-
+      // De puestosStore
+      ...storeToRefs(puestosStore),
+      
+      // De reservasStore
+      selectedSlots,
+      isReserving,
+      reservationError,
+      reservationSuccess,
+      isSlotSelected,
+      
+      // Funciones
       handleSlotClick,
-
+      removeSlot,
+      handleSubmit,
+      resetSelection: reservasStore.resetSelection,
     };
   },
 });
 </script>
 
 <style scoped>
-/* Estilos super simples como pediste */
+/* Estilos para los puestos y tramos */
 .puesto-card {
   border: 1px solid #ccc;
   padding: 10px;
@@ -115,21 +183,21 @@ export default defineComponent({
 }
 
 .puesto-card h4 {
-    margin-top: 0;
-    color: #333;
+  margin-top: 0;
+  color: #333;
 }
 
 .puesto-imagen {
-    max-width: 80px; /* Tamaño pequeño para la imagen */
-    height: auto;
-    margin-bottom: 10px;
-    border-radius: 3px;
+  max-width: 80px;
+  height: auto;
+  margin-bottom: 10px;
+  border-radius: 3px;
 }
 
 .tramos-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px; /* Espacio entre los tramos */
+  gap: 6px;
   margin-top: 8px;
 }
 
@@ -142,9 +210,8 @@ export default defineComponent({
   transition: background-color 0.15s ease;
 }
 
-
 .tramo-slot:hover:not(.unavailable) {
-    background-color: #eee;
+  background-color: #eee;
 }
 
 /* Estilo para tramos no disponibles */
@@ -153,8 +220,103 @@ export default defineComponent({
   color: #888;
   border-color: #bbb;
   cursor: not-allowed;
-  text-decoration: line-through; /* Indica visualmente que no está disponible */
+  text-decoration: line-through;
 }
 
+/* Estilo para tramos seleccionados */
+.tramo-slot.selected {
+  background-color: #d4f0fd;
+  border-color: #2196F3;
+  color: #0d47a1;
+  font-weight: bold;
+}
 
+/* Estilos para la sección de resumen */
+.resumen-section {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f5f5f5;
+}
+
+.resumen-section h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.selected-items {
+  margin: 10px 0;
+}
+
+.selected-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 5px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+.remove-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.submit-button, .cancel-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+}
+
+.submit-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.success-message {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-left: 4px solid #4caf50;
+}
+
+.error-message {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #f44336;
+}
 </style>
