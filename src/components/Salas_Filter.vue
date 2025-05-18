@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-width">
-      <form @submit.prevent="buscarSalas" class="filtro-form">
+      <form @submit.prevent="filtrar" class="filtro-form">
         <div class="form-group">
           <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
           <input
@@ -9,7 +9,7 @@
             id="fechaInicio"
             v-model="fechaInicio"
             required
-            :min="hoyStr"
+            :min="fechaMinima"
             class="form-input form-input-date"
           />
         </div>
@@ -67,69 +67,64 @@
         {{ sala.nombre }} - Capacidad: {{ sala.capacidad }}
       </li>
     </ul>
-
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, computed, watch, onMounted } from 'vue';
 import { useSalasStore } from '../store/salasStore';
-import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
+import { useFiltrosStore } from '../store/filtrosStore';
 
 export default defineComponent({
   setup() {
-    const { salasDisponibles, error, loading, obtenerSalasDisponibles } = useSalasStore();
-    const { id: sedeId } = useSedeSeleccionadaStore();
+    const salasStore = useSalasStore();
+    const filtrosStore = useFiltrosStore();
 
-    // Fecha de hoy en formato YYYY-MM-DD
     const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dd = String(hoy.getDate()).padStart(2, '0');
-    const hoyStr = `${yyyy}-${mm}-${dd}`;
+    const manana = new Date(hoy);
+    manana.setDate(manana.getDate() + 1);
 
-    // Modelos reactivos de fecha y hora
-    const fechaInicio = ref(hoyStr);
-    const fechaFin = ref(hoyStr);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const yyyy = manana.getFullYear();
+    const mm = pad(manana.getMonth() + 1);
+    const dd = pad(manana.getDate());
+    const mananaStr = `${yyyy}-${mm}-${dd}`;
+
+    const fechaMinima = mananaStr;
+
+    const fechaInicio = ref(mananaStr);
+    const fechaFin    = ref(mananaStr);
 
     const horas = ref<string[]>([]);
     const generarHoras = () => {
       const arr: string[] = [];
       for (let h = 8; h <= 19; h++) {
-        const hh = String(h).padStart(2, '0');
-        arr.push(`${hh}:00`);
+        arr.push(`${pad(h)}:00`);
       }
       horas.value = arr;
     };
     generarHoras();
 
-    // Valores por defecto de las horas
-    const horaInicio = ref(horas.value[0]);
-    const horaFin = ref(horas.value[horas.value.length - 1]);
+    const horaInicio = ref('08:00');
+    const horaFin    = ref('19:00');
 
-    // Opciones dinámicas para horaFin cuando es el mismo día
     const horasFin = computed(() => {
-      if (fechaInicio.value === fechaFin.value && horaInicio.value) {
+      if (fechaInicio.value === fechaFin.value) {
         return horas.value.filter(h => h > horaInicio.value);
       }
       return horas.value;
     });
 
-    // Si cambia fecha/hora y horaFin ya no es válida, la reseteamos
-    watch(
-      [fechaInicio, fechaFin, horaInicio],
-      () => {
-        if (
-          fechaInicio.value === fechaFin.value &&
-          horaFin.value &&
-          horaFin.value <= horaInicio.value
-        ) {
-          horaFin.value = horasFin.value[horasFin.value.length - 1] || '';
-        }
+    watch([fechaInicio, fechaFin, horaInicio], () => {
+      if (
+        fechaInicio.value === fechaFin.value &&
+        horaFin.value <= horaInicio.value
+      ) {
+        horaFin.value = horasFin.value[horasFin.value.length - 1] || '';
       }
-    );
+    });
 
-    const buscarSalas = async () => {
+    const filtrar = async () => {
       if (fechaFin.value < fechaInicio.value) {
         alert('La fecha fin no puede ser anterior a la fecha inicio.');
         return;
@@ -142,29 +137,37 @@ export default defineComponent({
         return;
       }
 
-      await obtenerSalasDisponibles({
+      filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
-        fechaFin: fechaFin.value,
-        horaInicio: horaInicio.value,
-        horaFin: horaFin.value,
-        sedeId
+        fechaFin:    fechaFin.value,
+        horaInicio:  horaInicio.value,
+        horaFin:     horaFin.value,
+      });
+
+      await salasStore.obtenerSalasDisponibles({
+        fechaInicio: fechaInicio.value,
+        fechaFin:    fechaFin.value,
+        horaInicio:  horaInicio.value,
+        horaFin:     horaFin.value,
       });
     };
 
+    onMounted(() => {
+      filtrar();
+    });
+
     return {
-      salasDisponibles,
-      error,
-      loading,
-      buscarSalas,
+      fechaMinima,
       fechaInicio,
       fechaFin,
       horaInicio,
       horaFin,
       horas,
       horasFin,
-      hoyStr
+      filtrar,
+      salasDisponibles: salasStore.salasDisponibles,
     };
-  }
+  },
 });
 </script>
 

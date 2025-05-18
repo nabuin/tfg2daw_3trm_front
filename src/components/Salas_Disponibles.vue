@@ -1,22 +1,21 @@
 <template>
   <div>
-
     <div v-if="loading">Cargando...</div>
     <div v-if="error" style="color: red;">{{ error }}</div>
     <div v-if="!loading && salasDisponibles.length === 0 && !error">
-      No hay salas disponibles para esa búsqueda. aaaa
+      No hay salas disponibles para esa búsqueda.
     </div>
-
     <div v-if="salasDisponibles.length > 0">
       <div class="salas-lista">
-        <button
+        <router-link
           v-for="sala in salasDisponibles"
           :key="sala.idSala"
           class="sala-button"
+          to="/sedes/salas/puestos"
           @click="seleccionarSala(sala)"
         >
           {{ sala.nombre }} – Capacidad: {{ sala.capacidad }}
-        </button>
+        </router-link>
       </div>
     </div>
   </div>
@@ -26,33 +25,27 @@
 import { defineComponent, computed, onMounted, watch } from 'vue';
 import { useSalasStore } from '../store/salasStore';
 import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
+import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 
 export default defineComponent({
   setup() {
     const { salasDisponibles, error, loading, obtenerSalasDisponibles } = useSalasStore();
     const sedeSeleccionadaStore = useSedeSeleccionadaStore();
+    const salaSeleccionadaStore = useSalaSeleccionadaStore();
 
     const buscarSalas = async () => {
       await obtenerSalasDisponibles();
-      console.log('Salas cargadas:', salasDisponibles.value);
     };
 
     const seleccionarSala = (sala: { idSala: number; nombre: string; capacidad: number }) => {
-      console.log('Sala seleccionada:', sala);
-      // Aquí puedes emitir un evento o llamar a otra acción del store
+      salaSeleccionadaStore.setId(sala.idSala);
     };
 
-    const idSeleccionada = computed(() => sedeSeleccionadaStore.id);
+    const idSede = computed(() => sedeSeleccionadaStore.id);
 
-    const resetId = () => {
-      sedeSeleccionadaStore.reset();
-    };
+    onMounted(buscarSalas);
 
-    onMounted(() => {
-      buscarSalas();
-    });
-
-    watch(idSeleccionada, (newId, oldId) => {
+    watch(idSede, (newId, oldId) => {
       if (newId !== oldId) {
         buscarSalas();
       }
@@ -62,10 +55,7 @@ export default defineComponent({
       salasDisponibles,
       error,
       loading,
-      buscarSalas,
-      seleccionarSala,
-      idSeleccionada,
-      resetId,
+      seleccionarSala
     };
   },
 });
@@ -83,6 +73,8 @@ export default defineComponent({
   border: 1px solid #ccc;
   border-radius: 4px;
   background: white;
+  text-decoration: none;
+  color: inherit;
   cursor: pointer;
 }
 
