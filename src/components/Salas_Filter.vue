@@ -2,7 +2,6 @@
   <div>
     <div class="form-width">
       <form @submit.prevent="buscarSalas" class="filtro-form">
-        <!-- Fecha Inicio -->
         <div class="form-group">
           <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
           <input
@@ -15,7 +14,6 @@
           />
         </div>
 
-        <!-- Fecha Fin -->
         <div class="form-group">
           <label for="fechaFin" class="form-label">Fecha Fin:</label>
           <input
@@ -28,7 +26,6 @@
           />
         </div>
 
-        <!-- Hora Inicio -->
         <div class="form-group">
           <label for="horaInicio" class="form-label">Hora Inicio:</label>
           <select
