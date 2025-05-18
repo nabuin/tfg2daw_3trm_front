@@ -13,7 +13,7 @@
             class="form-input form-input-date"
           />
         </div>
-    
+
         <div class="form-group">
           <label for="fechaFin" class="form-label">Fecha Fin (dd/mm/aaaa):</label>
           <input
@@ -25,7 +25,7 @@
             class="form-input form-input-date"
           />
         </div>
-    
+
         <div class="form-group">
           <label for="horaInicio" class="form-label">Hora Inicio:</label>
           <select
@@ -38,7 +38,7 @@
             <option v-for="hora in horas" :key="hora" :value="hora">{{ hora }}</option>
           </select>
         </div>
-    
+
         <div class="form-group">
           <label for="horaFin" class="form-label">Hora Fin:</label>
           <select
@@ -51,21 +51,14 @@
             <option v-for="hora in horas" :key="hora" :value="hora">{{ hora }}</option>
           </select>
         </div>
-    
+
         <div class="form-group form-group-button">
           <button type="submit" class="btn btn-primary">Filtrar</button>
         </div>
       </form>
     </div>
 
-    <p>ID Sede actual: {{ idSeleccionada }}</p>
-    
-    <div v-if="loading">Cargando...</div>
-    <div v-if="error" style="color: red;">{{ error }}</div>
-    <div v-if="!loading && salasDisponibles.length === 0 && !error">
-      No hay salas disponibles para esa búsqueda.
-    </div>
-    
+
     <ul v-if="salasDisponibles.length > 0">
       <li v-for="sala in salasDisponibles" :key="sala.idSala">
         {{ sala.nombre }} - Capacidad: {{ sala.capacidad }}
@@ -83,7 +76,7 @@ export default defineComponent({
   setup() {
     const { salasDisponibles, error, loading, obtenerSalasDisponibles } = useSalasStore();
     const sedeSeleccionadaStore = useSedeSeleccionadaStore(); // store con el id de la sede elegida
-    
+
     // Datos para el filtro de fechas y horas
     const hoy = new Date();
     const yyyy = hoy.getFullYear();
@@ -96,7 +89,7 @@ export default defineComponent({
     const horaInicio = ref(""); // hora de inicio seleccionada, inicializada en null
     const horaFin = ref(""); // hora de fin seleccionada, inicializada en null
     const horas = ref([]);
-    
+
     // crear horas dinánicamente
  const generarHoras = () => {
   const horasArray = []; // Array donde se guardarán las horas
@@ -107,10 +100,10 @@ export default defineComponent({
 
       horas.value = horasArray;
     };
-    
+
     // Inicializar las horas
     generarHoras();
-    
+
     const buscarSalas = async () => {
       // Validar que la fecha inicio no sea posterior a la final
       if (fechaFin.value < fechaInicio.value) {
@@ -124,7 +117,7 @@ export default defineComponent({
         );
         return;
       }
-      
+
       // Llamar a la funcion del store con los datos escogidos en la web
       await obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
@@ -132,7 +125,7 @@ export default defineComponent({
         horaInicio: horaInicio.value,
         horaFin: horaFin.value
       });
-      
+
       console.log('Salas cargadas:', salasDisponibles.value); // debug
     };
 
@@ -154,7 +147,7 @@ export default defineComponent({
   },
 });
 </script>
-  
+
   <style scoped lang="scss">
 .form-width {
   display: flex;
@@ -240,4 +233,3 @@ export default defineComponent({
 }
 
   </style>
-  
