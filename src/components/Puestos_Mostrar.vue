@@ -20,8 +20,9 @@
         <p>ID Puesto: {{ puesto.idPuestoTrabajo }}</p>
         <h5>Tramos Horarios:</h5>
         <div class="tramos-container">
+          <!-- iterar los tramos y manejarlos-->
           <div
-            v-for="slot in puesto.disponibilidadesEnRango"
+            v-for="slot in puesto.disponibilidadesEnRango" 
             :key="slot.idTramoHorario"
             :class="{
               'tramo-slot': true,
@@ -30,7 +31,7 @@
             }"
             @click="handleSlotClick(puesto, slot)"
           >
-            {{ slot.horaInicio.substring(0, 5) }} - {{ slot.horaFin.substring(0, 5) }}
+            {{ slot.horaInicio.substring(0, 5) }} - {{ slot.horaFin.substring(0, 5) }}  <!-- substring para obtener las horas sin decimales extra y solo ej 10:00-->
             <span v-if="!slot.estado">(No Disp.)</span>
           </div>
         </div>
@@ -100,13 +101,14 @@ export default defineComponent({
       reservationSuccess,
       isSlotSelected 
     } = storeToRefs(reservasStore);
-
+    // funcion para cargar los asientos si hay ID sala
     onMounted(() => {
       if (salaStore.id !== null) {
-        puestosStore.obtenerPuestosDisponibles();
+        puestosStore.obtenerPuestosDisponibles(); // para sacar
       }
     });
 
+    // recargar puestos disponibles al cambiar los filtros
     watch(
       () => [
         salaStore.id,
@@ -122,7 +124,7 @@ export default defineComponent({
           puestosStore.puestosDisponibles = [];
         }
       },
-      { immediate: true }
+      { immediate: true } // ejecutarlo al inicio
     );
 
     // Función para manejar los clics en los tramos horarios
@@ -145,7 +147,7 @@ export default defineComponent({
     const handleSubmit = () => {
       // ID de usuario fijo como 1
       const userId = 1;
-      const description = "Reserva";
+      const description = "Reserva"; // descripcion por defecto
       
       // Llamar a la función de creación de reserva
       reservasStore.createReservation(userId, description);

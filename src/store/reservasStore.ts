@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useFiltrosStore } from './filtrosStore'; 
 
+// interfaz datos que se mandaran por linea
 interface SelectedSlot {
   idPuestoTrabajo: number;
   idTramoHorario: number;
@@ -9,26 +10,29 @@ interface SelectedSlot {
 }
 
 export const useReservasStore = defineStore('reservas', () => {
-  const selectedSlots = ref<SelectedSlot[]>([]);
-  const isReserving = ref(false);
-  const reservationError = ref<string | null>(null);
-  const reservationSuccess = ref<string | null>(null);
+  const selectedSlots = ref<SelectedSlot[]>([]); // array para almacenar los tramos horarios elegidos
+  const isReserving = ref(false); // si es proceso de reserva esta en curso o no
+  const reservationError = ref<string | null>(null); // almacenar errores
+  const reservationSuccess = ref<string | null>(null); // almacenar mensajes de exito
 
+  // store de filtros para obtener los filtros de hora y fecha
   const filtrosStore = useFiltrosStore();
 
+  // funcion flecha para obtener los tramos elegidos formateado para mandar a la API
   const getReservationLines = computed(() => {
-    return selectedSlots.value.map(slot => ({
+    return selectedSlots.value.map(slot => ({ // value map recorre los valores del array de selectedSlots, como si fuera un forEach, preparando todos los valores elegidos 
       idPuestoTrabajo: slot.idPuestoTrabajo,
       idTramoHorario: slot.idTramoHorario,
     }));
   });
-
+// comprobar seleccionados
   const isSlotSelected = computed(() => (puestoId: number, tramoId: number) => {
-    return selectedSlots.value.some(
+    return selectedSlots.value.some( // value.some comprueba si el array no es nulo
       slot => slot.idPuestoTrabajo === puestoId && slot.idTramoHorario === tramoId
     );
   });
 
+  // funcion para obtener la fecha y hora de la reserva en formato adecuado para mandarlo al POST
    const getReservationDateTime = computed(() => {
         const fecha = filtrosStore.fechaInicio;
         if (!fecha || selectedSlots.value.length === 0) {
@@ -40,15 +44,15 @@ export const useReservasStore = defineStore('reservas', () => {
         return `${fecha}T${time}`;
    });
 
-
+   // funcion para comprobar si el slot esta seleccionado, si esta seleccionado, lo selecciona, sino al reves, lo deselecciona
   function toggleSlotSelection(puesto: any, slot: any) {
     const index = selectedSlots.value.findIndex(
       s => s.idPuestoTrabajo === puesto.idPuestoTrabajo && s.idTramoHorario === slot.idTramoHorario
     );
-
+    // si no se encuentra el tramo del array
     if (index === -1) {
       if (slot.estado) {
-         selectedSlots.value.push({
+         selectedSlots.value.push({ // se añade el tramo al array
            idPuestoTrabajo: puesto.idPuestoTrabajo,
            idTramoHorario: slot.idTramoHorario,
            horaInicio: slot.horaInicio,
@@ -56,15 +60,15 @@ export const useReservasStore = defineStore('reservas', () => {
          reservationError.value = null;
          reservationSuccess.value = null;
       } else {
-        console.warn("Tramo no disponible");
+        console.warn("Tramo no disponible"); // ya esta elegido
       }
-    } else {
-      selectedSlots.value.splice(index, 1);
+    } else { // si se encuentra el tramo en el array, por tanto si fue seleccionado
+      selectedSlots.value.splice(index, 1); // elimina el tramo del array, por lo tanto, lo deselecciona
        reservationError.value = null;
        reservationSuccess.value = null;
     }
   }
-
+  // pone todo en null, los tramos elegidos, los errores y el mensaje de exito
   function resetSelection() {
     selectedSlots.value = [];
     reservationError.value = null;
@@ -78,19 +82,21 @@ export const useReservasStore = defineStore('reservas', () => {
       return;
     }
 
-    isReserving.value = true;
+    isReserving.value = true; // comprobar que haya selecciones
     reservationError.value = null;
     reservationSuccess.value = null;
 
-    const reservationData = {
-      idUsuario: userId,
-      descripcion: description,
+    const reservationData = { // cuerpo de la peticion, tendrá la reserva y sus lineas recorridas ya
+      idUsuario: userId, // por defecto de momento
+      descripcion: description, // por defecto de momento
       fechaReserva: getReservationDateTime.value,
+      /* lineas elegidas */
       lineas: getReservationLines.value,
     };
 
     console.log("Sending reservation data:", JSON.stringify(reservationData, null, 2));
 
+    // peticion a la API con fetch
     try {
       const response = await fetch('https://localhost:7179/api/Reservas/reservacompleta', {
         method: 'POST',
@@ -122,7 +128,7 @@ export const useReservasStore = defineStore('reservas', () => {
       isReserving.value = false;
     }
   }
-
+// para poder acceder a esta info desde el componente que las pinta y usa
   return {
     // State
     selectedSlots,
