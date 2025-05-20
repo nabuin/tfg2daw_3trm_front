@@ -67,12 +67,10 @@ export const useReservasStore = defineStore('reservas', () => {
         isReserving.value = false;
     }
 
-
-    // // almacena los puestos disponibles actuales para que el store de reservas pueda usarlos.
+    // almacena los puestos disponibles actuales para que el store de reservas pueda usarlos.
     function setPuestoDisponibilidades(puestos: any[]) {
         currentPuestoDisponibilidades.value = puestos;
     }
-
 
     async function createReservation(description: string = "Reserva") {
         if (selectedPuestos.value.length === 0) {
@@ -81,7 +79,6 @@ export const useReservasStore = defineStore('reservas', () => {
         }
 
         const userId = userStore.user?.idUsuario;
-
         if (!userId) {
             reservationError.value = "No se pudo obtener la información del usuario. Por favor, inicie sesión.";
             return;
@@ -91,8 +88,9 @@ export const useReservasStore = defineStore('reservas', () => {
         reservationError.value = null;
         reservationSuccess.value = null;
 
-        // hacer las lineas de reserva con todos los tramos de todos los puestos seleccionados
-        const reservationLines: { idPuestoTrabajo: number; idTramoHorario: number; }[] = [];
+        // Construir líneas de reserva con todos los tramos de todos los puestos seleccionados
+        // Se cambió el tipo de idTramoHorario a idDisponibilidad para alinearse con el DTO del backend
+        const reservationLines: { idPuestoTrabajo: number; idDisponibilidad: number; }[] = []; 
         let anyPuestoHasAvailableSlots = false;
 
         for (const selectedPuestoRef of selectedPuestos.value) {
@@ -103,29 +101,33 @@ export const useReservasStore = defineStore('reservas', () => {
             if (puestoCompleto && puestoCompleto.disponibilidadesEnRango) {
                 const tramosDisponiblesParaPuesto = puestoCompleto.disponibilidadesEnRango
                     .filter((slot: any) => slot.estado); // Solo tramos DISPONIBLES
-                
+
                 if (tramosDisponiblesParaPuesto.length > 0) {
-                    anyPuestoHasAvailableSlots = true; // Al menos un puesto seleccionado tiene tramos disponibles
+                    anyPuestoHasAvailableSlots = true;
                     tramosDisponiblesParaPuesto.forEach((slot: any) => {
                         reservationLines.push({
                             idPuestoTrabajo: puestoCompleto.idPuestoTrabajo,
-                            idTramoHorario: slot.idTramoHorario,
+                            idDisponibilidad: slot.idDisponibilidad, // ¡CAMBIO CLAVE AQUÍ!
                         });
                     });
                 }
             }
         }
-        
+
         if (!anyPuestoHasAvailableSlots || reservationLines.length === 0) {
             reservationError.value = "Ninguno de los puestos seleccionados tiene tramos horarios disponibles para la fecha seleccionada.";
             isReserving.value = false;
             return;
         }
 
+        // Obtener la fecha y darle formato para el endpoint
+        const fechaReservaISO = new Date(filtrosStore.fechaInicio).toISOString();
+
         const reservationData = {
             idUsuario: userId,
             descripcion: description,
-            lineas: reservationLines, // Ahora incluye TODOS los tramos de TODOS los puestos seleccionados
+            fechaReserva: fechaReservaISO,
+            lineas: reservationLines,
         };
 
         console.log("Sending reservation data:", JSON.stringify(reservationData, null, 2));
@@ -135,7 +137,6 @@ export const useReservasStore = defineStore('reservas', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // JWT se añadirá mas adelante cuando el endpoint esté protegido
                 },
                 body: JSON.stringify(reservationData),
             });
@@ -144,16 +145,15 @@ export const useReservasStore = defineStore('reservas', () => {
                 let errorDetail = await response.text();
                 try {
                     const errorJson = JSON.parse(errorDetail);
-                    // Si la respuesta es JSON, intenta parsearlo a texto normal sin formato
                     errorDetail = errorJson.message || errorJson.detail || errorDetail;
                 } catch (e) {
-                    // Si no es JSON, usa un texto normal generico
+                    // No es JSON
                 }
                 throw new Error(`Error al crear la reserva: ${response.status} - ${response.statusText}. Detalles: ${errorDetail}`);
             }
 
             reservationSuccess.value = "Reserva realizada con éxito";
-            resetSelection(); // Vacía la selección y los mensajes
+            resetSelection();
         } catch (error: any) {
             console.error("Reservation API error:", error);
             reservationError.value = error.message || "Ocurrió un error al intentar reservar.";
@@ -170,10 +170,10 @@ export const useReservasStore = defineStore('reservas', () => {
         reservationSuccess,
         currentPuestoDisponibilidades,
 
-        // get
+        // Getters
         isPuestoSelected,
 
-        // metodos
+        // Métodos
         togglePuestoSelection,
         resetSelection,
         createReservation,
