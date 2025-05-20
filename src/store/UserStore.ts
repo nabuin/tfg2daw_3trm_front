@@ -5,7 +5,6 @@ interface User {
   nombre: string;
   apellidos: string;
   email: string;
-  contrasenia: string;
   fechaRegistro: string;
   idRol: number;
 }
@@ -45,6 +44,52 @@ export const useUserStore = defineStore("user", {
         await this.fetchUserData(token);
       }
     },
+
+
+
+    async updateUserProfile( // metodo para actualizar el perfil del usuario correo nombre y apellidos
+      idUsuario: number,
+      nombre: string,
+      apellidos: string,
+      email: string,
+      token: string
+    ){
+      const endpoint = `https://localhost:7179/api/Usuarios/${idUsuario}`;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ idUsuario, nombre, apellidos, email }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || "Failed to update user profile."
+          );
+        }
+
+        // acutalizar la info de la store de usuario con la nueva info para no tener que hacer un get completo
+        if (this.user) {
+          this.user.nombre = nombre;
+          this.user.apellidos = apellidos;
+          this.user.email = email;
+        }
+        console.log("Info del usuario actualizada:", this.user); // debug
+      } catch (error) {
+        console.error("Error actualizando info del usuario:", error); // debug
+        throw error;
+      }
+    }
+,
+
+
+
+
 
     deleteUserData() {
       this.user = null; // toda info q haya se vuelve null

@@ -7,9 +7,9 @@ const errorMessage = ref("");
 const successMessage = ref("");
 const currentPassword = ref("");
 const newPassword = ref("");
-const validationErrorMessage = ref(""); // manejo errores
+const validationErrorMessage = ref(""); // errores
 
-// limite de caracteres que admite la bbdd en cada campo
+// limite de chars de cada campo acorde a lo que admite la bbdd
 const CHAR_LIMITS = {
     nombre: 100,
     apellidos: 255,
@@ -19,13 +19,13 @@ const CHAR_LIMITS = {
 // State for editable fields
 const EditarUserInfo = ref(false);
 const InfoUsuarioEditable = ref({
-    nombre: '',
-    apellidos: '',
-    email: ''
+    nombre: "",
+    apellidos: "",
+    email: "",
 });
 
 const darFormatoFecha = (fecha: string): string => {
-    return new Date(fecha).toLocaleDateString('es-ES');
+    return new Date(fecha).toLocaleDateString("es-ES");
 };
 
 const userRole = computed(() => {
@@ -34,7 +34,7 @@ const userRole = computed(() => {
     } else if (userStore.user?.idRol === 2) {
         return "Cliente";
     } else {
-        return "Desconocido"; // no habrá otros roles, pero por si acaso
+        return "Desconocido"; // no hay otros IDs, solo por si acaso
     }
 });
 
@@ -42,7 +42,7 @@ const fetchUserData = async () => {
     const token = localStorage.getItem("authToken");
 
     if (!token) {
-        errorMessage.value = "No has iniciado sesión, ";
+        errorMessage.value = "You are not logged in, ";
         return;
     }
 
@@ -54,7 +54,7 @@ const fetchUserData = async () => {
             InfoUsuarioEditable.value.email = userStore.user.email;
         }
     } catch (error) {
-        errorMessage.value = "Error al obtener datos del usuario.";
+        errorMessage.value = "Error fetching user data.";
         console.error(error);
     }
 };
@@ -64,7 +64,7 @@ onMounted(fetchUserData);
 const changePassword = async () => {
     errorMessage.value = "";
     successMessage.value = "";
-    validationErrorMessage.value = ""; // poner en null cualquier error previo
+    validationErrorMessage.value = ""; // borrar mensajes de error previos
 
     const token = localStorage.getItem("authToken");
 
@@ -74,7 +74,7 @@ const changePassword = async () => {
     }
 
     if (!currentPassword.value || !newPassword.value) {
-        errorMessage.value = "Por favor, completa todos los campos.";
+        errorMessage.value = "Please complete all fields.";
         return;
     }
 
@@ -86,7 +86,7 @@ const changePassword = async () => {
     }
 
     try {
-        const response = await fetch("https://laoficinaapi.retocsv.es/Auth/ChangePassword", {
+        const response = await fetch("https://localhost:7179/Auth/ChangePassword", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -125,31 +125,46 @@ const ComenzarCambioInfo = () => {
     validationErrorMessage.value = "";
 };
 
-const GuadarUserInfo = () => {
+const GuadarUserInfo = async () => {
     validationErrorMessage.value = "";
+    errorMessage.value = ""; // borrar mensajes de error previos
+    successMessage.value = ""; // borrar mensajes de exito previos
 
     if (InfoUsuarioEditable.value.nombre.length > CHAR_LIMITS.nombre) {
-        validationErrorMessage.value = `Nombre no puede tener más de ${CHAR_LIMITS.nombre} caracteres.`;
+        validationErrorMessage.value = `Name cannot exceed ${CHAR_LIMITS.nombre} characters.`;
         return;
     }
     if (InfoUsuarioEditable.value.apellidos.length > CHAR_LIMITS.apellidos) {
-        validationErrorMessage.value = `Apellidos no puede tener más de ${CHAR_LIMITS.apellidos} caracteres.`;
+        validationErrorMessage.value = `Last name cannot exceed ${CHAR_LIMITS.apellidos} characters.`;
         return;
     }
     if (InfoUsuarioEditable.value.email.length > CHAR_LIMITS.email) {
-        validationErrorMessage.value = `Email no puede tener más de ${CHAR_LIMITS.email} caracteres.`;
+        validationErrorMessage.value = `Email cannot exceed ${CHAR_LIMITS.email} characters.`;
         return;
     }
 
-    console.log("Saving user info:", InfoUsuarioEditable.value); // debug
-    EditarUserInfo.value = false; 
-    successMessage.value = "Información del perfil actualizada"; // ejemplo de diseño, todavia no hay una peticion a la api
-    errorMessage.value = "";
+    const token = localStorage.getItem("authToken");
+    const idUsuario = userStore.user?.idUsuario;
 
-    if (userStore.user) {
-        userStore.user.nombre = InfoUsuarioEditable.value.nombre;
-        userStore.user.apellidos = InfoUsuarioEditable.value.apellidos;
-        userStore.user.email = InfoUsuarioEditable.value.email;
+    if (!token || !idUsuario) {
+        errorMessage.value = "No has iniciado sesión.";
+        return;
+    }
+
+    try {
+        await userStore.updateUserProfile(
+            idUsuario,
+            InfoUsuarioEditable.value.nombre,
+            InfoUsuarioEditable.value.apellidos,
+            InfoUsuarioEditable.value.email,
+            token
+        );
+        successMessage.value = "Informacion actualizada";
+        EditarUserInfo.value = false;
+    } catch (error: any) {
+        errorMessage.value =
+            error.message || "Error actualizando la info del perfil";
+        console.error("Error actualizando el perfil:", error);
     }
 };
 
@@ -161,6 +176,8 @@ const cancelarEditar = () => {
     }
     EditarUserInfo.value = false;
     validationErrorMessage.value = "";
+    errorMessage.value = ""; // limpiar mensajes de error al cancelar
+    successMessage.value = ""; // limpiar mensajes de exito al cancelar
 };
 </script>
 
@@ -216,6 +233,11 @@ const cancelarEditar = () => {
                         <div class="edit-buttons">
                             <button @click="GuadarUserInfo" class="save-button">Guardar Cambios</button>
                             <button @click="cancelarEditar" class="cancel-button">Cancelar</button>
+                        
+                        </div>
+                              <div v-if="errorMessage || successMessage" class="response-message">
+                            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+                            <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
                         </div>
                     </div>
 
@@ -233,10 +255,6 @@ const cancelarEditar = () => {
                         </div>
                         <div class="button-container">
                             <button @click="changePassword" class="main-action-button">Cambiar Contraseña</button>
-                        </div>
-                        <div v-if="errorMessage || successMessage" class="response-message">
-                            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-                            <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
                         </div>
                     </div>
                 </div>
@@ -285,6 +303,7 @@ h3 {
     margin-bottom: 20px;
     border-radius: 4px;
     display: flex;
+    align-items: center;
     justify-content: center;
 
     p {
