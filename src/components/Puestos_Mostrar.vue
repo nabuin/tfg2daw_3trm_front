@@ -83,6 +83,7 @@ import { usePuestosStore } from '../store/asientosStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore'; 
 import { useFiltrosStore } from '../store/filtrosStore';
 import { useReservasStore } from '../store/reservasStore';
+import { useUserStore } from '../store/userStore'; // Import the user store
 
 import { storeToRefs } from 'pinia';
 
@@ -92,6 +93,7 @@ export default defineComponent({
     const salaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
     const reservasStore = useReservasStore();
+    const userStore = useUserStore(); // acceder a la store de usuario para su id
 
     // Obtener los estados del store de reservas
     const { 
@@ -101,6 +103,10 @@ export default defineComponent({
       reservationSuccess,
       isSlotSelected 
     } = storeToRefs(reservasStore);
+
+    // Obtener el estado del usuario del store de usuario
+    const { user } = storeToRefs(userStore);
+
     // funcion para cargar los asientos si hay ID sala
     onMounted(() => {
       if (salaStore.id !== null) {
@@ -145,25 +151,25 @@ export default defineComponent({
 
     // Funcion para cuando se le de a comprar
     const handleSubmit = () => {
-      // ID de usuario fijo como 1
-      const userId = 1;
       const description = "Reserva"; // descripcion por defecto
-      
-      // Llamar a la función de creación de reserva
-      reservasStore.createReservation(userId, description);
+
+      // ya no se pasa el id del usuario, ya que se obtiene directamente de la store
+      reservasStore.createReservation(description);
     };
 
     return {
       // De puestosStore
       ...storeToRefs(puestosStore),
-      
+
       // De reservasStore
       selectedSlots,
       isReserving,
       reservationError,
       reservationSuccess,
       isSlotSelected,
-      
+
+      user,
+
       // Funciones
       handleSlotClick,
       removeSlot,

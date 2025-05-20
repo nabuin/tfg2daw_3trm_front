@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useFiltrosStore } from './filtrosStore'; 
+import { useFiltrosStore } from './filtrosStore';
+import { useUserStore } from './userStore'; // importar el store de usuarios para acceder a su id
 
 // interfaz datos que se mandaran por linea
 interface SelectedSlot {
@@ -17,6 +18,7 @@ export const useReservasStore = defineStore('reservas', () => {
 
   // store de filtros para obtener los filtros de hora y fecha
   const filtrosStore = useFiltrosStore();
+  const userStore = useUserStore(); // iniciar store de usuarios de la que se obtendrá el id del usuario
 
   // funcion flecha para obtener los tramos elegidos formateado para mandar a la API
   const getReservationLines = computed(() => {
@@ -33,7 +35,7 @@ export const useReservasStore = defineStore('reservas', () => {
   });
 
   // funcion para obtener la fecha y hora de la reserva en formato adecuado para mandarlo al POST
-   const getReservationDateTime = computed(() => {
+    const getReservationDateTime = computed(() => {
         const fecha = filtrosStore.fechaInicio;
         if (!fecha || selectedSlots.value.length === 0) {
             return null;
@@ -52,20 +54,20 @@ export const useReservasStore = defineStore('reservas', () => {
     // si no se encuentra el tramo del array
     if (index === -1) {
       if (slot.estado) {
-         selectedSlots.value.push({ // se añade el tramo al array
-           idPuestoTrabajo: puesto.idPuestoTrabajo,
-           idTramoHorario: slot.idTramoHorario,
-           horaInicio: slot.horaInicio,
-         });
-         reservationError.value = null;
-         reservationSuccess.value = null;
+          selectedSlots.value.push({ // se añade el tramo al array
+            idPuestoTrabajo: puesto.idPuestoTrabajo,
+            idTramoHorario: slot.idTramoHorario,
+            horaInicio: slot.horaInicio,
+          });
+          reservationError.value = null;
+          reservationSuccess.value = null;
       } else {
         console.warn("Tramo no disponible"); // ya esta elegido
       }
     } else { // si se encuentra el tramo en el array, por tanto si fue seleccionado
       selectedSlots.value.splice(index, 1); // elimina el tramo del array, por lo tanto, lo deselecciona
-       reservationError.value = null;
-       reservationSuccess.value = null;
+        reservationError.value = null;
+        reservationSuccess.value = null;
     }
   }
   // pone todo en null, los tramos elegidos, los errores y el mensaje de exito
@@ -76,9 +78,17 @@ export const useReservasStore = defineStore('reservas', () => {
     isReserving.value = false;
   }
 
-  async function createReservation(userId: number, description: string = "Reserva") {
+  async function createReservation(description: string = "Reserva") { // Remove userId parameter
     if (selectedSlots.value.length === 0) { // si no hay seleccionado nada
       reservationError.value = "No hay tramos seleccionados para reservar.";
+      return;
+    }
+
+    // obtener el id del usuario desde su store
+    const userId = userStore.user?.idUsuario;
+
+    if (!userId) {
+      reservationError.value = "No se pudo obtener la información del usuario. Por favor, inicie sesión.";
       return;
     }
 
@@ -87,7 +97,7 @@ export const useReservasStore = defineStore('reservas', () => {
     reservationSuccess.value = null;
 
     const reservationData = { // cuerpo de la peticion, tendrá la reserva y sus lineas recorridas ya
-      idUsuario: userId, // por defecto de momento
+      idUsuario: userId, // Ahora usa el id del store, no uno estatico
       descripcion: description, // por defecto de momento
       fechaReserva: getReservationDateTime.value,
       /* lineas elegidas */
