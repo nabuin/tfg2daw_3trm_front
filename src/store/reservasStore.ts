@@ -1,158 +1,182 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useFiltrosStore } from './filtrosStore';
-import { useUserStore } from './userStore'; // importar el store de usuarios para acceder a su id
+import { useUserStore } from './userStore';
 
-// interfaz datos que se mandaran por linea
-interface SelectedSlot {
-  idPuestoTrabajo: number;
-  idTramoHorario: number;
-  horaInicio: string;
+// Interfaz para el puesto seleccionado
+interface SelectedPuesto {
+    idPuestoTrabajo: number;
+    horaInicioPrimerTramo?: string | null; // string o nulo
 }
 
 export const useReservasStore = defineStore('reservas', () => {
-  const selectedSlots = ref<SelectedSlot[]>([]); // array para almacenar los tramos horarios elegidos
-  const isReserving = ref(false); // si es proceso de reserva esta en curso o no
-  const reservationError = ref<string | null>(null); // almacenar errores
-  const reservationSuccess = ref<string | null>(null); // almacenar mensajes de exito
+    // selectedPuestos almacena los puestos que el usuario ha clicado para reservar
+    const selectedPuestos = ref<SelectedPuesto[]>([]);
+    const isReserving = ref(false);
+    const reservationError = ref<string | null>(null);
+    const reservationSuccess = ref<string | null>(null);
 
-  // store de filtros para obtener los filtros de hora y fecha
-  const filtrosStore = useFiltrosStore();
-  const userStore = useUserStore(); // iniciar store de usuarios de la que se obtendrá el id del usuario
+    const filtrosStore = useFiltrosStore();
+    const userStore = useUserStore();
 
-  // funcion flecha para obtener los tramos elegidos formateado para mandar a la API
-  const getReservationLines = computed(() => {
-    return selectedSlots.value.map(slot => ({ // value map recorre los valores del array de selectedSlots, como si fuera un forEach, preparando todos los valores elegidos 
-      idPuestoTrabajo: slot.idPuestoTrabajo,
-      idTramoHorario: slot.idTramoHorario,
-    }));
-  });
-// comprobar seleccionados
-  const isSlotSelected = computed(() => (puestoId: number, tramoId: number) => {
-    return selectedSlots.value.some( // value.some comprueba si el array no es nulo
-      slot => slot.idPuestoTrabajo === puestoId && slot.idTramoHorario === tramoId
-    );
-  });
+    // almacena los detalles completos de los puestos (incluyendo sus tramos) para crear reservas.
+    const currentPuestoDisponibilidades = ref<any[]>([]);
 
-  // funcion para obtener la fecha y hora de la reserva en formato adecuado para mandarlo al POST
-    const getReservationDateTime = computed(() => {
-        const fecha = filtrosStore.fechaInicio;
-        if (!fecha || selectedSlots.value.length === 0) {
-            return null;
+    // Comprobar si un puesto está seleccionado
+    const isPuestoSelected = computed(() => (puestoId: number) => {
+        return selectedPuestos.value.some(puesto => puesto.idPuestoTrabajo === puestoId);
+    });
+
+    // Función para seleccionar/deseleccionar un puesto completo
+    function togglePuestoSelection(puesto: any) {
+        const index = selectedPuestos.value.findIndex(
+            s => s.idPuestoTrabajo === puesto.idPuestoTrabajo
+        );
+
+        if (index === -1) {
+            // Si el puesto no está seleccionado, añadirlo
+            if (puesto.disponibilidadesEnRango && puesto.disponibilidadesEnRango.length > 0) {
+                // Se busca el primer tramo que tenga una hora de inicio definida
+                const primerTramoValido = puesto.disponibilidadesEnRango.find(
+                    (slot: any) => slot.horaInicio 
+                );
+
+                selectedPuestos.value.push({
+                    idPuestoTrabajo: puesto.idPuestoTrabajo,
+                    // Guarda la horaInicio del primer tramo válido, o null si no se encuentra
+                    horaInicioPrimerTramo: primerTramoValido ? primerTramoValido.horaInicio : null,
+                });
+                reservationError.value = null; // Limpiar errores si la selección es exitosa
+                reservationSuccess.value = null; // Limpiar mensajes de éxito
+            } else {
+                reservationError.value = "Este puesto no tiene tramos horarios disponibles para la fecha seleccionada.";
+            }
+        } else {
+            // Si el puesto ya está seleccionado, lo deselecciona
+            selectedPuestos.value.splice(index, 1);
+            reservationError.value = null; // Limpiar errores
+            reservationSuccess.value = null; // Limpiar mensajes de éxito
         }
-        const hora = selectedSlots.value[0].horaInicio;
-        const time = hora.length <= 5 ? `${hora}:00` : hora;
+    }
 
-        return `${fecha}T${time}`;
-   });
-
-   // funcion para comprobar si el slot esta seleccionado, si esta seleccionado, lo selecciona, sino al reves, lo deselecciona
-  function toggleSlotSelection(puesto: any, slot: any) {
-    const index = selectedSlots.value.findIndex(
-      s => s.idPuestoTrabajo === puesto.idPuestoTrabajo && s.idTramoHorario === slot.idTramoHorario
-    );
-    // si no se encuentra el tramo del array
-    if (index === -1) {
-      if (slot.estado) {
-          selectedSlots.value.push({ // se añade el tramo al array
-            idPuestoTrabajo: puesto.idPuestoTrabajo,
-            idTramoHorario: slot.idTramoHorario,
-            horaInicio: slot.horaInicio,
-          });
-          reservationError.value = null;
-          reservationSuccess.value = null;
-      } else {
-        console.warn("Tramo no disponible"); // ya esta elegido
-      }
-    } else { // si se encuentra el tramo en el array, por tanto si fue seleccionado
-      selectedSlots.value.splice(index, 1); // elimina el tramo del array, por lo tanto, lo deselecciona
+    // Pone todo en null, los puestos elegidos, los errores y el mensaje de exito
+    function resetSelection() {
+        selectedPuestos.value = [];
         reservationError.value = null;
         reservationSuccess.value = null;
-    }
-  }
-  // pone todo en null, los tramos elegidos, los errores y el mensaje de exito
-  function resetSelection() {
-    selectedSlots.value = [];
-    reservationError.value = null;
-    reservationSuccess.value = null;
-    isReserving.value = false;
-  }
-
-  async function createReservation(description: string = "Reserva") { // Remove userId parameter
-    if (selectedSlots.value.length === 0) { // si no hay seleccionado nada
-      reservationError.value = "No hay tramos seleccionados para reservar.";
-      return;
+        isReserving.value = false;
     }
 
-    // obtener el id del usuario desde su store
-    const userId = userStore.user?.idUsuario;
 
-    if (!userId) {
-      reservationError.value = "No se pudo obtener la información del usuario. Por favor, inicie sesión.";
-      return;
+    // // almacena los puestos disponibles actuales para que el store de reservas pueda usarlos.
+    function setPuestoDisponibilidades(puestos: any[]) {
+        currentPuestoDisponibilidades.value = puestos;
     }
 
-    isReserving.value = true; // comprobar que haya selecciones
-    reservationError.value = null;
-    reservationSuccess.value = null;
 
-    const reservationData = { // cuerpo de la peticion, tendrá la reserva y sus lineas recorridas ya
-      idUsuario: userId, // Ahora usa el id del store, no uno estatico
-      descripcion: description, // por defecto de momento
-      fechaReserva: getReservationDateTime.value,
-      /* lineas elegidas */
-      lineas: getReservationLines.value,
-    };
-
-    console.log("Sending reservation data:", JSON.stringify(reservationData, null, 2));
-
-    // peticion a la API con fetch
-    try {
-      const response = await fetch('https://localhost:7179/api/Reservas/reservacompleta', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // mas adelante se metera jwt
-        },
-        body: JSON.stringify(reservationData),
-      });
-
-      if (!response.ok) {
-        let errorDetail = await response.text();
-         try {
-             const errorJson = JSON.parse(errorDetail);
-             errorDetail = errorJson.message || errorDetail;
-        } catch (e) {
-            // peticion no es formato json
+    async function createReservation(description: string = "Reserva") {
+        if (selectedPuestos.value.length === 0) {
+            reservationError.value = "No hay puestos seleccionados para reservar.";
+            return;
         }
-        throw new Error(`Error al crear la reserva: ${response.status} - ${response.statusText}. Detalles: ${errorDetail}`);
-      }
 
-      reservationSuccess.value = "¡Reserva realizada con éxito!";
-      resetSelection(); // opcion seleccionada se pone a 0
+        const userId = userStore.user?.idUsuario;
 
-    } catch (error: any) {
-      console.error("Reservation API error:", error);
-      reservationError.value = error.message || "Ocurrió un error al intentar reservar.";
-    } finally {
-      isReserving.value = false;
+        if (!userId) {
+            reservationError.value = "No se pudo obtener la información del usuario. Por favor, inicie sesión.";
+            return;
+        }
+
+        isReserving.value = true;
+        reservationError.value = null;
+        reservationSuccess.value = null;
+
+        // hacer las lineas de reserva con todos los tramos de todos los puestos seleccionados
+        const reservationLines: { idPuestoTrabajo: number; idTramoHorario: number; }[] = [];
+        let anyPuestoHasAvailableSlots = false;
+
+        for (const selectedPuestoRef of selectedPuestos.value) {
+            const puestoCompleto = currentPuestoDisponibilidades.value.find(
+                p => p.idPuestoTrabajo === selectedPuestoRef.idPuestoTrabajo
+            );
+
+            if (puestoCompleto && puestoCompleto.disponibilidadesEnRango) {
+                const tramosDisponiblesParaPuesto = puestoCompleto.disponibilidadesEnRango
+                    .filter((slot: any) => slot.estado); // Solo tramos DISPONIBLES
+                
+                if (tramosDisponiblesParaPuesto.length > 0) {
+                    anyPuestoHasAvailableSlots = true; // Al menos un puesto seleccionado tiene tramos disponibles
+                    tramosDisponiblesParaPuesto.forEach((slot: any) => {
+                        reservationLines.push({
+                            idPuestoTrabajo: puestoCompleto.idPuestoTrabajo,
+                            idTramoHorario: slot.idTramoHorario,
+                        });
+                    });
+                }
+            }
+        }
+        
+        if (!anyPuestoHasAvailableSlots || reservationLines.length === 0) {
+            reservationError.value = "Ninguno de los puestos seleccionados tiene tramos horarios disponibles para la fecha seleccionada.";
+            isReserving.value = false;
+            return;
+        }
+
+        const reservationData = {
+            idUsuario: userId,
+            descripcion: description,
+            lineas: reservationLines, // Ahora incluye TODOS los tramos de TODOS los puestos seleccionados
+        };
+
+        console.log("Sending reservation data:", JSON.stringify(reservationData, null, 2));
+
+        try {
+            const response = await fetch('https://localhost:7179/api/Reservas/reservacompleta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // JWT se añadirá mas adelante cuando el endpoint esté protegido
+                },
+                body: JSON.stringify(reservationData),
+            });
+
+            if (!response.ok) {
+                let errorDetail = await response.text();
+                try {
+                    const errorJson = JSON.parse(errorDetail);
+                    // Si la respuesta es JSON, intenta parsearlo a texto normal sin formato
+                    errorDetail = errorJson.message || errorJson.detail || errorDetail;
+                } catch (e) {
+                    // Si no es JSON, usa un texto normal generico
+                }
+                throw new Error(`Error al crear la reserva: ${response.status} - ${response.statusText}. Detalles: ${errorDetail}`);
+            }
+
+            reservationSuccess.value = "Reserva realizada con éxito";
+            resetSelection(); // Vacía la selección y los mensajes
+        } catch (error: any) {
+            console.error("Reservation API error:", error);
+            reservationError.value = error.message || "Ocurrió un error al intentar reservar.";
+        } finally {
+            isReserving.value = false;
+        }
     }
-  }
-// para poder acceder a esta info desde el componente que las pinta y usa
-  return {
-    // State
-    selectedSlots,
-    isReserving,
-    reservationError,
-    reservationSuccess,
 
-    // Getters
-    getReservationLines,
-    isSlotSelected,
+    return {
+        // Estados
+        selectedPuestos,
+        isReserving,
+        reservationError,
+        reservationSuccess,
+        currentPuestoDisponibilidades,
 
-    // Actions
-    toggleSlotSelection,
-    resetSelection,
-    createReservation,
-  };
+        // get
+        isPuestoSelected,
+
+        // metodos
+        togglePuestoSelection,
+        resetSelection,
+        createReservation,
+        setPuestoDisponibilidades,
+    };
 });
