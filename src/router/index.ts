@@ -4,6 +4,7 @@ import HomeView from '../views/HomeView.vue';
 import SedesView from '../views/SedesView.vue';
 import SalasView from '../views/SalasView.vue';
 import PuestosView from '../views/PuestosView.vue';
+import LoginView from '../views/LoginView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/sedes/salas/puestos',
       name: 'puestos',
       component: PuestosView,
+    },
+      {
+      path: '/login',
+      name: 'Login',
+      component: LoginView,
     },
   ],
 });
