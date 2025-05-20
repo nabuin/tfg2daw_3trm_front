@@ -61,12 +61,6 @@
         </div>
       </form>
     </div>
-
-    <ul v-if="salasDisponibles.length > 0">
-      <li v-for="sala in salasDisponibles" :key="sala.idSala">
-        {{ sala.nombre }} - Capacidad: {{ sala.capacidad }}
-      </li>
-    </ul>
   </div>
 </template>
 
@@ -209,6 +203,8 @@ export default defineComponent({
     border: 1px solid #aaa;
     border-radius: 4px;
     transition: border-color 0.3s ease;
+    background: transparent;
+    color: white;
 
     &:focus {
       outline: none;
@@ -216,14 +212,11 @@ export default defineComponent({
     }
 
     &-date {
-      color: white;
-
       &::-webkit-calendar-picker-indicator {
         cursor: pointer;
         filter: brightness(0) invert(1);
         transition: filter 0.3s ease;
       }
-
       &:hover::-webkit-calendar-picker-indicator {
         filter: brightness(0) invert(1) opacity(0.8);
       }
@@ -232,9 +225,19 @@ export default defineComponent({
 
   .form-select {
     appearance: none;
-    background: black;
+    background: transparent;
     cursor: pointer;
     color: white;
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+    }
   }
 
   .btn {
@@ -247,6 +250,7 @@ export default defineComponent({
     &-primary {
       background-color: #007bff;
       color: white;
+      transition: background-color 0.2s ease;
 
       &:hover {
         background-color: #0056b3;
@@ -254,4 +258,60 @@ export default defineComponent({
     }
   }
 }
+
+/* Responsive (≤900px): dos columnas en grid */
+@media (max-width: 900px) {
+  .form-width {
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 1rem;
+  }
+
+  .filtro-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0 1rem;
+    margin: 0;
+
+    .form-group {
+      margin-top: 0.5rem;
+    }
+
+    .form-group-button {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .form-input,
+    .form-select,
+    .btn {
+      width: 100%;
+    }
+
+    .btn-primary {
+      padding: 0.75rem;
+    }
+  }
+}
+
+/* Muy móvil (≤600px): una sola columna */
+@media (max-width: 600px) {
+  .filtro-form {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+
+    .form-group {
+      margin-top: 0.5rem;
+    }
+
+    .form-group-button {
+      margin-top: 0.75rem;
+    }
+  }
+}
 </style>
+
