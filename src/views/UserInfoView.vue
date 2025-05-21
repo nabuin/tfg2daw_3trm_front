@@ -125,6 +125,13 @@ const ComenzarCambioInfo = () => {
     validationErrorMessage.value = "";
 };
 
+// validar el formato del email
+const esFormatoEmail = (email: string): boolean => { 
+  const formatoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // revisa que tenga @ intercalado y acabe con un dominio (string).(string)
+  return formatoEmail.test(email); // el .test comprueba que se cumple el formato de email, si no es, devolverá false y abajo en el if condicional parará el proceso dde cambio
+};
+
+
 const GuadarUserInfo = async () => {
     validationErrorMessage.value = "";
     errorMessage.value = ""; // borrar mensajes de error previos
@@ -142,7 +149,12 @@ const GuadarUserInfo = async () => {
         validationErrorMessage.value = `Email cannot exceed ${CHAR_LIMITS.email} characters.`;
         return;
     }
+    // nuevo filtro
 
+     if (!esFormatoEmail(InfoUsuarioEditable.value.email)) {
+    validationErrorMessage.value = "El formato del email no es válido.";
+    return;
+  }
     const token = localStorage.getItem("authToken");
     const idUsuario = userStore.user?.idUsuario;
 
