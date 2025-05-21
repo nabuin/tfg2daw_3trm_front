@@ -76,5 +76,43 @@ export const useReservationStore = defineStore("reservation", {
             this.loading = false;
             this.error = null;
         },
+
+            // metodo para cancelar (borrar) una reserva
+          async cancelarReserva(reservationId: number, token: string) {
+            this.loading = true;
+            this.error = null;
+
+            try {
+                const endpoint = `https://localhost:7179/api/Reservas/${reservationId}`;
+
+                const res = await fetch(endpoint, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!res.ok) { // si no fue status 204, osea algo falló
+                    const errorData = await res.json();
+                    throw new Error(
+                        errorData.message || "Error al cancelar la reserva."
+                    );
+                }
+                // si se borra una reserva, se actualiza el array de reservas excluyendo la que se borró
+                if (this.reservations) {
+                    this.reservations = this.reservations.filter(
+                        (res) => res.idReserva !== reservationId
+                    );
+                }
+                console.log(`Reserva ${reservationId} eliminada con éxito.`);
+            } catch (err: any) { // si da algun error se guarda
+                this.error = err.message || "Fallo al cancelar la reserva.";
+                console.error("Error deleting reservation:", err); // debug
+                throw err;
+            } finally {
+                this.loading = false; // desactiva el loading
+            }
+        },
     },
 });

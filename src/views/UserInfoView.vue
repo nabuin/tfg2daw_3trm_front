@@ -84,6 +84,29 @@ const cargarReservasUsuario = async () => {
   await reservationStore.fetchUserReservations(token);
 };
 
+
+const confirmarCancelacion = async (reservationId: number) => {
+  // popup de confirmación, si se le da a aceptar, se procede a cancelar la reserva
+    if (confirm("¿Esta seguro que desea cancelar esta reserva? Esta acción no se puede deshacer.")) {
+        errorMessage.value = "";
+        successMessage.value = "";
+        try {
+            const token = localStorage.getItem("authToken"); // comprobar el token JWT
+            if (!token) {
+                errorMessage.value = "No has iniciado sesión para cancelar la reserva.";
+                return;
+            }
+            await reservationStore.cancelarReserva(reservationId, token);
+            successMessage.value = "Reserva cancelada con éxito."; // si da status 204
+        } catch (error: any) {
+          // excepcion si algo falla en la cancelación
+            errorMessage.value = error.message || "Fallo al cancelar la reserva.";
+            console.error("Error al cancelar la reserva:", error);
+        }
+    }
+};
+
+
 // revisar si el usuario está logueado y cargar reservas
 watch(
   () => userStore.user,
@@ -388,6 +411,14 @@ const cancelarEditar = () => {
                 <p><strong>Periodo:</strong> {{ tramoHorarioFormateado(reservation.rangoHorarioReserva) }}</p>
                 <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
+                          <div class="button-container">
+                  <button
+                    @click="confirmarCancelacion(reservation.idReserva)"
+                    class="cancel-reservation-button"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -398,6 +429,38 @@ const cancelarEditar = () => {
 </template>
 
 <style scoped lang="scss">
+
+
+.cancel-reservation-button {
+    background-color: red;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    margin-top: 10px;
+
+    &:hover {
+        background-color: #c82333; /* al pasar el raton */
+    }
+}
+
+.reservation-card__details {
+    display: flex;
+    flex-direction: column;
+}
+
+.reservation-card__price {
+    margin-top: auto;
+}
+
+.reservation-card__title {
+    font-size: 20px;
+}
+
+.reservation-card p {
+    font-size: 0.15px;
+}
+
 
 .profile-page-wrapper {
   width: 100%;
