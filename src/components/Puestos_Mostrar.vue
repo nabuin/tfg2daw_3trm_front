@@ -21,7 +21,7 @@
                     <h4>Puesto #{{ puesto.numeroAsiento }} (Mesa: {{ puesto.codigoMesa }})</h4>
                     <img v-if="puesto.urL_Imagen" :src="puesto.urL_Imagen" alt="Imagen del puesto" class="puesto-imagen"/>
                     <p>ID Puesto: {{ puesto.idPuestoTrabajo }}</p>
-                    
+
                     <div class="tramo-summary">
                         <h5>Tramos disponibles:</h5>
                         <p v-if="puesto.disponibilidadesEnRango && puesto.disponibilidadesEnRango.length > 0">
@@ -38,33 +38,33 @@
                 <h3>Puestos Seleccionados para Reserva</h3>
                 <p class="summary-count">Has seleccionado {{ selectedPuestos.length }} puesto(s).</p>
                 <div class="selected-items">
-                    <div 
-                        v-for="(puestoRef, index) in selectedPuestos" 
-                        :key="index" 
+                    <div
+                        v-for="(puestoRef, index) in selectedPuestos"
+                        :key="index"
                         class="selected-item"
                     >
                         Puesto ID: {{ puestoRef.idPuestoTrabajo }} (Hora inicio ref: {{ puestoRef.horaInicioPrimerTramo.substring(0,5) }})
                         <button @click="removePuesto(index)" class="remove-button">X</button>
                     </div>
                 </div>
-                
+
                 <div class="action-buttons">
-                    <button 
-                        @click="resetSelection" 
-                        class="cancel-button" 
+                    <button
+                        @click="resetSelection"
+                        class="cancel-button"
                         :disabled="isReserving"
                     >
                         Cancelar Selección
                     </button>
-                    <button 
-                        @click="handleSubmit" 
-                        class="submit-button" 
+                    <button
+                        @click="handleSubmit"
+                        class="submit-button"
                         :disabled="isReserving || selectedPuestos.length === 0"
                     >
                         {{ isReserving ? 'Procesando...' : 'Confirmar Reserva de Todos los Tramos de los Puestos Seleccionados' }}
                     </button>
                 </div>
-                
+
                 <p v-if="reservationSuccess" class="success-message">{{ reservationSuccess }}</p>
                 <p v-if="reservationError" class="error-message">{{ reservationError }}</p>
             </div>
@@ -75,7 +75,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, watch } from 'vue';
 import { usePuestosStore } from '../store/asientosStore';
-import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore'; 
+import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
 import { useReservasStore } from '../store/reservasStore';
 import { useUserStore } from '../store/userStore';
@@ -94,12 +94,12 @@ export default defineComponent({
         const { loading, error, puestosDisponibles } = storeToRefs(puestosStore);
 
         // Obtener los estados del store de reservas
-        const { 
-            selectedPuestos, 
+        const {
+            selectedPuestos,
             isReserving,
             reservationError,
             reservationSuccess,
-            isPuestoSelected 
+            isPuestoSelected
         } = storeToRefs(reservasStore);
 
         // Obtener el estado del usuario del store de usuario
@@ -149,7 +149,7 @@ export default defineComponent({
 
         // Función para cuando se le de a Confirmar Reserva
         const handleSubmit = async () => {
-            const description = "Reserva completada"; 
+            const description = "Reserva completada";
             await reservasStore.createReservation(description);
         };
 
@@ -243,7 +243,7 @@ h2 {
 }
 
 .puesto-card.selected {
-    background-color: #e0f2f7; 
+    background-color: #e0f2f7;
     border-color: #007bff;
     box-shadow: 0 0 12px rgba(0, 123, 255, 0.3);
 }
