@@ -188,6 +188,7 @@ export default defineComponent({
   height: 80px;
   background: #b5651d;
   border-radius: 4px;
+  margin-bottom: 0;
 }
 
 .buy-button {
