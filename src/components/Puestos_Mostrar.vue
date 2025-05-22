@@ -5,34 +5,36 @@
       Cargando puestos disponibles…
     </p>
 
-    <!-- 2. Una vez loading = false, renderizamos tantas mesas como grupos de 4 asientos -->
+    <!-- 2. Renderizamos las mesas en filas de 2 por fila -->
     <div v-else>
-      <div
-        v-for="(group, gi) in seatGroups"
-        :key="gi"
-        class="table-layout"
-      >
-        <!-- 2.1 Los 4 asientos alrededor de la mesa -->
-        <button
-          v-for="(puesto, idx) in group"
-          :key="puesto.idPuestoTrabajo"
-          class="square"
-          :class="[
-            positionClass(idx),
-            {
-              unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
-              selected:   selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo)
-            }
-          ]"
-          :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)"
-          @click="handlePuestoClick(puesto)"
-        ></button>
+      <div class="tables-grid">
+        <div
+          v-for="(group, gi) in seatGroups"
+          :key="gi"
+          class="table-layout"
+        >
+          <!-- 2.1 Los 4 asientos alrededor de la mesa rectangular -->
+          <button
+            v-for="(puesto, idx) in group"
+            :key="puesto.idPuestoTrabajo"
+            class="square"
+            :class="[
+              positionClass(idx),
+              {
+                unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
+                selected:   selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo)
+              }
+            ]"
+            :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)"
+            @click="handlePuestoClick(puesto)"
+          ></button>
 
-        <!-- 2.2 La mesa en el centro -->
-        <div class="table"></div>
+          <!-- 2.2 Mesa rectangular en el centro -->
+          <div class="table"></div>
+        </div>
       </div>
 
-      <!-- 3. Botón Comprar general, fuera del v-for -->
+      <!-- 3. Botón Comprar general -->
       <button
         class="buy-button"
         :disabled="isReserving || selectedPuestos.length === 0"
@@ -52,7 +54,7 @@ import { useFiltrosStore } from '../store/filtrosStore';
 import { useReservasStore } from '../store/reservasStore';
 import { storeToRefs } from 'pinia';
 
-// Auxiliar para dividir un array en trozos de tamaño fijo
+// Divide un array en trozos de tamaño fijo
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -104,8 +106,14 @@ export default defineComponent({
       reservasStore.createReservation('Compra de puestos');
     }
 
+    // Mapea el índice 0–3 a la posición alrededor de la mesa
     function positionClass(index: number): string {
-      return ['seat-top', 'seat-right', 'seat-bottom', 'seat-left'][index] || '';
+      return [
+        'seat-left-top',
+        'seat-right-top',
+        'seat-left-bottom',
+        'seat-right-bottom'
+      ][index] || '';
     }
 
     // Agrupamos todos los puestos de 4 en 4
@@ -129,28 +137,42 @@ export default defineComponent({
   text-align: center;
   padding: 0.5em;
   font-weight: bold;
+  font-size: 0.9em;
 }
 
+/* Contenedor de mesas: 2 mesas por fila, con poco espacio entre ellas */
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* Layout de cada mesa + sus 4 asientos */
 .table-layout {
   display: grid;
   grid-template-areas:
-    ". seat-top   ."
-    "seat-left table seat-right"
-    ". seat-bottom .";
-  grid-template-columns: 1fr auto 1fr;
-  grid-template-rows: auto auto auto;
+    "seat-left-top  table  seat-right-top"
+    "seat-left-bottom table seat-right-bottom";
+  grid-template-columns: auto 60px auto;
+  grid-template-rows: auto  auto;
+  gap: 2px;
   justify-items: center;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
+  padding: 4px;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
+/* Asientos pequeños y muy pegados a la mesa */
 .square {
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   background: #ddd;
   border: none;
   cursor: pointer;
+  margin: 0;
 }
 
 .square.unavailable {
@@ -162,22 +184,25 @@ export default defineComponent({
   background: yellow;
 }
 
-.seat-top    { grid-area: seat-top; }
-.seat-right  { grid-area: seat-right; }
-.seat-bottom { grid-area: seat-bottom; }
-.seat-left   { grid-area: seat-left; }
+/* Posiciones alrededor de la mesa rectangular */
+.seat-left-top     { grid-area: seat-left-top; }
+.seat-right-top    { grid-area: seat-right-top; }
+.seat-left-bottom  { grid-area: seat-left-bottom; }
+.seat-right-bottom { grid-area: seat-right-bottom; }
 
+/* Mesa rectangular centrada */
 .table {
   grid-area: table;
-  width: 50px;
-  height: 50px;
+  width: 80px;
+  height: 40px;
   background: #b5651d;
-  border-radius: 50%;
+  border-radius: 4px;
 }
 
+/* Botón comprar general */
 .buy-button {
   display: block;
-  margin: 12px auto;
+  margin: 8px auto 0;
   padding: 6px 12px;
   font-size: 0.9em;
   cursor: pointer;
