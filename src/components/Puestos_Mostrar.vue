@@ -54,7 +54,6 @@ import { useFiltrosStore } from '../store/filtrosStore';
 import { useReservasStore } from '../store/reservasStore';
 import { storeToRefs } from 'pinia';
 
-// Divide un array en trozos de tamaño fijo
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -106,7 +105,6 @@ export default defineComponent({
       reservasStore.createReservation('Compra de puestos');
     }
 
-    // Mapea el índice 0–3 a la posición alrededor de la mesa
     function positionClass(index: number): string {
       return [
         'seat-left-top',
@@ -116,7 +114,6 @@ export default defineComponent({
       ][index] || '';
     }
 
-    // Agrupamos todos los puestos de 4 en 4
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
     return {
@@ -140,39 +137,34 @@ export default defineComponent({
   font-size: 0.9em;
 }
 
-/* Contenedor de mesas: 2 mesas por fila, con poco espacio entre ellas */
 .tables-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-bottom: 12px;
+  justify-items: center;
 }
 
-/* Layout de cada mesa + sus 4 asientos */
 .table-layout {
   display: grid;
-  grid-template-areas:
-    "seat-left-top  table  seat-right-top"
-    "seat-left-bottom table seat-right-bottom";
-  grid-template-columns: auto 60px auto;
-  grid-template-rows: auto  auto;
-  gap: 2px;
+  justify-self: center;
+  grid-template-columns: 20px 40px 20px;
+  grid-template-rows: auto auto;
+  gap: 4px;
   justify-items: center;
   align-items: center;
-  padding: 4px;
+  padding: 8px;
   background: #f0f0f0;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
-/* Asientos pequeños y muy pegados a la mesa */
 .square {
   width: 20px;
   height: 20px;
   background: #ddd;
   border: none;
   cursor: pointer;
-  margin: 0;
 }
 
 .square.unavailable {
@@ -184,22 +176,20 @@ export default defineComponent({
   background: yellow;
 }
 
-/* Posiciones alrededor de la mesa rectangular */
-.seat-left-top     { grid-area: seat-left-top; }
-.seat-right-top    { grid-area: seat-right-top; }
-.seat-left-bottom  { grid-area: seat-left-bottom; }
-.seat-right-bottom { grid-area: seat-right-bottom; }
+.seat-left-top     { grid-column: 1; grid-row: 1; }
+.seat-right-top    { grid-column: 3; grid-row: 1; }
+.seat-left-bottom  { grid-column: 1; grid-row: 2; }
+.seat-right-bottom { grid-column: 3; grid-row: 2; }
 
-/* Mesa rectangular centrada */
 .table {
-  grid-area: table;
-  width: 80px;
-  height: 40px;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 40px;
+  height: 80px;
   background: #b5651d;
   border-radius: 4px;
 }
 
-/* Botón comprar general */
 .buy-button {
   display: block;
   margin: 8px auto 0;
