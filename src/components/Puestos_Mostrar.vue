@@ -1,16 +1,14 @@
 <template>
   <div>
-    <!-- Mensaje de carga sólo mientras loading === true -->
-    <p v-if="loading" class="loading-message">Cargando puestos disponibles…</p>
+    <!-- 1.1 Mensaje de “Cargando…” -->
+    <p v-if="loading" class="loading-message">
+      Cargando puestos disponibles…
+    </p>
 
-    <!-- Grid y botón sólo cuando loading === false
-    v-key: identificador unico
-
-    -->
+    <!-- 1.2 Una vez loading = false, mostramos el grid y el botón Comprar -->
     <div v-else>
+      <!-- 1.2.1 Grid de cuadrados -->
       <div class="puestos-grid">
-
-        <!--Comprueba que el estado del asiento sea libre ocupado en base al estado de la disponibilidad-->
         <button
           v-for="puesto in puestosDisponibles"
           :key="puesto.idPuestoTrabajo"
@@ -24,6 +22,7 @@
         ></button>
       </div>
 
+      <!-- 1.2.2 Botón de comprar -->
       <button
         class="buy-button"
         :disabled="isReserving || selectedPuestos.length === 0"
@@ -34,6 +33,8 @@
     </div>
   </div>
 </template>
+
+
 
 <script lang="ts">
 import { defineComponent, onMounted, watch } from 'vue';
@@ -46,25 +47,25 @@ import { storeToRefs } from 'pinia';
 export default defineComponent({
   name: 'PuestoSelectionMini',
   setup() {
-
-    //info de los store
+    // 2.1 Accedemos a los stores relevantes
     const puestosStore = usePuestosStore();
     const salaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
     const reservasStore = useReservasStore();
 
-    // sacamos loading además de puestosDisponibles
+    // 2.2 Extraemos refs reactivas del store de puestos
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
+    // 2.3 Extraemos refs del store de reservas
     const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
 
-    //hace que si existe un salaId muestre todo
+    // 2.4 onMounted: al montar el componente, si hay salaId, llama al fetch
     onMounted(() => {
       if (salaStore.id !== null) {
-        puestosStore.obtenerPuestosDisponibles(); // aquí loading = true, luego false
+        puestosStore.obtenerPuestosDisponibles();
       }
     });
 
-    //Esto se encarga, de que si algunos de esos datos cambia, vuelve a hacer el fetch
+    // 2.5 watch: vuelve a cargar cuando cambian sala o filtros
     watch(
       () => [
         salaStore.id,
@@ -75,21 +76,25 @@ export default defineComponent({
       ],
       async () => {
         if (salaStore.id !== null) {
-
-          //vuelve a traer la info
           await puestosStore.obtenerPuestosDisponibles();
-          //actualiza los viejos datos si tenia par amostrar los nuevos
           reservasStore.setPuestoDisponibilidades(puestosStore.puestosDisponibles);
-          //limpia lo antiguo
           reservasStore.resetSelection();
         }
       },
+      { immediate: true } // también corre en el montaje inicial
     );
 
-    const handlePuestoClick = (puesto: any) =>
+    // 2.6 Función que se ejecuta al clickar un puesto
+    function handlePuestoClick(puesto: any) {
       reservasStore.togglePuestoSelection(puesto);
-    const submitCompra = () => reservasStore.createReservation();
+    }
 
+    // 2.7 Función que lanza la creación de reserva (POST)
+    function submitCompra() {
+      reservasStore.createReservation('Compra de puestos');
+    }
+
+    // 2.8 Exponemos al template lo que necesitamos
     return {
       puestosDisponibles,
       loading,
@@ -101,6 +106,9 @@ export default defineComponent({
   },
 });
 </script>
+
+
+
 
 <style scoped>
 .loading-message {
@@ -117,19 +125,19 @@ export default defineComponent({
 
 .square {
   width: 100%;
-  padding-top: 100%;
+  padding-top: 100%; /* hace que el alto = ancho, creando cuadrados */
   background: #ddd;
   border: none;
   cursor: pointer;
 }
 
 .square.unavailable {
-  background: red;
-  cursor: not-allowed;
+  background: red;      /* indica “ocupado” */
+  cursor: not-allowed;  /* cursor de no permitido */
 }
 
 .square.selected {
-  background: yellow;
+  background: yellow;   /* indica “seleccionado” */
 }
 
 .buy-button {
