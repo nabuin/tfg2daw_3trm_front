@@ -13,7 +13,6 @@
       <p><strong>Nombre de la sala:</strong> {{ reservaActual.nombreSalaPrincipal }}</p>
       <p><strong>Ciudad:</strong> {{ reservaActual.ciudadSedePrincipal }}</p>
       <p><strong>Dirección:</strong> {{ reservaActual.direccionSedePrincipal }}</p>
-      <img v-if="reservaActual.imagenSalaPrincipal" :src="reservaActual.imagenSalaPrincipal" alt="Imagen de la Sala Principal" class="main-room-image"/>
     </div>
 
     <div v-if="reservaActual.asientosReservados">
@@ -100,13 +99,6 @@ strong {
   font-weight: bold;
 }
 
-.main-room-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin-top: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
 
 .error-message {
   color: #e74c3c;
