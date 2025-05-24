@@ -65,37 +65,6 @@
         </div>
       </div>
 
-      <div class="admin-panel__section">
-        <button class="admin-panel__section-title" @click="toggleSection('usuarios-anadir')">AÑADIR NUEVO USUARIO</button>
-        <div v-if="seccionActiva === 'usuarios-anadir'" class="admin-panel__section-content">
-          <div class="admin-panel__action-item admin-panel__action-item--vertical">
-            <input type="text" class="admin-panel__input" placeholder="Nombre">
-            <input type="text" class="admin-panel__input" placeholder="Apellidos">
-            <input type="email" class="admin-panel__input" placeholder="Email">
-            <input type="password" class="admin-panel__input" placeholder="Contraseña">
-            <input type="text" class="admin-panel__input" placeholder="Rol (ej: Admin, Cliente)">
-            <button class="admin-panel__button">Añadir Usuario</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="admin-panel__section">
-        <button class="admin-panel__section-title" @click="toggleSection('usuarios-editar')">EDITAR USUARIO</button>
-        <div v-if="seccionActiva === 'usuarios-editar'" class="admin-panel__section-content">
-          <div class="admin-panel__action-item">
-            <input type="text" class="admin-panel__input" placeholder="Email del usuario a editar">
-            <button class="admin-panel__button">Cargar Datos para Editar</button>
-          </div>
-          <div class="admin-panel__action-item admin-panel__action-item--vertical admin-panel__action-item--editing">
-            <input type="text" class="admin-panel__input" placeholder="Nuevo Nombre">
-            <input type="text" class="admin-panel__input" placeholder="Nuevos Apellidos">
-            <input type="email" class="admin-panel__input" placeholder="Nuevo Email">
-            <input type="password" class="admin-panel__input" placeholder="Nueva Contraseña">
-            <input type="text" class="admin-panel__input" placeholder="Nuevo Rol">
-            <button class="admin-panel__button">Guardar Cambios</button>
-          </div>
-        </div>
-      </div>
 
       <div class="admin-panel__section">
         <button class="admin-panel__section-title" @click="toggleSection('usuarios-eliminar')">ELIMINAR USUARIO</button>

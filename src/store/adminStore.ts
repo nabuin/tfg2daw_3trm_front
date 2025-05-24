@@ -144,11 +144,7 @@ export const useAdminStore = defineStore('admin', {
 
  
 
-    async agregarUsuario(datosUsuario: { nombre: string; apellidos: string; email: string; contrasenia: string; idRol: number }) {
-      const nuevoUsuario = await this._llamadaApiFetch('POST', 'localhost:7179/api/usuarios', datosUsuario);
-      await this.obtenerTodosLosUsuarios();
-      return nuevoUsuario;
-    },
+
 
     async actualizarUsuario(idUsuario: number, datosUsuario: Partial<Usuario>) {
       const usuarioActualizado = await this._llamadaApiFetch('PUT', `localhost:7179/api/usuarios/${idUsuario}`, datosUsuario);
