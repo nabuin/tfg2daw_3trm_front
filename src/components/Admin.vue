@@ -52,21 +52,16 @@
         <button class="admin-panel__section-title" @click="toggleSection('usuarios-ver-todos')">VER TODOS LOS USUARIOS</button>
         <div v-if="seccionActiva === 'usuarios-ver-todos'" class="admin-panel__section-content">
           <p>Lista completa de usuarios registrados.</p>
-          <button class="admin-panel__button">Cargar Lista</button>
+          <button class="admin-panel__button" @click="adminStore.obtenerTodosLosUsuarios()">Cargar Lista</button>
           <div class="admin-panel__results">
-             </div>
-        </div>
-      </div>
-
-      <div class="admin-panel__section">
-        <button class="admin-panel__section-title" @click="toggleSection('usuarios-ver-especifico')">VER USUARIO ESPECÍFICO</button>
-        <div v-if="seccionActiva === 'usuarios-ver-especifico'" class="admin-panel__section-content">
-          <div class="admin-panel__action-item">
-            <input type="text" class="admin-panel__input" placeholder="Email del usuario">
-            <button class="admin-panel__button">Buscar Usuario</button>
+            <div v-if="adminStore.cargando">Cargando usuarios...</div>
+            <div v-else-if="adminStore.error" class="admin-panel__error">Error: {{ adminStore.error }}</div>
+            <div v-else-if="adminStore.usuarios.length > 0" class="admin-panel__formatted-box">
+  <h4>Usuarios encontrados ({{ adminStore.usuarios.length }}):</h4>
+  <pre class="admin-panel__user-list-output">{{ usuariosFormateados }}</pre> <!-- con el tag pre preservara los saltos de linea y tal, conservando bien el formato dando en el script-->
+</div>
+            <div v-else>No hay usuarios cargados.</div>
           </div>
-          <div class="admin-panel__results">
-             </div>
         </div>
       </div>
 
@@ -568,7 +563,32 @@
 </template>
 
 <script>
-export default {
+  import { useAdminStore } from '@/store/adminStore'; 
+  import { computed } from 'vue';
+
+  export default {
+  setup() {
+    const adminStore = useAdminStore();
+
+    // comprobar que haya usuarios
+    const usuariosFormateados = computed(() => {
+      if (!adminStore.usuarios || adminStore.usuarios.length === 0) {
+        return 'No hay usuarios cargados.';
+      }
+
+      return adminStore.usuarios.map(usuario => {
+        // fecha formateada
+        const fecha = new Date(usuario.fechaRegistro);
+        const opcionesFecha = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+        const fechaLegible = fecha.toLocaleString('es-ES', opcionesFecha); // Ajusta 'es-ES' si necesitas otro locale
+        // output de la data del store formateada, separada por comas sin nada del json
+        return `ID: ${usuario.idUsuario}, Nombre: ${usuario.nombre}, Apellidos: ${usuario.apellidos}, Email: ${usuario.email}, Rol ID: ${usuario.idRol}, Fecha Registro: ${fechaLegible}`;
+      }).join(';\n'); // separar cada usuario (es decir cada objeto del json) por ; y salto de linea para hacerlo mas legible
+    });
+
+    return { adminStore, usuariosFormateados };
+  },
+
   data() {
     return {
       botonActual: 'usuarios',

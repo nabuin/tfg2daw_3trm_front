@@ -130,7 +130,7 @@ export const useAdminStore = defineStore('admin', {
     // usuarios metodos
 
     async obtenerTodosLosUsuarios() {
-      const datos = await this._llamadaApiFetch('GET', 'localhost:7179/api/usuarios');
+      const datos = await this._llamadaApiFetch('GET', 'https://localhost:7179/api/usuarios');
       this.usuarios = datos.map((usuario: any) => ({
         idUsuario: usuario.idUsuario,
         nombre: usuario.nombre,
@@ -140,12 +140,9 @@ export const useAdminStore = defineStore('admin', {
         fechaRegistro: usuario.fechaRegistro
       }));
     },
-
      // store inicial, se hará por correo  todo
 
-   async obtenerUsuarioPorId(idUsuario: number) {
-        return await this._llamadaApiFetch('GET', `localhost:7179/api/usuarios/${idUsuario}`);
-    },
+ 
 
     async agregarUsuario(datosUsuario: { nombre: string; apellidos: string; email: string; contrasenia: string; idRol: number }) {
       const nuevoUsuario = await this._llamadaApiFetch('POST', 'localhost:7179/api/usuarios', datosUsuario);
