@@ -206,6 +206,11 @@ export default defineComponent({
     background: transparent;
     color: white;
 
+    option{
+      background-color: black;
+      color: white;
+    }
+
     &:focus {
       outline: none;
       border-color: #007bff;
@@ -259,7 +264,6 @@ export default defineComponent({
   }
 }
 
-/* Responsive (≤900px): dos columnas en grid */
 @media (max-width: 900px) {
   .form-width {
     flex-direction: column;
@@ -298,7 +302,6 @@ export default defineComponent({
   }
 }
 
-/* Muy móvil (≤600px): una sola columna */
 @media (max-width: 600px) {
   .filtro-form {
     grid-template-columns: 1fr;
