@@ -1,1 +1,30 @@
-<!-- icon666.com - MILLIONS OF FREE VECTOR ICONS --><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><g><g><g><path d="M58.753,237.086c8.55-2.472,17.582-3.801,26.918-3.801h340.658c9.336,0,18.366,1.329,26.918,3.801L471.88,126.02 c5.274-31.431-3.508-63.411-24.095-87.739C427.199,13.953,397.114,0,365.244,0H146.756c-31.87,0-61.954,13.953-82.54,38.281 c-20.588,24.328-29.37,56.307-24.096,87.738L58.753,237.086z"></path><path d="M426.329,266.676H85.671c-35.102,0-63.659,28.557-63.659,63.66v44.363c0,35.102,28.557,63.659,63.659,63.659h11.432V512 h33.391v-73.64h251.011V512h33.391v-73.64h11.432c35.102,0,63.659-28.557,63.659-63.659v-44.363 C489.99,295.234,461.431,266.676,426.329,266.676z"></path></g></g></g></svg>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradiente para dar volumen al asiento -->
+    <radialGradient id="seatGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#dddddd"/>
+      <stop offset="100%" stop-color="#999999"/>
+    </radialGradient>
+    <!-- Sombra suave bajo el asiento -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Ruedas de la silla -->
+  <g fill="#666666">
+    <circle cx="60" cy="95" r="5"/>
+    <circle cx="35" cy="75" r="5"/>
+    <circle cx="85" cy="75" r="5"/>
+    <circle cx="25" cy="45" r="5"/>
+    <circle cx="95" cy="45" r="5"/>
+  </g>
+
+  <!-- Asiento con esquinas redondeadas, degradado y sombra -->
+  <rect x="30" y="30" width="60" height="50" rx="8" ry="8"
+        fill="url(#seatGrad)" stroke="#333333" stroke-width="2" filter="url(#shadow)"/>
+
+  <!-- Respaldo con un gris distinto y vértices redondeados -->
+  <rect x="35" y="15" width="50" height="15" rx="7" ry="7"
+        fill="#bbbbbb" stroke="#333333" stroke-width="2"/>
+</svg>
