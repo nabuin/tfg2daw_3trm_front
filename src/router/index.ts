@@ -7,6 +7,8 @@ import PuestosView from '../views/PuestosView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import  UserInfoView from '../views/UserInfoView.vue';
+import InfoPedidoView from '@/views/InfoPedidoView.vue';
+import AdminView from '@/views/AdminView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +47,17 @@ const router = createRouter({
       path: '/userinfo',
       name: 'UserInfo',
       component: UserInfoView,
+    },
+
+    {
+      path: '/infopedido',
+      name: 'InfoPedidoView',
+      component: InfoPedidoView,
+    },
+      {
+      path: '/admin',
+      name: 'AdminView',
+      component: AdminView,
     },
   ],
 });
