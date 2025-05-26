@@ -1,933 +1,396 @@
 <template>
-  <div class="admin-panel">
-    <h2 class="admin-panel__title">Administración</h2>
-
-    <nav class="admin-panel__top-navigation">
-      <button
-        class="admin-panel__top-nav-item"
-        :class="{ activo: botonActual === 'usuarios' }"
-        @click="botonActual = 'usuarios'; seccionActiva = null"
-      >
-        <div class="admin-panel__top-nav-icon">
-          <img src="../imgs/icons/admin-usuario.svg" alt="Icono Usuarios" />
+  <div class="card shadow border-0 mb-7">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Gestión de Usuarios</h5>
+      <div class="header-controls">
+        <div class="input-group input-group-sm input-group-inline me-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control ps-0" placeholder="Buscar usuario..." v-model="searchQuery">
         </div>
-        <span class="admin-panel__top-nav-text">Usuarios/Roles</span>
-      </button>
-      <button
-        class="admin-panel__top-nav-item"
-        :class="{ activo: botonActual === 'salas_sedes' }"
-        @click="botonActual = 'salas_sedes'; seccionActiva = null"
-      >
-        <div class="admin-panel__top-nav-icon">
-          <img src="../imgs/icons/admin-oficina.svg" alt="Icono Salas/Sedes" />
-        </div>
-        <span class="admin-panel__top-nav-text">Salas/Sedes</span>
-      </button>
-      <button
-        class="admin-panel__top-nav-item"
-        :class="{ activo: botonActual === 'zonas_puestos' }"
-        @click="botonActual = 'zonas_puestos'; seccionActiva = null"
-      >
-        <div class="admin-panel__top-nav-icon">
-          <img  src="../imgs/icons/admin-zonas.svg" alt="Icono Zonas/Puestos" />
-        </div>
-        <span class="admin-panel__top-nav-text">Zonas/Puestos</span>
-      </button>
-      <button
-        class="admin-panel__top-nav-item"
-        :class="{ activo: botonActual === 'reservas_disponibilidad' }"
-        @click="botonActual = 'reservas_disponibilidad'; seccionActiva = null"
-      >
-        <div class="admin-panel__top-nav-icon">
-          <img  src="../imgs/icons/admin-calendario.svg" alt="Icono Reservas/Disponibilidad" />
-        </div>
-        <span class="admin-panel__top-nav-text">Reservas/Disponibilidad</span>
-      </button>
-    </nav>
-
-    <div v-if="botonActual === 'usuarios'" class="admin-panel__content-section">
-      <h3>Gestión de Usuarios y Roles</h3>
-
-      <div class="admin-panel__section">
-        <button class="admin-panel__section-title" @click="toggleSection('usuarios-ver-todos')">VER TODOS LOS USUARIOS</button>
-        <div v-if="seccionActiva === 'usuarios-ver-todos'" class="admin-panel__section-content">
-          <p>Lista completa de usuarios registrados.</p>
-          <button class="admin-panel__button" @click="adminStore.obtenerTodosLosUsuarios()">Cargar Lista</button>
-          <div class="admin-panel__results">
-            <div v-if="adminStore.cargando">Cargando usuarios...</div>
-            <div v-else-if="adminStore.error" class="admin-panel__error">Error: {{ adminStore.error }}</div>
-            <div v-else-if="adminStore.usuarios.length > 0" class="admin-panel__formatted-box">
-  <h4>Usuarios encontrados ({{ adminStore.usuarios.length }}):</h4>
-  <pre class="admin-panel__user-list-output">{{ usuariosFormateados }}</pre> <!-- con el tag pre preservara los saltos de linea y tal, conservando bien el formato dando en el script-->
-</div>
-            <div v-else>No hay usuarios cargados.</div>
-          </div>
-        </div>
+        <button @click="openAddUserModal" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal">
+          <i class="bi bi-plus me-2"></i>Añadir Usuario
+        </button>
       </div>
-
-
-      <div class="admin-panel__section">
-        <button class="admin-panel__section-title" @click="toggleSection('usuarios-eliminar')">ELIMINAR USUARIO</button>
-        <div v-if="seccionActiva === 'usuarios-eliminar'" class="admin-panel__section-content">
-          <div class="admin-panel__action-item">
-            <input type="text" class="admin-panel__input" placeholder="Email del usuario a eliminar">
-            <button class="admin-panel__button admin-panel__button--danger">Eliminar Usuario</button>
-          </div>
-        </div>
-      </div>
-
-      </div>
-
-    <div v-if="botonActual === 'salas_sedes'" class="admin-panel__content-section">
-      <h3>Gestión de Salas y Sedes</h3>
-
-      <div class="admin-panel__subsection-group">
-        <h4>Gestión de Sedes (Tabla Sedes)</h4>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('sedes-ver-todas')">VER TODAS LAS SEDES</button>
-          <div v-if="seccionActiva === 'sedes-ver-todas'" class="admin-panel__section-content">
-            <p>Lista completa de sedes registradas.</p>
-            <button class="admin-panel__button">Cargar Lista</button>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('sedes-ver-especifico')">VER SEDE ESPECÍFICA</button>
-          <div v-if="seccionActiva === 'sedes-ver-especifico'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Ciudad">
-              <input type="text" class="admin-panel__input" placeholder="Dirección">
-               <input type="text" class="admin-panel__input" placeholder="Planta">
-              <button class="admin-panel__button">Buscar Sede</button>
-            </div>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('sedes-anadir')">AÑADIR NUEVA SEDE</button>
-          <div v-if="seccionActiva === 'sedes-anadir'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="País">
-              <input type="text" class="admin-panel__input" placeholder="Ciudad">
-              <input type="text" class="admin-panel__input" placeholder="Dirección">
-              <input type="text" class="admin-panel__input" placeholder="Código Postal">
-              <input type="text" class="admin-panel__input" placeholder="Planta (ej: 1ª)">
-              <input type="text" class="admin-panel__input" placeholder="URL de Imagen">
-              <input type="text" class="admin-panel__input" placeholder="Observaciones">
-              <button class="admin-panel__button">Añadir Sede</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('sedes-editar')">EDITAR SEDE</button>
-          <div v-if="seccionActiva === 'sedes-editar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-               <input type="text" class="admin-panel__input" placeholder="Ciudad">
-               <input type="text" class="admin-panel__input" placeholder="Dirección">
-               <input type="text" class="admin-panel__input" placeholder="Planta">
-              <button class="admin-panel__button">Cargar Datos para Editar</button>
-            </div>
-            <div class="admin-panel__action-item admin-panel__action-item--vertical admin-panel__action-item--editing">
-              <input type="text" class="admin-panel__input" placeholder="Nuevo País">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Ciudad">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Dirección">
-              <input type="text" class="admin-panel__input" placeholder="Nuevo Código Postal">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Planta">
-              <input type="text" class="admin-panel__input" placeholder="Nueva URL de Imagen">
-              <input type="text" class="admin-panel__input" placeholder="Nuevas Observaciones">
-              <button class="admin-panel__button">Guardar Cambios</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('sedes-eliminar')">ELIMINAR SEDE</button>
-          <div v-if="seccionActiva === 'sedes-eliminar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Ciudad">
-              <input type="text" class="admin-panel__input" placeholder="Dirección">
-               <input type="text" class="admin-panel__input" placeholder="Planta">
-              <button class="admin-panel__button admin-panel__button--danger">Eliminar Sede</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="admin-panel__subsection-group">
-        <h4>Gestión de Salas (Tabla Salas)</h4>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('salas-ver-todas')">VER TODAS LAS SALAS</button>
-          <div v-if="seccionActiva === 'salas-ver-todas'" class="admin-panel__section-content">
-             <p>Lista completa de salas.</p>
-            <button class="admin-panel__button">Cargar Lista</button>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('salas-ver-especifico')">VER SALA ESPECÍFICA</button>
-          <div v-if="seccionActiva === 'salas-ver-especifico'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Nombre de la Sala">
-               <input type="text" class="admin-panel__input" placeholder="Ciudad">
-               <input type="text" class="admin-panel__input" placeholder="Dirección">
-              <button class="admin-panel__button">Buscar Sala</button>
-            </div>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('salas-anadir')">AÑADIR NUEVA SALA</button>
-          <div v-if="seccionActiva === 'salas-anadir'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Nombre de la Sala">
-              <input type="text" class="admin-panel__input" placeholder="URL de Imagen">
-              <input type="number" class="admin-panel__input" placeholder="Capacidad">
-              <input type="text" class="admin-panel__input" placeholder="Tipo de Sala (ej: 'privada')"> <!-- el endpoint debera evitar los espacios tb  para evitar por ejemplo ' privada'-->
-              <input type="text" class="admin-panel__input" placeholder="Sede a la que pertenece "> <!-- nombre de la sala ,quitar q sea case sensitive y posibles fallos en el endpoint dedicado-->
-              <div class="admin-panel__checkbox-item">
-                 <input type="checkbox" id="sala-bloqueada">
-                 <label for="sala-bloqueada">Bloqueada</label>
-              </div>
-              <button class="admin-panel__button">Añadir Sala</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('salas-editar')">EDITAR SALA</button>
-          <div v-if="seccionActiva === 'salas-editar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Nombre de la Sala a editar">
-              <input type="text" class="admin-panel__input" placeholder="Ciudad la sala a editar">
-              <input type="text" class="admin-panel__input" placeholder="Dirección la sala a editar">
-              <button class="admin-panel__button">Cargar Datos para Editar</button>
-            </div>
-             <div class="admin-panel__action-item admin-panel__action-item--vertical admin-panel__action-item--editing">
-              <input type="text" class="admin-panel__input" placeholder="Nuevo Nombre">
-              <input type="text" class="admin-panel__input" placeholder="Nueva URL de Imagen">
-              <input type="number" class="admin-panel__input" placeholder="Nueva Capacidad">
-              <input type="text" class="admin-panel__input" placeholder="Nuevo Tipo de Sala - seleccionar de TiposSalas">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Sede">
-               <div class="admin-panel__checkbox-item">
-                 <input type="checkbox" id="sala-bloqueada-editar">
-                 <label for="sala-bloqueada-editar">Bloqueada</label>
-              </div>
-              <button class="admin-panel__button">Guardar Cambios</button>
-            </div>
-             </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('salas-eliminar')">ELIMINAR SALA</button>
-          <div v-if="seccionActiva === 'salas-eliminar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Nombre de la Sala a eliminar">
-               <input type="text" class="admin-panel__input" placeholder="Ciudad la sala a eliminar">
-               <input type="text" class="admin-panel__input" placeholder="Dirección la sala a eliminar">
-              <button class="admin-panel__button admin-panel__button--danger">Eliminar Sala</button>
-            </div>
-          </div>
-        </div>
-
-         </div>
     </div>
-
-    <div v-if="botonActual === 'zonas_puestos'" class="admin-panel__content-section">
-      <h3>Gestión de Zonas y Puestos</h3>
-
-      <div class="admin-panel__subsection-group">
-         <h4>Gestión de Zonas de Trabajo (Tabla ZonasTrabajo)</h4>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('zonas-ver-todas')">VER TODAS LAS ZONAS</button>
-          <div v-if="seccionActiva === 'zonas-ver-todas'" class="admin-panel__section-content">
-            <p>Lista completa de zonas de trabajo.</p>
-            <button class="admin-panel__button">Cargar Lista</button>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('zonas-ver-especifico')">VER ZONA ESPECÍFICA</button>
-          <div v-if="seccionActiva === 'zonas-ver-especifico'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Descripción">
-               <input type="text" class="admin-panel__input" placeholder="Nombre">
-               <input type="text" class="admin-panel__input" placeholder="Ciudad">
-               <input type="text" class="admin-panel__input" placeholder="Dirección">
-              <button class="admin-panel__button">Buscar Zona</button>
-            </div>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('zonas-anadir')">AÑADIR NUEVA ZONA</button>
-          <div v-if="seccionActiva === 'zonas-anadir'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Descripción">
-               <input type="text" class="admin-panel__input" placeholder="Sala">
-              <button class="admin-panel__button">Añadir Zona</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('zonas-editar')">EDITAR ZONA</button>
-          <div v-if="seccionActiva === 'zonas-editar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Descripción de la Zona a editar">
-              <input type="text" class="admin-panel__input" placeholder="Nombre Sala">
-              <input type="text" class="admin-panel__input" placeholder="Ciudad Sede">
-              <input type="text" class="admin-panel__input" placeholder="Dirección">
-              <button class="admin-panel__button">Cargar Datos para Editar</button>
-            </div>
-             <div class="admin-panel__action-item admin-panel__action-item--vertical admin-panel__action-item--editing">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Descripción">
-               <input type="text" class="admin-panel__input" placeholder="Nombre Nueva Sala">
-              <button class="admin-panel__button">Guardar Cambios</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('zonas-eliminar')">ELIMINAR ZONA</button>
-          <div v-if="seccionActiva === 'zonas-eliminar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Descripción">
-               <input type="text" class="admin-panel__input" placeholder="Nombre sala"> <!-- sala asociada a esa sede, tendra que decir si hay mas salas asociadas a esa zona y si borras todo lo asociado o no-->
-              <button class="admin-panel__button admin-panel__button--danger">Eliminar Zona</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-       <div class="admin-panel__subsection-group">
-         <h4>Gestión de Puestos de Trabajo (Tabla PuestosTrabajo)</h4>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('puestos-ver-todos')">VER TODOS LOS PUESTOS</button>
-          <div v-if="seccionActiva === 'puestos-ver-todos'" class="admin-panel__section-content">
-            <p>Lista completa de puestos de trabajo.</p>
-            <button class="admin-panel__button">Cargar Lista</button>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('puestos-ver-especifico')">VER PUESTO ESPECÍFICO</button>
-          <div v-if="seccionActiva === 'puestos-ver-especifico'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Número de Asiento">
-              <input type="text" class="admin-panel__input" placeholder="Codigo mesa">
-               <input type="text" class="admin-panel__input" placeholder="Sala asociada">
-            </div>
-             <div class="admin-panel__action-item">
-               <button class="admin-panel__button">Buscar Puesto</button>
-             </div>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('puestos-anadir')">AÑADIR NUEVO PUESTO</button>
-          <div v-if="seccionActiva === 'puestos-anadir'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="number" class="admin-panel__input" placeholder="Número de Asiento">
-              <input type="number" class="admin-panel__input" placeholder="Código de Mesa">
-              <input type="text" class="admin-panel__input" placeholder="URL de Imagen">
-               <input type="text" class="admin-panel__input" placeholder="Zona a la que pertenece">
-              <input type="text" class="admin-panel__input" placeholder="Sala a la que pertenece">
-               <div class="admin-panel__checkbox-item">
-                 <input type="checkbox" id="puesto-disponible" checked>
-                 <label for="puesto-disponible">Disponible</label>
-              </div>
-               <div class="admin-panel__checkbox-item">
-                 <input type="checkbox" id="puesto-bloqueado">
-                 <label for="puesto-bloqueado">Bloqueado</label>
-              </div>
-              <button class="admin-panel__button">Añadir Puesto</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('puestos-editar')">EDITAR PUESTO</button>
-          <div v-if="seccionActiva === 'puestos-editar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Número de Asiento">
-              <input type="text" class="admin-panel__input" placeholder="codigo de mesa">
-               <input type="text" class="admin-panel__input" placeholder="Nombre sala asociada">
-               <button class="admin-panel__button">Cargar Datos para Editar</button>
-            </div>
-             <div class="admin-panel__action-item admin-panel__action-item--vertical admin-panel__action-item--editing">
-               <input type="number" class="admin-panel__input" placeholder="Nuevo Número de Asiento">
-              <input type="number" class="admin-panel__input" placeholder="Nuevo Código de Mesa">
-              <input type="text" class="admin-panel__input" placeholder="Nueva URL de Imagen">
-               <input type="text" class="admin-panel__input" placeholder="Nueva Zona">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Sala">
-               <div class="admin-panel__checkbox-item">
-                 <input type="checkbox" id="puesto-disponible-editar">
-                 <label for="puesto-disponible-editar">Disponible</label>
-              </div>
-               <div class="admin-panel__checkbox-item">
-                 <input type="checkbox" id="puesto-bloqueado-editar">
-                 <label for="puesto-bloqueado-editar">Bloqueado</label>
-              </div>
-              <button class="admin-panel__button">Guardar Cambios</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('puestos-eliminar')">ELIMINAR PUESTO</button>
-          <div v-if="seccionActiva === 'puestos-eliminar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-               <input type="text" class="admin-panel__input" placeholder="Número de Asiento">
-              <input type="text" class="admin-panel__input" placeholder="Codigo de mesa">
-               <input type="text" class="admin-panel__input" placeholder="Nombre sala asociada">
-              <button class="admin-panel__button admin-panel__button--danger">Eliminar Puesto</button>
-            </div>
-          </div>
-        </div>
-
-        </div>
+    <div class="table-responsive">
+      <table class="table table-hover table-nowrap">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="text-start">Acciones</th>
+            <th scope="col">ID</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellidos</th>
+            <th scope="col">Email</th>
+            <th scope="col">Rol ID</th>
+            <th scope="col">Fecha Registro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="adminStore.cargando">
+            <td colspan="7" class="text-center py-4">Cargando usuarios...</td>
+          </tr>
+          <tr v-else-if="adminStore.error">
+            <td colspan="7" class="text-center text-danger py-4">Error al cargar usuarios: {{ adminStore.error }}</td>
+          </tr>
+          <tr v-else-if="filteredUsuarios.length === 0">
+            <td colspan="7" class="text-center py-4">No se encontraron usuarios.</td>
+          </tr>
+          <tr v-for="usuario in filteredUsuarios" :key="usuario.idUsuario">
+            <td class="text-start">
+          <button @click="editUser(usuario)" class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#userModal">
+            EDITAR
+          </button>
+                    <button @click="confirmDelete(usuario.idUsuario)" type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
+            ELIMINAR
+          </button>
+            </td>
+            <td>{{ usuario.idUsuario }}</td>
+            <td>
+              <span class="text-heading font-semibold">{{ usuario.nombre }}</span>
+            </td>
+            <td>{{ usuario.apellidos }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>{{ usuario.idRol }}</td>
+            <td>{{ formatFechaRegistro(usuario.fechaRegistro) }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <div class="card-footer border-0 py-5">
+      <span class="text-muted text-sm">Mostrando {{ filteredUsuarios.length }} usuarios.</span>
+    </div>
+  </div>
 
-    <div v-if="botonActual === 'reservas_disponibilidad'" class="admin-panel__content-section">
-      <h3>Gestión de Reservas y Disponibilidad</h3>
-
-       <div class="admin-panel__subsection-group">
-         <h4>Gestión de Reservas (Tabla Reservas)</h4>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('reservas-ver-todas')">VER TODAS LAS RESERVAS</button>
-          <div v-if="seccionActiva === 'reservas-ver-todas'" class="admin-panel__section-content">
-            <p>Lista completa de reservas.</p>
-            <button class="admin-panel__button">Cargar Lista</button>
-            <div class="admin-panel__results">
-               </div>
-          </div>
+  <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userModalLabel">{{ currentUser?.idUsuario ? 'Editar Usuario' : 'Añadir Nuevo Usuario' }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('reservas-ver-especifica')">VER RESERVA ESPECÍFICA</button>
-          <div v-if="seccionActiva === 'reservas-ver-especifica'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Email del usuario que realizó la reserva">
-              <input type="date" class="admin-panel__input" placeholder="Fecha de la reserva">
-              <input type="time" class="admin-panel__input" placeholder="Hora de inicio de un tramo horario en la reserva">
-               <input type="text" class="admin-panel__input" placeholder="Asiento reservado">
-               <input type="text" class="admin-panel__input" placeholder="Sala reservada">
-
-             </div>
-            <div class="admin-panel__action-item">
-               <button class="admin-panel__button">Buscar Reserva</button>
-            </div>
-            <div class="admin-panel__results">
-               </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('reservas-anadir')">AÑADIR NUEVA RESERVA</button>
-          <div v-if="seccionActiva === 'reservas-anadir'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Email">
-              <input type="date" class="admin-panel__input" placeholder="Fecha Reserva">
-               <input type="text" class="admin-panel__input" placeholder="Puesto">
-               <input type="text" class="admin-panel__input" placeholder="Sala">
-               <input type="text" class="admin-panel__input" placeholder="Tramos Horarios (ej: 09:00-10:00)">
-              <input type="text" class="admin-panel__input" placeholder="Descripción">
-              <button class="admin-panel__button">Crear Reserva</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('reservas-editar')">EDITAR RESERVA</button>
-          <div v-if="seccionActiva === 'reservas-editar'" class="admin-panel__section-content">
-             <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Email del usuario de la reserva a editar">
-              <input type="date" class="admin-panel__input" placeholder="Fecha de la reserva a editar">
-               <input type="time" class="admin-panel__input" placeholder="Hora de inicio de un tramo horario en la reserva a editar">
-               <input type="text" class="admin-panel__input" placeholder="Sala reservado en la reserva a editar">
-              <button class="admin-panel__button">Cargar Datos para Editar</button>
-            </div>
-             <div class="admin-panel__action-item admin-panel__action-item--vertical admin-panel__action-item--editing">
-               <input type="text" class="admin-panel__input" placeholder="Nuevo Email usuario">
-               <input type="date" class="admin-panel__input" placeholder="Nueva Fecha">
-               <input type="text" class="admin-panel__input" placeholder="Nuevo Puesto/Sala">
-               <input type="text" class="admin-panel__input" placeholder="Nuevos Tramos Horarios">
-              <input type="text" class="admin-panel__input" placeholder="Nueva Descripción">
-               <button class="admin-panel__button">Guardar Cambios</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('reservas-eliminar')">ELIMINAR RESERVA</button>
-          <div v-if="seccionActiva === 'reservas-eliminar'" class="admin-panel__section-content">
-            <div class="admin-panel__action-item admin-panel__action-item--vertical">
-              <input type="text" class="admin-panel__input" placeholder="Email del usuario de la reserva a eliminar">
-              <input type="date" class="admin-panel__input" placeholder="Fecha de la reserva a eliminar">
-               <input type="time" class="admin-panel__input" placeholder="Hora de inicio de un tramo horario en la reserva a eliminar">
-              <button class="admin-panel__button admin-panel__button--danger">Eliminar Reserva</button>
-            </div>
-          </div>
+        <div class="modal-body">
+          <UsuarioForm :usuario="currentUser" @submit-form="handleUserSubmit" @cancel="closeUserModal" />
         </div>
       </div>
+    </div>
+  </div>
 
-       <div class="admin-panel__subsection-group">
-         <h4>Gestión de Disponibilidad (Tabla Disponibilidades)</h4>
-         <p>Permite modificar el estado de disponibilidad de puestos para fechas y tramos horarios específicos.</p>
-
-        <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('disponibilidad-ver')">VER DISPONIBILIDAD</button>
-          <div v-if="seccionActiva === 'disponibilidad-ver'" class="admin-panel__section-content">
-             <div class="admin-panel__action-item admin-panel__action-item--vertical">
-               <input type="date" class="admin-panel__input" placeholder="Fecha">
-             </div>
-             <div class="admin-panel__action-item">
-               <button class="admin-panel__button">Buscar Disponibilidad</button>
-             </div>
-            <div class="admin-panel__results">
-               </div>
-          </div>
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-
-         <div class="admin-panel__section">
-          <button class="admin-panel__section-title" @click="toggleSection('disponibilidad-actualizar')">ACTUALIZAR ESTADO DE DISPONIBILIDAD</button>
-          <div v-if="seccionActiva === 'disponibilidad-actualizar'" class="admin-panel__section-content">
-             <div class="admin-panel__action-item admin-panel__action-item--vertical">
-                <input type="text" class="admin-panel__input" placeholder="Puesto/Sala">
-               <input type="date" class="admin-panel__input" placeholder="Fecha">
-               <input type="text" class="admin-panel__input" placeholder="Tramo Horario (ej: '09:00-10:00')">
-                <input type="text" class="admin-panel__input" placeholder="Nuevo Estado ('1' para disponible, '0' para bloqueado)">
-             </div>
-             <div class="admin-panel__action-item">
-               <button class="admin-panel__button">Actualizar Estado</button>
-             </div>
-          </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que quieres eliminar al usuario con ID: <strong>{{ userToDeleteId }}</strong>? Esta acción no se puede deshacer.</p>
         </div>
-
-         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" @click="deleteUserConfirmed">ELIMINAR</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-  import { useAdminStore } from '@/store/adminStore'; 
-  import { computed } from 'vue';
 
-  export default {
-  setup() {
-    const adminStore = useAdminStore();
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useAdminStore } from '@/store/adminStore';
+import UsuarioForm from '../components/forms/UsuariosForm.vue';
+import { Modal } from 'bootstrap';
 
-    // comprobar que haya usuarios
-    const usuariosFormateados = computed(() => {
-      if (!adminStore.usuarios || adminStore.usuarios.length === 0) {
-        return 'No hay usuarios cargados.';
-      }
+const adminStore = useAdminStore(); 
+const searchQuery = ref(''); // buscar elementos
 
-      return adminStore.usuarios.map(usuario => {
-        // fecha formateada
-        const fecha = new Date(usuario.fechaRegistro);
-        const opcionesFecha = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-        const fechaLegible = fecha.toLocaleString('es-ES', opcionesFecha); // Ajusta 'es-ES' si necesitas otro locale
-        // output de la data del store formateada, separada por comas sin nada del json
-        return `ID: ${usuario.idUsuario}, Nombre: ${usuario.nombre}, Apellidos: ${usuario.apellidos}, Email: ${usuario.email}, Rol ID: ${usuario.idRol}, Fecha Registro: ${fechaLegible}`;
-      }).join(';\n'); // separar cada usuario (es decir cada objeto del json) por ; y salto de linea para hacerlo mas legible
-    });
+const currentUser = ref(null); // usuario actual para editar o añadir
+const userToDeleteId = ref(null); // id para borrar el usuario especifico
 
-    return { adminStore, usuariosFormateados };
-  },
+let userModalInstance = null;
+let deleteConfirmModalInstance = null;
 
-  data() {
-    return {
-      botonActual: 'usuarios',
-      seccionActiva: null
-    };
-  },
-  methods: {
-    toggleSection(sectionName) {
-      this.seccionActiva = this.seccionActiva === sectionName ? null : sectionName;
-    },
-  },
+onMounted(() => {
+  adminStore.obtenerTodosLosUsuarios();
+
+  userModalInstance = new Modal(document.getElementById('userModal'));
+  deleteConfirmModalInstance = new Modal(document.getElementById('deleteConfirmModal'));
+});
+
+const filteredUsuarios = computed(() => {
+  if (!searchQuery.value) {
+    return adminStore.usuarios;
+  }
+  // mejorar alcance si es mayusculas o minusculas, email, etc
+  const query = searchQuery.value.toLowerCase();
+  return adminStore.usuarios.filter(usuario =>
+    usuario.nombre.toLowerCase().includes(query) ||
+    usuario.apellidos.toLowerCase().includes(query) ||
+    usuario.email.toLowerCase().includes(query) ||
+    String(usuario.idUsuario).includes(query) ||
+    String(usuario.idRol).includes(query)
+  );
+});
+
+
+// formato legible fechas
+const formatFechaRegistro = (dateString) => {
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+  return date.toLocaleString('es-ES', options);
+};
+
+const openAddUserModal = () => {
+  currentUser.value = null;
+// añadir usuario, por defecto en nulo
+};
+
+const editUser = (usuario) => {
+  currentUser.value = { ...usuario };
+// cargar la data que ya hay del usuario elegido para editarlo
+};
+
+const confirmDelete = (id) => {
+  userToDeleteId.value = id;
+  // metodo para borrar por su id
+};
+
+// cerrar el add
+const closeUserModal = () => {
+  if (userModalInstance) {
+    userModalInstance.hide();
+  }
+};
+// confirmar el delete
+const closeDeleteConfirmModal = () => {
+  if (deleteConfirmModalInstance) {
+    deleteConfirmModalInstance.hide();
+  }
+};
+// confirmar edit o add
+const handleUserSubmit = async (formData) => {
+  let success = false;
+  try {
+    if (formData.idUsuario) {
+      await adminStore.actualizarUsuario(formData.idUsuario, formData);
+      success = true;
+    } else {
+      await adminStore.agregarUsuario(formData);
+      success = true;
+    }
+  } catch (error) {
+    console.error('Error al guardar usuario:', error);
+    alert(`Error al guardar usuario: ${adminStore.error || error.message}`);
+  }
+
+  if (success) {
+    closeUserModal();
+    await adminStore.obtenerTodosLosUsuarios();
+  }
+};
+
+const deleteUserConfirmed = async () => {
+  if (userToDeleteId.value) {
+    try {
+      await adminStore.eliminarUsuario(userToDeleteId.value);
+      closeDeleteConfirmModal();
+      userToDeleteId.value = null;
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      alert(`Error al eliminar usuario: ${adminStore.error || error.message}`);
+    }
+  }
 };
 </script>
 
-<style lang="scss">
-.admin-panel {
-  width: 100%;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-family: sans-serif;
-  margin: 10px auto;
-  box-sizing: border-box;
+<style lang="scss" scoped>
+.card-header {
+  padding: 24px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 
-  &__title {
-    font-size: 20px;
-    margin-bottom: 15px;
-    text-align: center;
-    color: black;
-    background-color: rgb(190, 190, 190);
-  }
-
-  &__top-navigation {
-    display: flex;
-    flex-wrap: wrap;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 15px;
-    justify-content: space-around;
-  }
-
-  &__top-nav-item {
-    flex-basis: calc(50% - 10px);
+  .header-controls {
+    width: 100%;
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    box-sizing: border-box;
-    margin-bottom: 10px;
-  }
+    align-items: stretch;
+    gap: 16px;
 
-  &__top-nav-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img {
-      max-width: 100%;
-      max-height: 100%;
-    }
-  }
-
-  &__top-nav-text {
-    font-size: 12px;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  &__content-section {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    margin-bottom: 15px;
-    background-color: white;
-  }
-
-  &__section {
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-  }
-
-  &__section-title {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 8px 12px;
-    background-color: #f9f9f9;
-    border: none;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-    font-weight: bold;
-    cursor: pointer;
-    box-sizing: border-box;
-    font-size: 14px;
-
-    &:hover {
-      background-color: #eee;
-    }
-  }
-
-  &__section-content {
-    padding: 10px;
-    background-color: white;
-  }
-
-  &__action-item {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-    align-items: center;
-    flex-direction: column;
-  }
-
-  &__input {
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 12px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  &__button {
-    padding: 6px 10px;
-    border: 1px solid #333;
-    border-radius: 3px;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
-
-}
-@media (min-width: 768px) {
-  .admin-panel {
-    padding: 30px;
-
-    &__title {
-      font-size: 28px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    &__top-navigation {
-      display: flex;
-      justify-content: center;
-      border-bottom: 2px solid #ddd;
-      margin-bottom: 30px;
-      padding-bottom: 15px;
-    }
-
-    &__top-nav-item {
-      flex-basis: auto;
-      margin-right: 25px;
-      margin-bottom: 0;
-      padding: 15px 20px;
-      border-radius: 8px;
-
-     
-
-      &.activo {
-        background-color: #e0e0e0;
-      }
-    }
-
-    &__top-nav-icon {
-      width: 50px;
-      height: 50px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #dbd8d8;
-
-      img {
-          max-width: 60%;
-          max-height: 60%;
-      }
-    }
-
-    &__top-nav-text {
-      font-size: 16px;
-    text-align: center;
-      white-space: nowrap;
-    }
-
-    &__content-section {
-      padding: 20px;
-     border: 1px solid #ddd;
-      border-radius: 8px;
-     margin-bottom: 25px;
-      background-color: white;
-
-      h3 {
-        font-size: 20px;
-      margin-bottom: 15px;
-        text-align: center;
-      }
-    }
-
-    &__section {
-      margin-bottom: 20px;
-      border: 1px solid #dbd8d8;
-      border-radius: 8px;
-    }
-
-    &__section-title {
-      display: flex;
-     align-items: center;
+    .input-group-inline {
       width: 100%;
-      padding: 12px 18px;   
-         background-color: #dbd8d8;
-      border: none;
-    border-bottom: 1px solid #ddd;
-     text-align: center;
-    font-weight: bold;
-      cursor: pointer;
-     box-sizing: border-box;
-      font-size: 16px;
-      border-radius: 8px 8px;
-
-      &:hover {
-        background-color: #dbd8d8;
+      margin-right: 0;
+      .form-control {
+        min-width: 0;
       }
     }
-
-    &__section-content {
-      padding: 20px;
-     background-color: white;
-      border-radius: 0 0 8px 8px;
-    }
-
-    &__action-item {
-     display: flex;
-   gap: 20px;
-    margin-bottom: 15px;
-      align-items: center;
-    flex-direction: row;
-      justify-content: center;
-    }
-
-    &__input {
-      padding: 10px;
-    border: 1px solid #dbd8d8;
-    border-radius: 5px;
-     font-size: 16px;
-      width: 60%;
-     box-sizing: border-box;
-    }
-
-    &__button {
-      padding: 10px 20px;
-      border: 1px solid black;
-    border-radius: 5px;
-      background-color: white;
-      cursor: pointer;
-      font-size: 16px;
+    .btn {
+      width: 100%;
     }
   }
 
-
-  @media (min-width: 1200px) {
-  .admin-panel {
-     max-width: 1200px;
-    margin: 30px auto;
-    padding: 40px;
-
-    &__title {
-      font-size: 32px;
-      margin-bottom: 40px;
-    }
-
-    &__top-navigation {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-    }
-
-    &__top-nav-item {
-      flex-basis: auto;
-    display: flex;
-      flex-direction: column;
-     align-items: center;
-    justify-content: center;
-      margin-right: 50px;
-      margin-bottom: 0;
-     padding: 18px 15px;
-      border-radius: 8px;
-      box-sizing: border-box;
-
-      &.activo {
-       background-color: #e0e0e0;
-      }
-    }
-
-    &__top-nav-icon {
-      width: 60px;
-    height: 60px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      display: flex;
-    align-items: center;
-      justify-content: center;
-
-      img {
-        max-width: 70%;
-        max-height: 70%;
-      }
-    }
-
-    &__top-nav-text {
-     font-size: 18px;
-    text-align: center;
-     white-space: nowrap;
-    }
-
-    &__content-section {
-    padding: 30px;
-     margin-bottom: 30px;
-
-      h3 {
-      font-size: 24px;
-       margin-bottom: 20px;
-       text-align: left;
-      }
-    }
-
-    &__section {
-    margin-bottom: 25px;
-    }
-
-    &__section-title {
-     padding: 15px 20px;
-      font-size: 18px;
-    }
-
-    &__section-content {
-      padding: 25px;
-    }
-
-    &__action-item {
-      gap: 30px;
-      margin-bottom: 20px;
+  @media (min-width: 769px) {
     flex-direction: row;
-      justify-content: space-between;
-    }
+    align-items: center;
+    justify-content: space-between;
 
-    &__input {
-      padding: 12px;
-    font-size: 18px;
-    }
+    .header-controls {
+      width: auto;
+      margin-top: 0;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
 
-    &__button {
-      padding: 12px;
-     font-size: 18px;
+      .input-group-inline {
+        width: 150px;
+        margin-right: 0;
+      }
+      .btn {
+        width: auto;
+      }
     }
   }
 }
 
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
+.table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+
+  thead {
+    .thead-light {
+      background-color: #f8f9fa;
+    }
+    th {
+      font-weight: 600;
+      white-space: nowrap;
+      padding: 12px;
+      vertical-align: bottom;
+      border-bottom: 2px solid #dee2e6;
+      text-align: left;
+
+      &:first-child {
+        text-align: start;
+      }
+      &:nth-child(7) {
+        text-align: left;
+        white-space: normal;
+        min-width: 130px;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #dee2e6;
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    td {
+      padding: 12px;
+      vertical-align: middle;
+      white-space: nowrap;
+      font-size: 14px;
+
+      &:nth-child(7) {
+        white-space: normal;
+        word-break: break-word;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .table {
+    min-width: 0;
+  }
+
+  .table thead th:nth-child(2),
+  .table tbody td:nth-child(2),
+  .table thead th:nth-child(6),
+  .table tbody td:nth-child(6),
+  .table thead th:nth-child(7),
+  .table tbody td:nth-child(7) {
+    display: none;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  .table tbody td:first-child {
+    white-space: nowrap;
+    text-align: start;
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+  }
+
+  .table tbody td:nth-child(3) {
+    white-space: normal;
+    display: flex;
+    align-items: center;
+    .avatar {
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+    .text-heading {
+      white-space: normal;
+      word-break: break-word;
+    }
+  }
+}
+
+.table-hover tbody tr:hover {
+  background-color: #e2e6ea;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 4px;
+}
+
+.btn-neutral {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #212529;
+  &:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+  }
+}
+
+.text-danger-hover:hover {
+  color: #dc3545;
+}
+
+.modal-dialog {
+  max-width: 500px;
+  margin: 28px auto;
+}
+
+.modal-content {
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 </style>
