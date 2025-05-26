@@ -9,7 +9,6 @@ interface ReservaInfo {
     nombreSalaPrincipal: string;
     ciudadSedePrincipal: string;
     direccionSedePrincipal: string;
-    imagenSalaPrincipal: string;
     rangoHorarioReserva: string;
     cantidadHorasReservadas: number;
 }
@@ -21,7 +20,7 @@ export const useInfoPedidosStore = defineStore('infoPedidos', () => {
 
     // funcion flecha para el fetch al endpoint para obtener los detalles  
     const fetchResumenReserva = async (idReserva: number) => { 
-        const idReservaPrueba = 11; // como prueba se pone id estatico 11, luego se hará dinamico con la respuesta de la api al hacer la reserva
+        const idReservaPrueba = 1; // como prueba se pone id estatico 11, luego se hará dinamico con la respuesta de la api al hacer la reserva
 
         if (!idReservaPrueba) { // luego se hará con un id real
             console.error("No se proporcionó ID de reserva para obtener el resumen.");
