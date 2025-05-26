@@ -74,21 +74,39 @@ export default defineComponent({
     const salasStore = useSalasStore();
     const filtrosStore = useFiltrosStore();
 
+    //generamos dos objetos day, uno que va a ser hoy, y otro mñn
     const hoy = new Date();
     const manana = new Date(hoy);
     manana.setDate(manana.getDate() + 1);
 
+    //n, que es un numero, lo vuelve string, hy hace que tenga almenos 2 carateres, en caso de q no, pone un 0
     const pad = (n: number) => String(n).padStart(2, '0');
-    const yyyy = manana.getFullYear();
-    const mm = pad(manana.getMonth() + 1);
-    const dd = pad(manana.getDate());
-    const mananaStr = `${yyyy}-${mm}-${dd}`;
+    //Genera la fecha, el +1 en month es porque es del 0 al 11 y seria de 1 al 12 para q sea mas entendible y hace la comprobacion de la cantidad
+    const toDateStr = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
+    // Fecha mínima = mañana
+    const mananaStr = toDateStr(manana);
     const fechaMinima = mananaStr;
 
     const fechaInicio = ref(mananaStr);
     const fechaFin    = ref(mananaStr);
 
+    // Funciones para detectar fin de semana y ajustar al siguiente día hábil
+    const esFinDeSemana = (dateStr: string) => {
+      const day = new Date(dateStr).getDay();
+      return day === 6 || day === 0; // 6 = sábado, 0 = domingo
+    };
+    const getSiguienteHabil = (dateStr: string): string => {
+      const d = new Date(dateStr);
+      // avanzar hasta día hábil
+      while (d.getDay() === 6 || d.getDay() === 0) {
+        d.setDate(d.getDate() + 1);
+      }
+      return toDateStr(d);
+    };
+
+    // Generar horas con un array
     const horas = ref<string[]>([]);
     const generarHoras = () => {
       const arr: string[] = [];
@@ -102,6 +120,7 @@ export default defineComponent({
     const horaInicio = ref('08:00');
     const horaFin    = ref('19:00');
 
+    // Computed de horas fin según selección
     const horasFin = computed(() => {
       if (fechaInicio.value === fechaFin.value) {
         return horas.value.filter(h => h > horaInicio.value);
@@ -109,6 +128,20 @@ export default defineComponent({
       return horas.value;
     });
 
+    // Watchers para validar fin de semana y ajustar
+    watch(fechaInicio, (nv) => {
+      if (esFinDeSemana(nv)) {
+        alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
+        fechaInicio.value = getSiguienteHabil(nv);
+      }
+      // Asegurar que fechaFin >= fechaInicio
+      if (fechaFin.value < fechaInicio.value) {
+        fechaFin.value = fechaInicio.value;
+      }
+    });
+
+
+    // Watch para mantener horaFin válida
     watch([fechaInicio, fechaFin, horaInicio], () => {
       if (
         fechaInicio.value === fechaFin.value &&
@@ -314,4 +347,3 @@ export default defineComponent({
   }
 }
 </style>
-
