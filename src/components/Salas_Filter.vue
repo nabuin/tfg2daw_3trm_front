@@ -81,39 +81,32 @@ export default defineComponent({
     const salasStore   = useSalasStore();
     const filtrosStore = useFiltrosStore();
 
-    // generamos dos objetos day, uno que va a ser hoy, y otro mñn
     const hoy    = new Date();
     const manana = new Date(hoy);
     manana.setDate(manana.getDate() + 1);
 
-    // n, que es un numero, lo vuelve string, y hace que tenga al menos 2 carateres
     const pad = (n: number) => String(n).padStart(2, '0');
-    // Genera la fecha con YYYY-MM-DD
     const toDateStr = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-    // Fecha mínima = mañana
     const mananaStr   = toDateStr(manana);
     const fechaMinima = mananaStr;
 
     const fechaInicio = ref(mananaStr);
     const fechaFin    = ref(mananaStr);
 
-    // Funciones para detectar fin de semana y ajustar al siguiente día hábil
     const esFinDeSemana = (dateStr: string) => {
       const day = new Date(dateStr).getDay();
-      return day === 6 || day === 0; // 6 = sábado, 0 = domingo
+      return day === 6 || day === 0;
     };
     const getSiguienteHabil = (dateStr: string): string => {
       const d = new Date(dateStr);
-      // avanzar hasta día hábil
       while (d.getDay() === 6 || d.getDay() === 0) {
         d.setDate(d.getDate() + 1);
       }
       return toDateStr(d);
     };
 
-    // Generar horas con un array
     const horas = ref<string[]>([]);
     const generarHoras = () => {
       const arr: string[] = [];
@@ -127,7 +120,6 @@ export default defineComponent({
     const horaInicio = ref('08:00');
     const horaFin    = ref('19:00');
 
-    // Computed de horas fin según selección
     const horasFin = computed(() => {
       if (fechaInicio.value === fechaFin.value) {
         return horas.value.filter(h => h > horaInicio.value);
@@ -135,10 +127,8 @@ export default defineComponent({
       return horas.value;
     });
 
-    // Control del mensaje “Actualizado”
     const showUpdated = ref(false);
 
-    // Watchers para validar fin de semana y ajustar
     watch(fechaInicio, (nv) => {
       if (esFinDeSemana(nv)) {
         alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
@@ -156,7 +146,6 @@ export default defineComponent({
       }
     });
 
-    // Mantener horaFin válida
     watch([fechaInicio, fechaFin, horaInicio], () => {
       if (
         fechaInicio.value === fechaFin.value &&
@@ -166,24 +155,8 @@ export default defineComponent({
       }
     });
 
-    // Solo al montar: carga inicial SIN mostrar “Actualizado”
-    onMounted(() => {
-      salasStore.obtenerSalasDisponibles({
-        fechaInicio: fechaInicio.value,
-        fechaFin:    fechaFin.value,
-        horaInicio:  horaInicio.value,
-        horaFin:     horaFin.value,
-      });
-    });
-
-    // Al pulsar Filtrar: lanza fetch y, al terminar, muestra “Actualizado” 2s
-    const filtrar = async () => {
-
-      showUpdated.value = true;
-      setTimeout(() => {
-        showUpdated.value = false;
-      }, 2000);
-
+    const filtrar = async (showMsg = true) => {
+      // Validaciones previas
       if (fechaFin.value < fechaInicio.value) {
         alert('La fecha fin no puede ser anterior a la fecha inicio.');
         return;
@@ -196,6 +169,7 @@ export default defineComponent({
         return;
       }
 
+      // Guardar filtros en el store
       filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
@@ -203,6 +177,7 @@ export default defineComponent({
         horaFin:     horaFin.value,
       });
 
+      // Ejecutar fetch
       await salasStore.obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
@@ -210,9 +185,19 @@ export default defineComponent({
         horaFin:     horaFin.value,
       });
 
-      // Mostrar mensaje de “Actualizado” tras recibir la nueva info
-
+      // Mostrar mensaje si toca
+      if (showMsg) {
+        showUpdated.value = true;
+        setTimeout(() => {
+          showUpdated.value = false;
+        }, 2000);
+      }
     };
+
+    // Al montar, cargamos con filtros por defecto sin mostrar mensaje
+    onMounted(() => {
+      filtrar(false);
+    });
 
     return {
       fechaMinima,
