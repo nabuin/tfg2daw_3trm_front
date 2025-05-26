@@ -140,6 +140,12 @@ export default defineComponent({
       }
     });
 
+    watch(fechaFin, (nv) => {
+      if (esFinDeSemana(nv)) {
+        alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
+        fechaFin.value = getSiguienteHabil(nv);
+      }
+    });
 
     // Watch para mantener horaFin válida
     watch([fechaInicio, fechaFin, horaInicio], () => {
@@ -289,6 +295,10 @@ export default defineComponent({
         background-color: #0056b3;
       }
     }
+  }
+  option{
+    background-color: black;
+    color: white;
   }
 }
 
