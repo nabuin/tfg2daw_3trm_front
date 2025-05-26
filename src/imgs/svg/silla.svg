@@ -1,18 +1,6 @@
 <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <!-- Gradiente para dar volumen al asiento -->
-    <radialGradient id="seatGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#dddddd"/>
-      <stop offset="100%" stop-color="#999999"/>
-    </radialGradient>
-    <!-- Sombra suave bajo el asiento -->
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.4"/>
-    </filter>
-  </defs>
-
-  <!-- Ruedas de la silla -->
-  <g fill="#666666">
+  <!-- Ruedas de la silla (negro) con contorno grueso -->
+  <g fill="#000000" stroke="#000000" stroke-width="4">
     <circle cx="60" cy="95" r="5"/>
     <circle cx="35" cy="75" r="5"/>
     <circle cx="85" cy="75" r="5"/>
@@ -20,11 +8,11 @@
     <circle cx="95" cy="45" r="5"/>
   </g>
 
-  <!-- Asiento con esquinas redondeadas, degradado y sombra -->
+  <!-- Asiento (blanco con contorno negro grueso) -->
   <rect x="30" y="30" width="60" height="50" rx="8" ry="8"
-        fill="url(#seatGrad)" stroke="#333333" stroke-width="2" filter="url(#shadow)"/>
+        fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
 
-  <!-- Respaldo con un gris distinto y vértices redondeados -->
+  <!-- Respaldo (blanco con contorno negro grueso) -->
   <rect x="35" y="15" width="50" height="15" rx="7" ry="7"
-        fill="#bbbbbb" stroke="#333333" stroke-width="2"/>
+        fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
 </svg>
