@@ -57,9 +57,16 @@
         </div>
 
         <div class="form-group form-group-button">
-          <button type="submit" class="btn btn-primary">Filtrar</button>
+          <button type="submit" class="btn btn-primary">
+            Filtrar
+          </button>
         </div>
       </form>
+    </div>
+
+    <!-- Mensaje de “Actualizado” situado *fuera* de .form-width para que aparezca debajo -->
+    <div v-if="showUpdated" class="mensaje actualizado">
+      Actualizado
     </div>
   </div>
 </template>
@@ -71,22 +78,22 @@ import { useFiltrosStore } from '../store/filtrosStore';
 
 export default defineComponent({
   setup() {
-    const salasStore = useSalasStore();
+    const salasStore   = useSalasStore();
     const filtrosStore = useFiltrosStore();
 
-    //generamos dos objetos day, uno que va a ser hoy, y otro mñn
-    const hoy = new Date();
+    // generamos dos objetos day, uno que va a ser hoy, y otro mñn
+    const hoy    = new Date();
     const manana = new Date(hoy);
     manana.setDate(manana.getDate() + 1);
 
-    //n, que es un numero, lo vuelve string, hy hace que tenga almenos 2 carateres, en caso de q no, pone un 0
+    // n, que es un numero, lo vuelve string, y hace que tenga al menos 2 carateres
     const pad = (n: number) => String(n).padStart(2, '0');
-    //Genera la fecha, el +1 en month es porque es del 0 al 11 y seria de 1 al 12 para q sea mas entendible y hace la comprobacion de la cantidad
+    // Genera la fecha con YYYY-MM-DD
     const toDateStr = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
     // Fecha mínima = mañana
-    const mananaStr = toDateStr(manana);
+    const mananaStr   = toDateStr(manana);
     const fechaMinima = mananaStr;
 
     const fechaInicio = ref(mananaStr);
@@ -128,13 +135,15 @@ export default defineComponent({
       return horas.value;
     });
 
+    // Control del mensaje “Actualizado”
+    const showUpdated = ref(false);
+
     // Watchers para validar fin de semana y ajustar
     watch(fechaInicio, (nv) => {
       if (esFinDeSemana(nv)) {
         alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
         fechaInicio.value = getSiguienteHabil(nv);
       }
-      // Asegurar que fechaFin >= fechaInicio
       if (fechaFin.value < fechaInicio.value) {
         fechaFin.value = fechaInicio.value;
       }
@@ -147,7 +156,7 @@ export default defineComponent({
       }
     });
 
-    // Watch para mantener horaFin válida
+    // Mantener horaFin válida
     watch([fechaInicio, fechaFin, horaInicio], () => {
       if (
         fechaInicio.value === fechaFin.value &&
@@ -157,7 +166,24 @@ export default defineComponent({
       }
     });
 
+    // Solo al montar: carga inicial SIN mostrar “Actualizado”
+    onMounted(() => {
+      salasStore.obtenerSalasDisponibles({
+        fechaInicio: fechaInicio.value,
+        fechaFin:    fechaFin.value,
+        horaInicio:  horaInicio.value,
+        horaFin:     horaFin.value,
+      });
+    });
+
+    // Al pulsar Filtrar: lanza fetch y, al terminar, muestra “Actualizado” 2s
     const filtrar = async () => {
+
+      showUpdated.value = true;
+      setTimeout(() => {
+        showUpdated.value = false;
+      }, 2000);
+
       if (fechaFin.value < fechaInicio.value) {
         alert('La fecha fin no puede ser anterior a la fecha inicio.');
         return;
@@ -183,11 +209,10 @@ export default defineComponent({
         horaInicio:  horaInicio.value,
         horaFin:     horaFin.value,
       });
-    };
 
-    onMounted(() => {
-      filtrar();
-    });
+      // Mostrar mensaje de “Actualizado” tras recibir la nueva info
+
+    };
 
     return {
       fechaMinima,
@@ -198,6 +223,7 @@ export default defineComponent({
       horas,
       horasFin,
       filtrar,
+      showUpdated,
       salasDisponibles: salasStore.salasDisponibles,
     };
   },
@@ -296,10 +322,22 @@ export default defineComponent({
       }
     }
   }
-  option{
+
+  option {
     background-color: black;
     color: white;
   }
+}
+
+/* Estilo del mensaje “Actualizado” */
+.mensaje.actualizado {
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  background: #28a745;
+  color: white;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 200px;
 }
 
 /* Responsive (≤900px): dos columnas en grid */
