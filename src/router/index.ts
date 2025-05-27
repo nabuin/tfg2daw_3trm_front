@@ -8,7 +8,7 @@ import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import  UserInfoView from '../views/UserInfoView.vue';
 import InfoPedidoView from '@/views/InfoPedidoView.vue';
-import AdminView from '@/views/AdminView.vue';
+import AdminView from '@/views/AdminViews/AdminUsersView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

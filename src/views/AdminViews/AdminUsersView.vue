@@ -2,19 +2,19 @@
   <div class="admin-page">
     <section class="top-image-gallery">
       <div class="image-item">
-        <img src="../imgs/icons/admin-usuario.svg" alt="Gestionar Usuarios" class="gallery-image" />
+        <img src="../../imgs/icons/admin-usuario.svg" alt="Gestionar Usuarios" class="gallery-image" />
         <p class="image-text">Usuarios</p>
       </div>
       <div class="image-item">
-        <img src="../imgs/icons/admin-zonas.svg" alt="Gestionar Sedes" class="gallery-image" />
+        <img src="../../imgs/icons/admin-zonas.svg" alt="Gestionar Sedes" class="gallery-image" />
         <p class="image-text">Sedes</p>
       </div>
       <div class="image-item">
-        <img src="../imgs/icons/admin-oficina.svg" alt="Gestionar Salas" class="gallery-image" />
+        <img src="../../imgs/icons/admin-oficina.svg" alt="Gestionar Salas" class="gallery-image" />
         <p class="image-text">Salas</p>
       </div>
       <div class="image-item">
-        <img src="../imgs/icons/admin-usuario.svg" alt="Gestionar Reservas" class="gallery-image" /> <!-- cambiar logo-->
+        <img src="../../imgs/icons/admin-usuario.svg" alt="Gestionar Reservas" class="gallery-image" /> <!-- cambiar logo-->
         <p class="image-text">Reservas</p>
       </div>
     </section>
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import Admin from '../components/Admin.vue';
+import Admin from '../../components/AdminComponents/AdminUsuarios.vue';
 </script>
 
 <style scoped>

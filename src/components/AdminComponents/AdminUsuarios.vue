@@ -97,8 +97,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useAdminStore } from '@/store/adminStore';
-import UsuarioForm from '../components/forms/UsuariosForm.vue';
+import { useAdminStore } from '@/store/AdminStores/adminStore';
+import UsuarioForm from '../../components/forms/UsuariosForm.vue';
 import { Modal } from 'bootstrap';
 
 const adminStore = useAdminStore(); 
