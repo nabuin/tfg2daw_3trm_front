@@ -33,9 +33,10 @@
                 <label class="form__label" for="consulta">Escriba su Consulta*</label>
                 <textarea id="consulta" class="form__textarea"></textarea>
             </div>
-
             <div class="form__boton">
+                <router-link to="/home"> 
                 <button type="submit" class="form__enviar">Enviar</button>
+            </router-link>
             </div>
         </form>
     </div>
