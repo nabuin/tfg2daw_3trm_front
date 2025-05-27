@@ -9,73 +9,72 @@
     <div v-else>
       <div class="tables-grid">
         <!-- para cada grupo de 4 puestos hacemos un bloque -->
-        <div
-          v-for="(group, gi) in seatGroups"
-          :key="gi"
-          class="table-layout"
-        >
+        <div v-for="(group, gi) in seatGroups" :key="gi" class="table-layout">
           <!-- 2.1 cada puesto: botón con SVG inline de silla -->
-          <button
-            v-for="(puesto, idx) in group"
-            :key="puesto.idPuestoTrabajo"
-            class="square"
-            :class="[
-              positionClass(idx),
-              {
-                unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
-                selected:   selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo)
-              }
-            ]"
-            :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)"
-            @click="handlePuestoClick(puesto)"
-          >
-            <svg
-              class="silla-icon"
-              width="50" height="50"
-              viewBox="0 0 120 120"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+          <button v-for="(puesto, idx) in group" :key="puesto.idPuestoTrabajo" class="square" :class="[
+            positionClass(idx),
+            {
+              unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
+              selected: selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo)
+            }
+          ]" :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)" @click="handlePuestoClick(puesto)">
+            <svg class="silla-icon" width="50" height="50" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <g class="chair-wheels">
-                <circle cx="60" cy="95" r="5"/>
-                <circle cx="35" cy="75" r="5"/>
-                <circle cx="85" cy="75" r="5"/>
-                <circle cx="25" cy="45" r="5"/>
-                <circle cx="95" cy="45" r="5"/>
+                <circle cx="60" cy="95" r="5" />
+                <circle cx="35" cy="75" r="5" />
+                <circle cx="85" cy="75" r="5" />
+                <circle cx="25" cy="45" r="5" />
+                <circle cx="95" cy="45" r="5" />
               </g>
-              <rect class="chair-seat" x="30" y="30" width="60" height="50" rx="8" ry="8"/>
-              <rect class="chair-back"  x="35" y="15" width="50" height="15" rx="7" ry="7"/>
+              <rect class="chair-seat" x="30" y="30" width="60" height="50" rx="8" ry="8" />
+              <rect class="chair-back" x="35" y="15" width="50" height="15" rx="7" ry="7" />
             </svg>
           </button>
 
           <!-- 2.2 la mesa en medio: SVG inline de mesa -->
           <div class="table">
-            <svg
-              class="mesa-icon"
-              width="120" height="130"
-              viewBox="0 0 120 120"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg class="mesa-icon" width="120" height="130" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <!-- Ajusta el alto de la mesa modificando el atributo height -->
-              <rect x="20" y="20" width="80" height="100" rx="6" ry="6"/>
+              <rect x="20" y="20" width="80" height="100" rx="6" ry="6" />
             </svg>
           </div>
         </div>
       </div>
 
       <!-- 3. botón comprar general -->
-      <button
-        class="buy-button"
-        :disabled="isReserving || selectedPuestos.length === 0"
-        @click="submitCompra"
-      >
+      <button class="buy-button" :disabled="isReserving || selectedPuestos.length === 0" @click="submitCompra">
         {{ isReserving ? 'procesando...' : 'comprar' }}
       </button>
+
+      <!-- 4. botón continuar -->
+      <button class="continue-button" @click="showPopup = true">
+        continuar
+      </button>
+    </div>
+
+    <!-- 5. popup -->
+    <div v-if="showPopup" class="popup-overlay" @click.self="showPopup = false">
+      <div class="popup-rect">
+        <div class="login">
+          <form class="login__form" @submit="login">
+            <input type="text" v-model="usuario" class="login__input" placeholder="Correo" required>
+            <input type="password" v-model="password" class="login__input" placeholder="Contraseña" required>
+
+            <div v-if="mensajeError" class="login__error">La contraseña y/o el correo son erroneos</div>
+            <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
+
+            <button type="submit" class="login__button">→</button>
+            <router-link to="/register" class="login__register">¿No tienes cuenta? Registrarte</router-link>
+          </form>
+        </div>
+        <button @click="showPopup = false">cerrar</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, watch, computed } from 'vue';
+import { defineComponent, onMounted, watch, computed, ref } from 'vue';
 import { usePuestosStore } from '../store/asientosStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
@@ -93,13 +92,16 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 export default defineComponent({
   name: 'PuestoSelectionAroundTable',
   setup() {
-    const puestosStore  = usePuestosStore();
-    const salaStore     = useSalaSeleccionadaStore();
-    const filtrosStore  = useFiltrosStore();
+    const puestosStore = usePuestosStore();
+    const salaStore = useSalaSeleccionadaStore();
+    const filtrosStore = useFiltrosStore();
     const reservasStore = useReservasStore();
 
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
-    const { selectedPuestos, isReserving  } = storeToRefs(reservasStore);
+    const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
+
+    // estado para el popup
+    const showPopup = ref(false);
 
     onMounted(() => {
       if (salaStore.id !== null) {
@@ -153,6 +155,7 @@ export default defineComponent({
       handlePuestoClick,
       submitCompra,
       positionClass,
+      showPopup,
     };
   },
 });
@@ -177,7 +180,7 @@ export default defineComponent({
 }
 
 /* Centro si es único en la última fila */
-.tables-grid > .table-layout:last-child:nth-child(3n+1) {
+.tables-grid>.table-layout:last-child:nth-child(3n+1) {
   grid-column: 2;
 }
 
@@ -227,6 +230,7 @@ export default defineComponent({
   stroke: #000;
   stroke-width: 4;
 }
+
 .silla-icon .chair-seat,
 .silla-icon .chair-back {
   fill: #fff;
@@ -253,10 +257,25 @@ export default defineComponent({
   stroke-width: 2;
 }
 
-.seat-left-top     { grid-column: 1; grid-row: 1; }
-.seat-right-top    { grid-column: 3; grid-row: 1; }
-.seat-left-bottom  { grid-column: 1; grid-row: 2; }
-.seat-right-bottom { grid-column: 3; grid-row: 2; }
+.seat-left-top {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.seat-right-top {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.seat-left-bottom {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.seat-right-bottom {
+  grid-column: 3;
+  grid-row: 2;
+}
 
 .table {
   grid-column: 2;
@@ -286,4 +305,151 @@ export default defineComponent({
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* botón continuar */
+.continue-button {
+  display: block;
+  margin: 16px auto 0;
+  padding: 12px 32px;
+  font-size: 1em;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border: 1px solid #999;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color .2s, transform .2s;
+}
+
+.continue-button:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+/* popup */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.popup-rect {
+  width: 240px;
+  height: 380px;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .25);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+.login {
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color:white;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 90%;
+    max-width: 360px;
+  }
+
+  &__input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #4A3F35;
+    background: transparent;
+    font-size: 16px;
+    padding: 5px;
+    outline: none;
+    color: #4A3F35;
+
+    &::placeholder {
+      color: #4A3F35;
+      font-weight: bold;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+  }
+
+  &__error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  &__button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #4A3F35;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  &__register {
+    font-size: 12px;
+    color: #4A3F35;
+    text-decoration: none;
+    margin-top: 10px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (min-width: 768px) {
+    height: calc(100vh - 75px - 98px);
+
+    &__form {
+      gap: 20px;
+      max-width: 400px;
+    }
+
+    &__input {
+      font-size: 18px;
+    }
+
+    &__button {
+      font-size: 20px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    height: calc(100vh - 80px - 98px);
+
+    &__form {
+      max-width: 450px;
+    }
+
+    &__input {
+      font-size: 20px;
+    }
+
+    &__button {
+      font-size: 22px;
+    }
+  }
+}
+
+
 </style>
