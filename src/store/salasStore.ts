@@ -26,13 +26,22 @@ export function useSalasStore() {
 
     const idSede = sedeSeleccionadaStore.id; // obtenemos el id elegido del store de sedes
 
+    const today = new Date();
+    today.setDate(today.getDate() + 1); // Sumar 1 día
+    
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const currentDate = `${year}-${month}-${day}`;
+    
     const params = new URLSearchParams({
       idSede: idSede.toString(),
-      fechaInicio: filtros?.fechaInicio || '2024-05-20', // valores por defecto para evitar undefined que dé 400
-      fechaFin: filtros?.fechaFin || '2025-05-22',
+      fechaInicio: filtros?.fechaInicio || currentDate,
+      fechaFin: filtros?.fechaFin || currentDate,
       horaInicio: filtros?.horaInicio || '08:00',
-      horaFin: filtros?.horaFin || '18:00',
+      horaFin: filtros?.horaFin || '19:00',
     });
+    
 
     const url = `https://localhost:7179/api/salas/getsalasdisponibles?${params.toString()}`;
     console.log('Llamando al endpoint:', url); // depurar y verificar los query params
