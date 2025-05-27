@@ -87,7 +87,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  background: #f9f9f9;
+  background: white;
 }
 
 .mensaje {

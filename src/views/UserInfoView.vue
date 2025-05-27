@@ -571,7 +571,7 @@ h3 {
 }
 
 .change-password {
-  background-color: #f9f9f9;
+  background-color: white;
   border-radius: 8px;
   padding: 15px;
   margin-top: 25px;
