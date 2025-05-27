@@ -1,0 +1,279 @@
+// src/store/SalasStore.ts
+import { defineStore } from 'pinia'
+import { useSedesStore } from '@/store/AdminStores/adminSedesStore'
+
+// interfaz para sala
+interface Sala {
+  idSala: number
+  nombre: string
+  url_Imagen: string
+  capacidad: number
+  idTipoSala: number
+  idSede: number
+  bloqueado: boolean
+  zonasTrabajo?: any[]
+}
+
+// interfaz para tipo de sala
+interface TipoSala {
+  idTipoSala: number
+  nombre: string
+  numeroMesas: number
+  capacidadAsientos: number
+  esPrivada: boolean
+  descripcion: string
+  idTipoPuestoTrabajo: number
+  TipoPuestoTrabajo?: TipoPuestoTrabajo
+}
+
+// interfaz para tipo de puesto de trabajo
+interface TipoPuestoTrabajo {
+  idTipoPuestoTrabajo: number
+  nombre: string
+  descripcion?: string
+  imagen_URL?: string
+}
+
+// mapa de capacidades validas con su tipo de sala
+const CAPACIDADES_VALIDAS = {
+  40: { idTipoSala: 1, nombre: 'sala grande publica' },
+  32: { idTipoSala: 2, nombre: 'sala mediana publica' },
+  12: { idTipoSala: 3, nombre: 'sala pequena publica' },
+  20: { idTipoSala: 4, nombre: 'sala privada' }
+} as const
+
+export const useSalasStore = defineStore('salas', {
+  state: () => ({
+    salas: [] as Sala[],
+    tiposSalas: [] as TipoSala[],
+    tiposPuestoTrabajo: [] as TipoPuestoTrabajo[],
+    cargando: false,
+    error: null as string | null,
+    token: localStorage.getItem('token') || ''
+  }),
+
+  getters: {
+    // obtener sala por id
+    obtenerSalaPorId: state => (id: number) =>
+      state.salas.find(sala => sala.idSala === id),
+    // obtener tipo de sala por id
+    obtenerTipoSalaPorId: state => (id: number) =>
+      state.tiposSalas.find(tipo => tipo.idTipoSala === id),
+    // obtener tipo de puesto por id
+    obtenerTipoPuestoTrabajoPorId: state => (id: number) =>
+      state.tiposPuestoTrabajo.find(tipo => tipo.idTipoPuestoTrabajo === id),
+    // calcular id tipo sala segun capacidad
+    getIdTipoSalaPorCapacidad: state => (capacidad: number): number | undefined =>
+      CAPACIDADES_VALIDAS[capacidad as keyof typeof CAPACIDADES_VALIDAS]?.idTipoSala,
+    // lista de capacidades validas
+    capacidadesValidas: () => Object.keys(CAPACIDADES_VALIDAS).map(Number)
+  },
+
+  actions: {
+    // llamada generica a api
+    async _llamadaApiFetch(metodo: string, endpoint: string, datos: any = null, cabeceras: HeadersInit = {}) {
+      this.cargando = true
+      this.error = null
+      const DOMAIN_BASE_URL = 'https://localhost:7179/'
+      const API_PREFIX = 'api/'
+      const finalUrl = `${DOMAIN_BASE_URL}${API_PREFIX}${endpoint}`
+
+      try {
+        const respuesta = await fetch(finalUrl, {
+          method: metodo,
+          headers: {
+            'Content-Type': 'application/json',
+            ...cabeceras,
+            ...(this.token && { Authorization: `Bearer ${this.token}` })
+          },
+          body: datos ? JSON.stringify(datos) : undefined
+        })
+
+        const responseText = await respuesta.text()
+
+        if (!respuesta.ok) {
+          let errorMessage = `error http estado ${respuesta.status}`
+          try {
+            const errorData = JSON.parse(responseText)
+            if (errorData.errors) {
+              const errores = []
+              for (const [campo, mensajes] of Object.entries(errorData.errors)) {
+                errores.push(`${campo} ${Array.isArray(mensajes) ? mensajes.join(', ') : mensajes}`)
+              }
+              errorMessage = `errores de validacion ${errores.join('; ')}`
+            } else {
+              errorMessage = errorData.title || errorData.message || errorData.detail || JSON.stringify(errorData)
+            }
+          } catch {
+            errorMessage = responseText || errorMessage
+          }
+          throw new Error(errorMessage)
+        }
+
+        if (responseText) {
+          try {
+            return JSON.parse(responseText)
+          } catch {
+            console.warn(`respuesta de ${endpoint} correcta sin json`, responseText)
+            return responseText
+          }
+        }
+        return {}
+      } catch (error: any) {
+        console.error(`error en peticion api a ${endpoint}`, error)
+        this.error = error.message || `error en accion en ${endpoint}`
+        throw error
+      } finally {
+        this.cargando = false
+      }
+    },
+
+    // validar capacidad permitida
+    _validarCapacidad(capacidad: number): void {
+      const capacidades = Object.keys(CAPACIDADES_VALIDAS).map(Number)
+      if (!capacidades.includes(capacidad)) {
+        throw new Error(`capacidad no valida ${capacidad} capacidades permitidas ${capacidades.join(', ')}`)
+      }
+    },
+
+    // obtener todas las salas
+    async obtenerTodasLasSalas() {
+      try {
+        const datos = await this._llamadaApiFetch('GET', 'salas')
+        this.salas = Array.isArray(datos) ? datos : []
+      } catch (error) {
+        console.error('error al obtener todas las salas', error)
+      }
+    },
+
+    // agregar sala nueva
+    async agregarSala(nuevaSala: Partial<Sala>) {
+      try {
+        const salaParaEnviar = this._prepararDatosParaBackend(nuevaSala, false)
+        const salaCreada = await this._llamadaApiFetch('POST', 'salas', salaParaEnviar)
+        if (salaCreada && salaCreada.idSala) {
+          this.salas.push(salaCreada)
+        }
+        return salaCreada
+      } catch (error) {
+        console.error('error al agregar sala', error)
+        throw error
+      }
+    },
+
+    // actualizar sala existente
+    async actualizarSala(idSala: number, datosSala: Partial<Sala>) {
+      try {
+        const salaParaEnviar = this._prepararDatosParaBackend(datosSala, true)
+        salaParaEnviar.idSala = idSala
+        const salaActualizada = await this._llamadaApiFetch('PUT', `salas/${idSala}`, salaParaEnviar)
+        const indice = this.salas.findIndex(s => s.idSala === idSala)
+        if (indice !== -1) {
+          this.salas[indice] = { ...this.salas[indice], ...salaActualizada }
+        }
+        return salaActualizada
+      } catch (error) {
+        console.error('error al actualizar sala', error)
+        throw error
+      }
+    },
+
+    // eliminar sala por id
+    async eliminarSala(idSala: number) {
+      try {
+        await this._llamadaApiFetch('DELETE', `salas/${idSala}`)
+        this.salas = this.salas.filter(s => s.idSala !== idSala)
+      } catch (error) {
+        console.error('error al eliminar sala', error)
+        throw error
+      }
+    },
+
+    // obtener todos los tipos de salas
+    async obtenerTodosLosTiposSalas() {
+      try {
+        const datos = await this._llamadaApiFetch('GET', 'tiposSalas')
+        this.tiposSalas = Array.isArray(datos) ? datos : []
+      } catch (error) {
+        console.error('error al obtener tipos de salas', error)
+      }
+    },
+
+    // obtener todos los tipos de puesto de trabajo
+    async obtenerTodosTiposPuestoTrabajo() {
+      try {
+        const datos = await this._llamadaApiFetch('GET', 'tiposPuestoTrabajo')
+        this.tiposPuestoTrabajo = Array.isArray(datos) ? datos : []
+      } catch (error) {
+        console.error('error al obtener tipos de puesto trabajo', error)
+      }
+    },
+
+    // preparar datos para enviar al backend
+    _prepararDatosParaBackend(datos: any, esActualizacion: boolean = false) {
+      // validar capacidad
+      const capacidad = datos.capacidad ? parseInt(datos.capacidad) : 0
+      this._validarCapacidad(capacidad)
+
+      // determinar id tipo sala
+      const idTipoSala = this.getIdTipoSalaPorCapacidad(capacidad)
+      if (!idTipoSala) {
+        throw new Error(`no se pudo determinar tipo sala para capacidad ${capacidad}`)
+      }
+
+      // obtener datos de sede completa
+      const sedesStore = useSedesStore()
+      const sedeCompleta = datos.idSede ? sedesStore.obtenerSedePorId(datos.idSede) : null
+
+      // obtener tipo sala completa
+      let tipoSalaCompleta = this.obtenerTipoSalaPorId(idTipoSala)
+      if (!tipoSalaCompleta && esActualizacion && datos.idSala) {
+        const salaExistente = this.obtenerSalaPorId(datos.idSala)
+        if (salaExistente) {
+          tipoSalaCompleta = this.obtenerTipoSalaPorId(salaExistente.idTipoSala)
+        }
+      }
+
+      // preparar tipo sala con puesto de trabajo
+      let tipoSalaConPuesto = null
+      if (tipoSalaCompleta) {
+        let tipoPuestoTrabajo = this.obtenerTipoPuestoTrabajoPorId(tipoSalaCompleta.idTipoPuestoTrabajo)
+        if (!tipoPuestoTrabajo) {
+          tipoPuestoTrabajo = {
+            idTipoPuestoTrabajo: tipoSalaCompleta.idTipoPuestoTrabajo,
+            nombre: tipoSalaCompleta.idTipoPuestoTrabajo === 1 ? 'puesto colaborativo' : 'puesto privado',
+            descripcion: tipoSalaCompleta.idTipoPuestoTrabajo === 1 ? 'puesto colaborativo' : 'puesto privado',
+            imagen_URL: tipoSalaCompleta.idTipoPuestoTrabajo === 1 ? 'https://example.com/colaborativo.jpg' : 'https://example.com/privado.jpg'
+          }
+        } else {
+          tipoPuestoTrabajo = {
+            ...tipoPuestoTrabajo,
+            imagen_URL: tipoPuestoTrabajo.imagen_URL || (tipoSalaCompleta.idTipoPuestoTrabajo === 1 ? 'https://example.com/colaborativo.jpg' : 'https://example.com/privado.jpg')
+          }
+        }
+        tipoSalaConPuesto = { ...tipoSalaCompleta, TipoPuestoTrabajo: tipoPuestoTrabajo }
+      }
+
+      // formar objeto para enviar
+      const salaParaEnviar: any = {
+        nombre: datos.nombre || '',
+        urL_Imagen: datos.url_Imagen || '',
+        capacidad: capacidad,
+        idTipoSala: idTipoSala,
+        idSede: datos.idSede ? parseInt(datos.idSede) : 0,
+        bloqueado: typeof datos.bloqueado === 'boolean' ? datos.bloqueado : false,
+        TipoSala: tipoSalaConPuesto,
+        Sede: sedeCompleta || null,
+        ZonasTrabajo: datos.zonasTrabajo || []
+      }
+
+      if (esActualizacion && datos.idSala) {
+        salaParaEnviar.idSala = parseInt(datos.idSala)
+      } else if (!esActualizacion) {
+        salaParaEnviar.idSala = 0
+      }
+
+      return salaParaEnviar
+    }
+  }
+})

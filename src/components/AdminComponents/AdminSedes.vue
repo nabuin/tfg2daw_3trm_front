@@ -96,7 +96,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useSedesStore } from '@/store/AdminStores/sedesStore';
+import { useSedesStore } from '@/store/AdminStores/adminSedesStore';
 import SedeForm from '../../components/forms/SedeForm.vue';
 import { Modal } from 'bootstrap';
 
