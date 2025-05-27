@@ -1,0 +1,341 @@
+<template>
+  <v-container fluid class="py-8 d-flex justify-center">
+    <v-card class="flat-card rectangle-card">
+      <v-card-text>
+        <v-form ref="form" v-model="formValid" lazy-validation>
+          <v-row no-gutters>
+            <!-- IZQUIERDA: Datos de pago -->
+            <v-col cols="12" md="6" class="pa-6 section-left">
+              <h6 class="section-title">Datos de pago</h6>
+
+              <v-text-field
+                class="flat-field"
+                v-model="payment.cardName"
+                label="Nombre del titular"
+                outlined
+                dense
+                hide-details="auto"
+              />
+
+              <v-text-field
+                class="flat-field card-number-field unique"
+                v-model="payment.cardNumber"
+                :rules="[rules.cardNumberDigits]"
+                label="Número de tarjeta"
+                outlined
+                dense
+                hide-details="auto"
+                maxlength="19"
+                placeholder="1234 5678 9012 3456"
+              />
+
+              <v-row class="mt-4">
+                <v-col cols="6">
+                  <v-text-field
+                    class="flat-field"
+                    v-model="payment.expiry"
+                    label="MM/AA"
+                    outlined
+                    dense
+                    hide-details="auto"
+                    maxlength="5"
+                    placeholder="05/28"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    class="flat-field"
+                    v-model="payment.cvv"
+                    :rules="[rules.cvvDigits]"
+                    label="CVV"
+                    outlined
+                    dense
+                    hide-details="auto"
+                    maxlength="4"
+                  />
+                </v-col>
+              </v-row>
+            </v-col>
+
+            <!-- DERECHA: Dirección de facturación -->
+            <v-col cols="12" md="6" class="pa-6 section-right">
+              <h6 class="section-title">Dirección de facturación</h6>
+
+              <v-text-field
+                class="flat-field"
+                v-model="billing.addressLine1"
+                label="Dirección"
+                outlined
+                dense
+                hide-details="auto"
+              />
+
+              <v-text-field
+                class="flat-field mt-4"
+                v-model="billing.addressLine2"
+                label="Apto / Piso (opcional)"
+                outlined
+                dense
+                hide-details="auto"
+              />
+
+              <v-row class="mt-4">
+                <v-col cols="6">
+                  <v-text-field
+                    class="flat-field"
+                    v-model="billing.city"
+                    label="Ciudad"
+                    outlined
+                    dense
+                    hide-details="auto"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    class="flat-field"
+                    v-model="billing.state"
+                    label="Provincia / Región"
+                    outlined
+                    dense
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
+
+              <v-row class="mt-4">
+                <v-col cols="6">
+                  <v-text-field
+                    class="flat-field"
+                    v-model="billing.zip"
+                    label="Código postal"
+                    outlined
+                    dense
+                    hide-details="auto"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-select
+                    class="flat-field"
+                    v-model="billing.country"
+                    :items="countries"
+                    label="País"
+                    outlined
+                    dense
+                    hide-details="auto"
+                  />
+                </v-col>
+              </v-row>
+
+              <!-- Checkbox nativo -->
+              <div class="mt-6">
+                <label class="flat-checkbox-label">
+                  <input
+                    type="checkbox"
+                    v-model="acceptTerms"
+                    class="flat-checkbox-input"
+                  />
+                  <span class="flat-checkbox-box"></span>
+                  <span class="flat-checkbox-text">
+                    Acepto los términos y condiciones
+                  </span>
+                </label>
+              </div>
+            </v-col>
+          </v-row>
+        </v-form>
+      </v-card-text>
+
+      <v-card-actions class="justify-end pa-6">
+        <v-btn
+          class="flat-button"
+          :disabled="!formValid"
+          @click="submit"
+        >
+          Pagar {{ totalFormatted }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-container>
+</template>
+
+<script setup>
+import { ref, reactive, computed } from 'vue'
+
+const form = ref(null)
+const formValid = ref(false)
+
+const payment = reactive({
+  cardName: '',
+  cardNumber: '',
+  expiry: '',
+  cvv: '',
+})
+
+const billing = reactive({
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  zip: '',
+  country: null,
+})
+
+const countries = [
+  'España', 'México', 'Argentina',
+  'Estados Unidos', 'Canadá', 'Chile', 'Colombia',
+]
+
+const acceptTerms = ref(false)
+
+const total = ref(29.99)
+const totalFormatted = computed(() =>
+  new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(total.value)
+)
+
+const rules = {
+  cardNumberDigits: v =>
+    (v && v.replace(/\s/g, '').length === 16) ||
+    'La tarjeta debe tener 16 dígitos',
+  cvvDigits: v =>
+    (v && /^\d{3,4}$/.test(v)) ||
+    'El CVV debe tener 3 – 4 dígitos',
+}
+
+function submit() {
+  if (!formValid.value) return
+  form.value.reset()
+}
+</script>
+
+<style scoped lang="scss">
+.flat-card {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.rectangle-card {
+  width: 800px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-left,
+.section-right {
+  background-color: #fafafa;
+}
+
+.section-left {
+  border-right: 1px solid #e0e0e0;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #424242;
+}
+
+.flat-field {
+  ::v-deep {
+    .v-field__control {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    .v-field__outline {
+      border-color: transparent;
+    }
+  }
+}
+
+.card-number-field {
+  ::v-deep {
+    .v-field__control {
+      padding-top: 25px;
+    }
+  }
+}
+
+/* Estilos del checkbox nativo */
+.flat-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.flat-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.flat-checkbox-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #bdbdbd;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 0.5rem;
+  position: relative;
+}
+
+.flat-checkbox-input:checked + .flat-checkbox-box {
+  background-color: #1976d2;
+  border-color: #1976d2;
+}
+
+.flat-checkbox-box::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.flat-checkbox-input:checked + .flat-checkbox-box::after {
+  display: block;
+}
+
+.flat-checkbox-text {
+  color: #424242;
+  font-size: 0.95rem;
+}
+
+/* Botón */
+.flat-button {
+  text-transform: none;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  box-shadow: none;
+  transition: box-shadow 0.2s ease;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .rectangle-card {
+    width: 100%;
+  }
+  .section-left {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+}
+.unique{
+  padding-top: 25px;
+}
+</style>
