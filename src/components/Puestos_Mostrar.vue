@@ -47,7 +47,7 @@
       </button>
 
       <!-- 4. botón continuar -->
-      <button class="continue-button" @click="showPopup = true">
+      <button class="continue-button" @click="continuarCompra">
         continuar
       </button>
     </div>
@@ -75,6 +75,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, watch, computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { usePuestosStore } from '../store/asientosStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
@@ -92,6 +93,7 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 export default defineComponent({
   name: 'PuestoSelectionAroundTable',
   setup() {
+    const router = useRouter();
     const puestosStore = usePuestosStore();
     const salaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
@@ -144,6 +146,16 @@ export default defineComponent({
       ][index] || '';
     }
 
+    function continuarCompra() {
+      const authToken = localStorage.getItem("authToken");
+      
+      if (!authToken) {
+        showPopup.value = true;
+      } else {
+        router.push('/sedes/salas/puestos/pago');
+      }
+    }
+
     // Agrupamos de 4 en 4 pero la UI controla número por fila
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
@@ -156,6 +168,7 @@ export default defineComponent({
       submitCompra,
       positionClass,
       showPopup,
+      continuarCompra,
     };
   },
 });
