@@ -8,9 +8,8 @@
     <!-- 2. cuando ya cargó, pintamos las mesas en filas de 3 -->
     <div v-else>
       <div class="tables-grid">
-        <!-- para cada grupo de 4 puestos hacemos un bloque -->
         <div v-for="(group, gi) in seatGroups" :key="gi" class="table-layout">
-          <!-- 2.1 cada puesto: botón con SVG inline de silla -->
+          <!-- 2.1 puestos -->
           <button v-for="(puesto, idx) in group" :key="puesto.idPuestoTrabajo" class="square" :class="[
             positionClass(idx),
             {
@@ -31,31 +30,49 @@
             </svg>
           </button>
 
-          <!-- 2.2 la mesa en medio: SVG inline de mesa -->
+          <!-- 2.2 mesa -->
           <div class="table">
             <svg class="mesa-icon" width="120" height="130" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-              <!-- Ajusta el alto de la mesa modificando el atributo height -->
               <rect x="20" y="20" width="80" height="100" rx="6" ry="6" />
             </svg>
           </div>
         </div>
       </div>
 
-      <!-- 3. botón comprar general -->
+      <!-- 3. botón comprar -->
       <button class="buy-button" :disabled="isReserving || selectedPuestos.length === 0" @click="submitCompra">
         {{ isReserving ? 'procesando...' : 'comprar' }}
       </button>
-      <!-- botón continuar debajo del comprar -->
-      <button class="continue-button" :disabled="isReserving" @click="handleContinuar">
+
+      <!-- 4. botón continuar -->
+      <button class="continue-button" @click="showPopup = true">
         continuar
       </button>
 
+      <!-- Popup centrado -->
+      <div v-if="showPopup" class="popup-overlay">
+        <div class="popup-vertical">
+          <div class="login">
+            <form class="login__form" @submit="login">
+              <input type="text" v-model="usuario" class="login__input" placeholder="Correo" required>
+              <input type="password" v-model="password" class="login__input" placeholder="Contraseña" required>
+
+              <div v-if="mensajeError" class="login__error">La contraseña y/o el correo son erroneos</div>
+              <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
+
+              <button type="submit" class="login__button">→</button>
+              <router-link to="/register" class="login__register">¿No tienes cuenta? Registrarte</router-link>
+            </form>
+          </div>
+          <button @click="showPopup = false">Cerrar</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, watch, computed } from 'vue';
+import { defineComponent, onMounted, watch, computed, ref } from 'vue';
 import { usePuestosStore } from '../store/asientosStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
@@ -80,6 +97,8 @@ export default defineComponent({
 
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
     const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
+
+    const showPopup = ref(false);
 
     onMounted(() => {
       if (salaStore.id !== null) {
@@ -122,7 +141,6 @@ export default defineComponent({
       ][index] || '';
     }
 
-    // Agrupamos de 4 en 4 pero la UI controla número por fila
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
     return {
@@ -133,9 +151,52 @@ export default defineComponent({
       handlePuestoClick,
       submitCompra,
       positionClass,
+      showPopup
     };
   },
 });
+
+
+
+
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { LoginStore } from "../store/LoginStore";
+
+const loginStore = LoginStore();
+const router = useRouter();
+
+const usuario = ref("");
+const password = ref("");
+const mensajeError = ref("");
+
+const login = async (event: Event) => {
+  event.preventDefault(); // Evita que el formulario haga q se recargue la pagina
+  mensajeError.value = "";
+
+  if (usuario.value && password.value) { // prevenir que no falten campos por rellenar 
+    const loginData = { email: usuario.value, contrasenia: password.value }; // crea el objeto q se enviará en el POST para luego recibir el token
+
+    try {
+      await loginStore.loginUsuario(loginData);
+
+      if (loginStore.token) { // si recibe el token con exito 
+        router.push("/userinfo");  // Cambiar a la ruta de la página privada de usuario con su data
+      } else {
+        mensajeError.value = loginStore.errorMessage || "Credenciales incorrectas";
+      }
+    } catch (error) {
+
+      mensajeError.value = "Ha ocurrido un error, intenta nuevamente.";
+
+    }
+
+  } else { // si uno de los 2 campos o ambos no tienen valor
+    mensajeError.value = "Usuario y contraseña son requeridos";
+  }
+};
+
+
 </script>
 
 <style scoped lang="scss">
@@ -156,12 +217,10 @@ export default defineComponent({
   border-radius: 8px;
 }
 
-/* Centro si es único en la última fila */
-.tables-grid > .table-layout:last-child:nth-child(3n+1) {
+.tables-grid>.table-layout:last-child:nth-child(3n+1) {
   grid-column: 2;
 }
 
-/* Responsive: 2 columnas hasta 900px */
 @media (max-width: 900px) {
   .tables-grid {
     grid-template-columns: repeat(2, max-content);
@@ -170,19 +229,9 @@ export default defineComponent({
 
 @media (max-width: 600px) {
   .tables-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    padding: 16px;
-  }
-
-  .table-layout {
-    width: 100%;
-    max-width: 320px;
+    grid-template-columns: 1fr;
   }
 }
-
 
 .table-layout {
   display: grid;
@@ -194,7 +243,6 @@ export default defineComponent({
   border-radius: 10px;
   justify-items: center;
   align-items: center;
-  width: max-content;
 }
 
 .square {
@@ -292,25 +340,151 @@ export default defineComponent({
 .continue-button {
   display: block;
   margin: 16px auto 0;
-  padding: 12px 32px;
+  padding: 12px 28px;
   font-size: 1em;
-  font-weight: 500;
-  color: #2e7d32;
-  background: #c8e6c9;
-  border: 1px solid #81c784;
-  border-radius: 20px;
+  font-weight: 600;
+  color: #000;
+  background: #f0f0f0;
+  border: 1px solid #000;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: transform 0.2s;
 }
 
-.continue-button:hover:not(:disabled) {
-  background: #a5d6a7;
+.continue-button:hover {
   transform: translateY(-2px);
 }
 
-.continue-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popup-vertical {
+  background: #fff;
+  border: 2px solid #000;
+  padding: 32px 24px;
+  border-radius: 12px;
+  width: 300px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+}
+
+
+
+
+
+
+
+
+.login {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color:white;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 90%;
+    max-width: 360px;
+  }
+
+  &__input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #4A3F35;
+    background: transparent;
+    font-size: 16px;
+    padding: 5px;
+    outline: none;
+    color: #4A3F35;
+
+    &::placeholder {
+      color: #4A3F35;
+      font-weight: bold;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+  }
+
+  &__error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  &__button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #4A3F35;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  &__register {
+    font-size: 12px;
+    color: #4A3F35;
+    text-decoration: none;
+    margin-top: 10px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (min-width: 768px) {
+    height: calc(100vh - 75px - 98px);
+
+    &__form {
+      gap: 20px;
+      max-width: 400px;
+    }
+
+    &__input {
+      font-size: 18px;
+    }
+
+    &__button {
+      font-size: 20px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    height: calc(100vh - 80px - 98px);
+    
+    &__form {
+      max-width: 450px;
+    }
+
+    &__input {
+      font-size: 20px;
+    }
+
+    &__button {
+      font-size: 22px;
+    }
+  }
 }
 
 </style>
