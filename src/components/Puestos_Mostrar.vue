@@ -46,6 +46,10 @@
         {{ isReserving ? 'procesando...' : 'comprar' }}
       </button>
 
+    <div v-if="errorSeleccionPuestos" class="error-message">
+        {{ errorSeleccionPuestos }}
+    </div>
+
       <!-- 4. botón continuar -->
       <button class="continue-button" @click="continuarCompra">
         continuar
@@ -104,6 +108,7 @@ export default defineComponent({
 
     // estado para el popup
     const showPopup = ref(false);
+     const errorSeleccionPuestos = ref<string | null>(null); 
 
     onMounted(() => {
       if (salaStore.id !== null) {
@@ -146,14 +151,30 @@ export default defineComponent({
       ][index] || '';
     }
 
-    function continuarCompra() {
-      const authToken = localStorage.getItem("authToken");
-      
-      if (!authToken) {
-        showPopup.value = true;
-      } else {
-        router.push('/sedes/salas/puestos/pago');
-      }
+   function continuarCompra() {
+        // validar que al menos un puesto esté seleccionado
+        if (selectedPuestos.value.length === 0) {
+            errorSeleccionPuestos.value = "Por favor, selecciona al menos un puesto para continuar.";
+            // Opcional: limpiar el mensaje después de un tiempo
+            setTimeout(() => {
+                errorSeleccionPuestos.value = null;
+            }, 6000); // el mensaje saldrá durante 6 segundos
+            return;
+        }
+
+        // limpiar errores previos
+        errorSeleccionPuestos.value = null;
+
+        // 2. Comprobar si hay token de autenticación
+        const authToken = localStorage.getItem("authToken");
+
+        if (!authToken) {
+            // Si no hay token, mostrar el popup de login
+            showPopup.value = true;
+        } else {
+            // Si hay token, navegar a la página de pago para continuar la compra
+            router.push('/sedes/salas/puestos/pago');
+        }
     }
 
     // Agrupamos de 4 en 4 pero la UI controla número por fila
@@ -169,12 +190,28 @@ export default defineComponent({
       positionClass,
       showPopup,
       continuarCompra,
+      errorSeleccionPuestos,
     };
   },
 });
 </script>
 
 <style scoped lang="scss">
+
+.error-message {
+    background-color: #ffcccc;
+    color: #cc0000;
+    border: 1px solid #cc0000;
+    padding: 10px 15px;
+    margin: 10px auto;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: bold;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .loading-message {
   text-align: center;
   padding: 1em;
