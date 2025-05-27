@@ -285,6 +285,49 @@ const cancelarEditar = () => {
   errorMessage.value = ""; // reset mensjaes de error
   successMessage.value = ""; // reset mensajes de éxito
 };
+
+
+
+// Función para verificar si se puede cancelar la reserva
+const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
+  try {
+    console.log("Verificando reserva:", rangoHorarioReserva);
+    
+    let fechaFin: Date; // fecha y hora de fin que se usará para comparar
+    
+    // Verificar si el formato es "DD/MM/YYYY HH:mm - HH:mm" (mismo día)
+    if (rangoHorarioReserva.includes(" - ") && !rangoHorarioReserva.split(" - ")[1].includes("/")) {
+      // comprobar si es solo un dia y no varios en la reserva, tipo: 24/05/2025 08:00 - 09:00
+      const [fechaHoraInicio, horaFin] = rangoHorarioReserva.split(" - "); // se separa el dia y fecha de inicio, y la hora de fin, fechaHoraInicio = 24/05/2025 08:00 y horaFin = 09:00
+      const [datePart] = fechaHoraInicio.split(" "); // parte de la fecha (antes del espacio) = 24/05/2025
+      const [day, month, year] = datePart.split("/").map(Number);
+      const [hour, minute] = horaFin.split(":").map(Number);
+      
+      fechaFin = new Date(year, month - 1, day, hour, minute);
+    } else {
+      // Formato original: "04/06/2025 08:00 - 18/06/2025 19:00"
+      const [, endStr] = rangoHorarioReserva.split(" - ");
+      const [datePart, timePart] = endStr.split(" ");
+      const [day, month, year] = datePart.split("/").map(Number);
+      const [hour, minute] = timePart.split(":").map(Number);
+      
+      fechaFin = new Date(year, month - 1, day, hour, minute);
+    }
+    
+    // Crear la fecha/hora actual
+    const ahora = new Date();
+    
+    console.log("Fecha fin de reserva:", fechaFin);
+    console.log("Fecha actual:", ahora);
+    console.log("¿Se puede cancelar?", fechaFin > ahora);
+    
+    // Verificar si la fecha de fin es mayor a la fecha actual
+    return fechaFin > ahora;
+  } catch (error) {
+    console.error("Error al verificar si se puede cancelar la reserva:", error);
+    return false; // En caso de error, no permitir cancelación por seguridad
+  }
+};
 </script>
 
 <template>
@@ -412,12 +455,17 @@ const cancelarEditar = () => {
                 <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
-                  <button
-                    @click="confirmarCancelacion(reservation.idReserva)"
-                    class="cancel-reservation-button"
-                  >
-                    Cancelar
-                  </button>
+                <div
+            class="button-container"
+            v-if="puedeSerCancelada(reservation.rangoHorarioReserva)"
+          >
+            <button
+              @click="confirmarCancelacion(reservation.idReserva)"
+              class="cancel-reservation-button"
+            >
+              Cancelar
+            </button>
+          </div>
                 </div>
               </div>
             </div>
