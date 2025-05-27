@@ -20,18 +20,21 @@
     </div>
     <div class="header-child-2">
       <div class="header-child-2_left">
-        <img src="../imgs/logo.svg">
+        <router-link to="/home">
+          <img src="../imgs/logo.svg" alt="logo" />
+        </router-link>
       </div>
 
       <div class="header-child-2_mid">
         <div class="header-child-2_mid_heigt">
-          <div class="header-child-2_mid_bienvenido">Bienvenido</div>
-          <div class="header-child-2_mid_espacios">Espácios</div>
-          <div class="header-child-2_mid_precios">Precios</div>
-          <div class="header-child-2_mid_servicios">Sérvicios</div>
-          <div class="header-child-2_mid_masInfo">Mas Info </div>
+          <router-link to="/home" class="header-child-2_mid_bienvenido">Bienvenido</router-link>
+          <router-link to="/sedes" class="header-child-2_mid_espacios">Sedes</router-link>
+          <router-link to="/precios" class="header-child-2_mid_precios">Precios</router-link>
+          <router-link to="/servicios" class="header-child-2_mid_servicios">Sérvicios</router-link>
+          <a href="/home#form" class="header-child-2_mid_masInfo">Más Info</a>
         </div>
       </div>
+
 
       <div class="header-child-2_right">
         <router-link to="/login">
@@ -274,6 +277,13 @@ h6 {
       }
     }
 
+  }
+}
+
+.header-child-2_mid {
+  a {
+    text-decoration: none;
+    color: inherit;
   }
 }
 
