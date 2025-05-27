@@ -51,12 +51,12 @@
           <div class="table">
             <svg
               class="mesa-icon"
-              width="120" height="100"
+              width="120" height="130"
               viewBox="0 0 120 120"
               xmlns="http://www.w3.org/2000/svg"
             >
               <!-- Ajusta el alto de la mesa modificando el atributo height -->
-              <rect x="20" y="20" width="80" height="80" rx="6" ry="6"/>
+              <rect x="20" y="20" width="80" height="100" rx="6" ry="6"/>
             </svg>
           </div>
         </div>
