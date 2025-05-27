@@ -8,7 +8,9 @@ import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import  UserInfoView from '../views/UserInfoView.vue';
 import InfoPedidoView from '@/views/InfoPedidoView.vue';
-import AdminView from '@/views/AdminViews/AdminUsersView.vue';
+import AdminSedesView from '../views/AdminViews/AdminSedesView.vue';
+import AdminUsersView from '@/views/AdminViews/AdminUsersView.vue';
+import AdminSalasView from '@/views/AdminViews/AdminSalasView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,10 +56,20 @@ const router = createRouter({
       name: 'InfoPedidoView',
       component: InfoPedidoView,
     },
+     {
+      path: '/AdminSedes',
+      name: 'Admin Sedes',
+      component: AdminSedesView,
+    },
       {
-      path: '/admin',
-      name: 'AdminView',
-      component: AdminView,
+      path: '/adminusers',
+      name: 'Admin users',
+      component: AdminUsersView,
+    },
+      {
+      path: '/adminsalas',
+      name: 'Admin salas',
+      component: AdminSalasView,
     },
   ],
 });
