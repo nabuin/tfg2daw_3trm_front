@@ -31,6 +31,7 @@ export default {
 .layout {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 .layout > *:nth-last-child(2) {

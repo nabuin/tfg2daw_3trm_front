@@ -73,7 +73,7 @@ const registrarUsuario = async (event: Event) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #EDE0D4;
+  background-color: white;
 
   &__form {
     display: flex;

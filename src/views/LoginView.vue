@@ -60,7 +60,7 @@ const login = async (event: Event) => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #EDE0D4;
+  background-color:white;
 
   &__form {
     display: flex;
