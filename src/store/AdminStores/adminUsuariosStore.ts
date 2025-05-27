@@ -332,65 +332,57 @@ export const useAdminStore = defineStore('admin', {
         console.error('error al obtener todos los roles:', error);
       }
     },
+ 
 
-    async obtenerTodasLasSedes() {
-      const datos = await this._llamadaApiFetch('GET', 'sedes');
-      this.sedes = datos;
+    /**
+     * Añade un nuevo rol a la API y actualiza el estado 'roles' del store.
+     * @param nuevoRol - Los datos del nuevo rol a añadir (nombre, descripcion).
+     * @returns El objeto del rol recién añadido de la API.
+     */
+    async agregarRol(nuevoRol: Partial<Rol>) {
+      try {
+        const rolAniadido = await this._llamadaApiFetch('POST', 'roles', nuevoRol);
+        this.roles.push(rolAniadido);
+        return rolAniadido;
+      } catch (error) {
+        console.error('Error al añadir rol:', error);
+        throw error;
+      }
     },
 
-    async obtenerTodasLasSalas() {
-      const datos = await this._llamadaApiFetch('GET', 'salas');
-      this.salas = datos;
+    /**
+     * Actualiza un rol existente en la API y en el store.
+     * @param idRol - El ID del rol a actualizar.
+     * @param datosRol - Los datos del rol a actualizar.
+     * @returns El objeto de rol actualizado de la API.
+     */
+    async actualizarRol(idRol: number, datosRol: Partial<Rol>) {
+      try {
+        const rolActualizado = await this._llamadaApiFetch('PUT', `roles/${idRol}`, datosRol);
+        const indice = this.roles.findIndex(r => r.idRol === idRol);
+        if (indice !== -1) {
+          this.roles[indice] = { ...this.roles[indice], ...rolActualizado };
+        }
+        return rolActualizado;
+      } catch (error) {
+        console.error('Error al actualizar rol:', error);
+        throw error;
+      }
     },
 
-    async obtenerTodosLosTiposPuestosTrabajo() {
-      const datos = await this._llamadaApiFetch('GET', 'tipospuestostrabajo');
-      this.tiposPuestosTrabajo = datos;
+    /**
+     * Elimina un rol de la API y del store.
+     * @param idRol - El ID del rol a eliminar.
+     */
+    async eliminarRol(idRol: number) {
+      try {
+        await this._llamadaApiFetch('DELETE', `roles/${idRol}`);
+        this.roles = this.roles.filter(r => r.idRol !== idRol);
+      } catch (error) {
+        console.error('Error al eliminar rol:', error);
+        throw error;
+      }
     },
-
-    async obtenerTodosLosTiposSalas() {
-      const datos = await this._llamadaApiFetch('GET', 'tipossalas');
-      this.tiposSalas = datos;
-    },
-
-    async obtenerTodasLasZonasTrabajo() {
-      const datos = await this._llamadaApiFetch('GET', 'zonastrabajo');
-      this.zonas = datos;
-    },
-
-    async obtenerTodosLosPuestosTrabajo() {
-      const datos = await this._llamadaApiFetch('GET', 'puestostrabajo');
-      this.puestos = datos;
-    },
-
-    async obtenerTodosLosTramosHorarios() {
-      const datos = await this._llamadaApiFetch('GET', 'tramoshorarios');
-      this.tramosHorarios = datos;
-    },
-
-    async obtenerTodasLasDisponibilidades() {
-      const datos = await this._llamadaApiFetch('GET', 'disponibilidades');
-      this.disponibilidad = datos;
-    },
-
-    async obtenerTodasLasReservas() {
-      const datos = await this._llamadaApiFetch('GET', 'reservas');
-      this.reservas = datos;
-    },
-
-    async obtenerTodasLasLineasReserva() {
-      const datos = await this._llamadaApiFetch('GET', 'lineas');
-      this.lineasReserva = datos;
-    },
-
-    async obtenerTodasLasCaracteristicasSala() {
-      const datos = await this._llamadaApiFetch('GET', 'caracteristicassala');
-      this.caracteristicasSala = datos;
-    },
-
-    async obtenerTodasLasSalasConCaracteristicas() {
-      const datos = await this._llamadaApiFetch('GET', 'salaconcaracteristicas');
-      this.salasConCaracteristicas = datos;
-    },
+ 
   }
 });

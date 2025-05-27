@@ -11,6 +11,7 @@ import InfoPedidoView from '@/views/InfoPedidoView.vue';
 import AdminSedesView from '../views/AdminViews/AdminSedesView.vue';
 import AdminUsersView from '@/views/AdminViews/AdminUsersView.vue';
 import AdminSalasView from '@/views/AdminViews/AdminSalasView.vue';
+import AdminReservasView from '@/views/AdminViews/AdminReservasView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -70,6 +71,11 @@ const router = createRouter({
       path: '/adminsalas',
       name: 'Admin salas',
       component: AdminSalasView,
+    },
+     {
+      path: '/adminreservas',
+      name: 'Admin reservas',
+      component: AdminReservasView,
     },
   ],
 });

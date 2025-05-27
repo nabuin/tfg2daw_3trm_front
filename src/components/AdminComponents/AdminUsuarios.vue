@@ -3,6 +3,16 @@
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Gestión de Usuarios</h5>
       <div class="header-controls">
+        <!-- Botones de Gestión de Roles -->
+        <div class="role-buttons d-flex gap-2 mb-3">
+          <button @click="openRoleManagementModal" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#roleManagementModal">
+            <i class="bi bi-gear me-2"></i>Gestionar Roles
+          </button>
+          <button @click="openAddRoleModal" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+            <i class="bi bi-plus me-2"></i>Añadir Rol
+          </button>
+        </div>
+        
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
           <input type="text" class="form-control ps-0" placeholder="Buscar usuario..." v-model="searchQuery">
@@ -61,6 +71,7 @@
     </div>
   </div>
 
+  <!-- Modal de Usuario -->
   <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -75,6 +86,7 @@
     </div>
   </div>
 
+  <!-- Modal de Confirmación de Eliminación de Usuario -->
   <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -92,12 +104,128 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de Gestión de Roles -->
+  <div class="modal fade" id="roleManagementModal" tabindex="-1" aria-labelledby="roleManagementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="roleManagementModalLabel">Gestión de Roles</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div v-if="adminStore.cargando" class="text-center py-4">
+            Cargando roles...
+          </div>
+          <div v-else-if="adminStore.error" class="text-center text-danger py-4">
+            Error al cargar roles: {{ adminStore.error }}
+          </div>
+          <div v-else-if="adminStore.roles.length === 0" class="text-center py-4">
+            No hay roles disponibles.
+          </div>
+          <div v-else class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="rol in adminStore.roles" :key="rol.idRol">
+                  <td>{{ rol.idRol }}</td>
+                  <td>
+                    <input 
+                      v-if="editingRoleId === rol.idRol" 
+                      v-model="editingRoleData.nombre" 
+                      class="form-control form-control-sm"
+                      type="text"
+                    >
+                    <span v-else>{{ rol.nombre }}</span>
+                  </td>
+                  <td>
+                    <textarea 
+                      v-if="editingRoleId === rol.idRol" 
+                      v-model="editingRoleData.descripcion" 
+                      class="form-control form-control-sm"
+                      rows="2"
+                    ></textarea>
+                    <span v-else>{{ rol.descripcion }}</span>
+                  </td>
+                 <td>
+                <div v-if="editingRoleId === rol.idRol" class="btn-group-sm">
+                  <button @click="saveRoleEdit(rol.idRol)" class="btn btn-success btn-sm me-1">
+                    <i class="bi bi-check me-1"></i>GUARDAR </button>
+                  <button @click="cancelRoleEdit" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-x me-1"></i>CANCELAR </button>
+                </div>
+                <div v-else class="btn-group-sm">
+                  <button @click="startRoleEdit(rol)" class="btn btn-warning btn-sm me-2"> EDITAR
+                  </button>
+                </div>
+              </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Añadir Rol -->
+  <div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addRoleModalLabel">Añadir Nuevo Rol</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="handleAddRole">
+            <div class="mb-3">
+              <label for="roleName" class="form-label">Nombre del Rol</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="roleName" 
+                v-model="newRole.nombre" 
+                required
+                placeholder="Ej: Moderador"
+              >
+            </div>
+            <div class="mb-3">
+              <label for="roleDescription" class="form-label">Descripción</label>
+              <textarea 
+                class="form-control" 
+                id="roleDescription" 
+                rows="3" 
+                v-model="newRole.descripcion"
+                placeholder="Describe las funciones de este rol..."
+              ></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" @click="handleAddRole" class="btn btn-success" :disabled="!newRole.nombre.trim()">
+            <i class="bi bi-plus me-2"></i>Añadir Rol
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useAdminStore } from '@/store/AdminStores/adminStore';
+import { useAdminStore } from '@/store/AdminStores/adminUsuariosStore';
 import UsuarioForm from '../../components/forms/UsuariosForm.vue';
 import { Modal } from 'bootstrap';
 
@@ -107,14 +235,24 @@ const searchQuery = ref(''); // buscar elementos
 const currentUser = ref(null); // usuario actual para editar o añadir
 const userToDeleteId = ref(null); // id para borrar el usuario especifico
 
+// Variables para gestión de roles
+const editingRoleId = ref(null);
+const editingRoleData = ref({ nombre: '', descripcion: '' });
+const newRole = ref({ nombre: '', descripcion: '' });
+
 let userModalInstance = null;
 let deleteConfirmModalInstance = null;
+let roleManagementModalInstance = null;
+let addRoleModalInstance = null;
 
 onMounted(() => {
   adminStore.obtenerTodosLosUsuarios();
+  adminStore.obtenerTodosLosRoles(); // Cargar roles al montar el componente
 
   userModalInstance = new Modal(document.getElementById('userModal'));
   deleteConfirmModalInstance = new Modal(document.getElementById('deleteConfirmModal'));
+  roleManagementModalInstance = new Modal(document.getElementById('roleManagementModal'));
+  addRoleModalInstance = new Modal(document.getElementById('addRoleModal'));
 });
 
 const filteredUsuarios = computed(() => {
@@ -131,7 +269,6 @@ const filteredUsuarios = computed(() => {
     String(usuario.idRol).includes(query)
   );
 });
-
 
 // formato legible fechas
 const formatFechaRegistro = (dateString) => {
@@ -201,6 +338,59 @@ const deleteUserConfirmed = async () => {
     }
   }
 };
+
+// Métodos para gestión de roles
+const openRoleManagementModal = async () => {
+  await adminStore.obtenerTodosLosRoles();
+};
+
+const openAddRoleModal = () => {
+  newRole.value = { nombre: '', descripcion: '' };
+};
+
+const startRoleEdit = (rol) => {
+  editingRoleId.value = rol.idRol;
+  editingRoleData.value = { 
+    nombre: rol.nombre, 
+    descripcion: rol.descripcion 
+  };
+};
+
+const cancelRoleEdit = () => {
+  editingRoleId.value = null;
+  editingRoleData.value = { nombre: '', descripcion: '' };
+};
+
+const saveRoleEdit = async (idRol) => {
+  try {
+    await adminStore.actualizarRol(idRol, editingRoleData.value);
+    editingRoleId.value = null;
+    editingRoleData.value = { nombre: '', descripcion: '' };
+    await adminStore.obtenerTodosLosRoles(); // Recargar roles
+  } catch (error) {
+    console.error('Error al actualizar rol:', error);
+    alert(`Error al actualizar rol: ${adminStore.error || error.message}`);
+  }
+};
+
+const handleAddRole = async () => {
+  if (!newRole.value.nombre.trim()) {
+    alert('El nombre del rol es obligatorio');
+    return;
+  }
+
+  try {
+    await adminStore.agregarRol(newRole.value);
+    newRole.value = { nombre: '', descripcion: '' };
+    if (addRoleModalInstance) {
+      addRoleModalInstance.hide();
+    }
+    await adminStore.obtenerTodosLosRoles(); // Recargar roles
+  } catch (error) {
+    console.error('Error al añadir rol:', error);
+    alert(`Error al añadir rol: ${adminStore.error || error.message}`);
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -218,6 +408,15 @@ const deleteUserConfirmed = async () => {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
+
+    .role-buttons {
+      width: 100%;
+      justify-content: stretch;
+      
+      .btn {
+        flex: 1;
+      }
+    }
 
     .input-group-inline {
       width: 100%;
@@ -242,6 +441,21 @@ const deleteUserConfirmed = async () => {
       flex-direction: row;
       align-items: center;
       gap: 12px;
+
+      .role-buttons {
+        margin-bottom: 0;
+        width: auto;
+        padding-top: 10px;
+        padding-right: 30px;
+        .btn-info{
+          margin-right: 25px;
+        }
+        
+        .btn {
+          flex: none;
+          width: auto;
+        }
+      }
 
       .input-group-inline {
         width: 150px;
@@ -350,6 +564,11 @@ const deleteUserConfirmed = async () => {
       word-break: break-word;
     }
   }
+
+  .header-controls .role-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 
 .table-hover tbody tr:hover {
@@ -387,10 +606,19 @@ const deleteUserConfirmed = async () => {
 .modal-dialog {
   max-width: 500px;
   margin: 28px auto;
+  
+  &.modal-lg {
+    max-width: 800px;
+  }
 }
 
 .modal-content {
   border-radius: 8px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.btn-group-sm .btn {
+  padding: 2px 6px;
+  font-size: 12px;
 }
 </style>

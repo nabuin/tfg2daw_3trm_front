@@ -26,7 +26,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useAdminStore } from '@/store/AdminStores/adminStore';
+import { useAdminStore } from '@/store/AdminStores/adminUsuariosStore';
 
 const props = defineProps({
   usuario: {
