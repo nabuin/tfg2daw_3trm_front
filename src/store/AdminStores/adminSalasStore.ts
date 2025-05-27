@@ -34,6 +34,14 @@ interface TipoPuestoTrabajo {
   imagen_URL?: string
 }
 
+// interfaz para caracteristica de sala
+interface CaracteristicaSala {
+  idCaracteristica: number
+  nombre: string
+  descripcion: string
+  precioAniadido: number
+}
+
 // mapa de capacidades validas con su tipo de sala
 const CAPACIDADES_VALIDAS = {
   40: { idTipoSala: 1, nombre: 'sala grande publica' },
@@ -47,6 +55,7 @@ export const useSalasStore = defineStore('salas', {
     salas: [] as Sala[],
     tiposSalas: [] as TipoSala[],
     tiposPuestoTrabajo: [] as TipoPuestoTrabajo[],
+    caracteristicasSalas: [] as CaracteristicaSala[],
     cargando: false,
     error: null as string | null,
     token: localStorage.getItem('token') || ''
@@ -62,6 +71,9 @@ export const useSalasStore = defineStore('salas', {
     // obtener tipo de puesto por id
     obtenerTipoPuestoTrabajoPorId: state => (id: number) =>
       state.tiposPuestoTrabajo.find(tipo => tipo.idTipoPuestoTrabajo === id),
+    // obtener caracteristica por id
+    obtenerCaracteristicaPorId: state => (id: number) =>
+      state.caracteristicasSalas.find(caracteristica => caracteristica.idCaracteristica === id),
     // calcular id tipo sala segun capacidad
     getIdTipoSalaPorCapacidad: state => (capacidad: number): number | undefined =>
       CAPACIDADES_VALIDAS[capacidad as keyof typeof CAPACIDADES_VALIDAS]?.idTipoSala,
@@ -209,6 +221,56 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
+    // obtener todas las caracteristicas de salas
+    async obtenerTodasLasCaracteristicasSalas() {
+      try {
+        const datos = await this._llamadaApiFetch('GET', 'CaracteristicasSala')
+        this.caracteristicasSalas = Array.isArray(datos) ? datos : []
+      } catch (error) {
+        console.error('error al obtener caracteristicas de salas', error)
+      }
+    },
+
+    // agregar caracteristica nueva
+    async agregarCaracteristica(nuevaCaracteristica: Partial<CaracteristicaSala>) {
+      try {
+        const caracteristicaCreada = await this._llamadaApiFetch('POST', 'CaracteristicasSala', nuevaCaracteristica)
+        if (caracteristicaCreada && caracteristicaCreada.idCaracteristica) {
+          this.caracteristicasSalas.push(caracteristicaCreada)
+        }
+        return caracteristicaCreada
+      } catch (error) {
+        console.error('error al agregar caracteristica', error)
+        throw error
+      }
+    },
+
+    // actualizar caracteristica existente
+    async actualizarCaracteristica(idCaracteristica: number, datosCaracteristica: Partial<CaracteristicaSala>) {
+      try {
+        const caracteristicaActualizada = await this._llamadaApiFetch('PUT', `CaracteristicasSala/${idCaracteristica}`, datosCaracteristica)
+        const indice = this.caracteristicasSalas.findIndex(c => c.idCaracteristica === idCaracteristica)
+        if (indice !== -1) {
+          this.caracteristicasSalas[indice] = { ...this.caracteristicasSalas[indice], ...caracteristicaActualizada }
+        }
+        return caracteristicaActualizada
+      } catch (error) {
+        console.error('error al actualizar caracteristica', error)
+        throw error
+      }
+    },
+
+    // eliminar caracteristica por id
+    async eliminarCaracteristica(idCaracteristica: number) {
+      try {
+        await this._llamadaApiFetch('DELETE', `CaracteristicasSala/${idCaracteristica}`)
+        this.caracteristicasSalas = this.caracteristicasSalas.filter(c => c.idCaracteristica !== idCaracteristica)
+      } catch (error) {
+        console.error('error al eliminar caracteristica', error)
+        throw error
+      }
+    },
+
     // preparar datos para enviar al backend
     _prepararDatosParaBackend(datos: any, esActualizacion: boolean = false) {
       // validar capacidad
@@ -277,3 +339,6 @@ export const useSalasStore = defineStore('salas', {
     }
   }
 })
+
+// exportar tipos para usar en otros componentes
+export type { Sala, TipoSala, TipoPuestoTrabajo, CaracteristicaSala }
