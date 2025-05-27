@@ -60,14 +60,16 @@
     <div v-if="showPopup" class="popup-overlay" @click.self="showPopup = false">
       <div class="popup-rect">
         <div class="login">
-          <form class="login__form" @submit="login">
+          <form class="login__form" @submit.prevent="login">
             <input type="text" v-model="usuario" class="login__input" placeholder="Correo" required>
             <input type="password" v-model="password" class="login__input" placeholder="Contraseña" required>
 
-            <div v-if="mensajeError" class="login__error">La contraseña y/o el correo son erroneos</div>
+            <div v-if="mensajeError" class="login__error">{{ mensajeError }}</div>
             <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
 
-            <button type="submit" class="login__button">→</button>
+            <button type="submit" class="login__button" :disabled="isLoggingIn">
+              {{ isLoggingIn ? '...' : '→' }}
+            </button>
             <router-link to="/register" class="login__register">¿No tienes cuenta? Registrarte</router-link>
           </form>
         </div>
@@ -84,6 +86,7 @@ import { usePuestosStore } from '../store/asientosStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
 import { useReservasStore } from '../store/reservasStore';
+import { LoginStore } from '../store/LoginStore';
 import { storeToRefs } from 'pinia';
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
@@ -102,13 +105,20 @@ export default defineComponent({
     const salaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
     const reservasStore = useReservasStore();
+    const loginStore = LoginStore();
 
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
     const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
 
     // estado para el popup
     const showPopup = ref(false);
-     const errorSeleccionPuestos = ref<string | null>(null); 
+    const errorSeleccionPuestos = ref<string | null>(null);
+    
+    // estados para el login
+    const usuario = ref('');
+    const password = ref('');
+    const mensajeError = ref<string | null>(null);
+    const isLoggingIn = ref(false);
 
     onMounted(() => {
       if (salaStore.id !== null) {
@@ -151,7 +161,46 @@ export default defineComponent({
       ][index] || '';
     }
 
-   function continuarCompra() {
+    async function login() {
+      if (isLoggingIn.value) return;
+      
+      isLoggingIn.value = true;
+      mensajeError.value = null;
+
+      try {
+        const loginData = {
+          email: usuario.value,
+          contrasenia: password.value
+        };
+
+        const exito = await loginStore.loginUsuario(loginData);
+
+        if (exito) {
+          // login correcto
+          showPopup.value = false;
+          // vaciar el formulario
+          usuario.value = '';
+          password.value = '';
+          mensajeError.value = null;
+          // ir a la pagina de pago ya logeado
+          router.push('/sedes/salas/puestos/pago');
+        } else {
+          // login fallido - extraer solo la parte después de "Error generating the token: "
+          let mensajeErrorAPI = loginStore.errorMessage || 'La contraseña y/o el correo son erróneos';
+          if (mensajeErrorAPI.includes('Error generating the token: ')) {
+            mensajeErrorAPI = mensajeErrorAPI.split('Error generating the token: ')[1]; // para que no saque el mensaje de error del token, solo el de problema con correo o contraseña, [1] ya que la primera parte seria [0]
+          }
+          mensajeError.value = mensajeErrorAPI;
+        }
+      } catch (error) {
+        console.error('Error durante el login:', error);
+        mensajeError.value = 'Error de conexión. Inténtalo de nuevo.';
+      } finally {
+        isLoggingIn.value = false;
+      }
+    }
+
+    function continuarCompra() {
         // validar que al menos un puesto esté seleccionado
         if (selectedPuestos.value.length === 0) {
             errorSeleccionPuestos.value = "Por favor, selecciona al menos un puesto para continuar.";
@@ -191,6 +240,12 @@ export default defineComponent({
       showPopup,
       continuarCompra,
       errorSeleccionPuestos,
+      // login related
+      usuario,
+      password,
+      mensajeError,
+      isLoggingIn,
+      login,
     };
   },
 });
@@ -451,8 +506,13 @@ export default defineComponent({
     color: #4A3F35;
     transition: transform 0.2s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       transform: scale(1.1);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 
