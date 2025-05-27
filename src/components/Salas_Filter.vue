@@ -57,16 +57,17 @@
         </div>
 
         <div class="form-group form-group-button">
-          <button type="submit" class="btn btn-primary">Filtrar</button>
+          <button type="submit" class="btn btn-primary">
+            Filtrar
+          </button>
         </div>
       </form>
     </div>
 
-    <ul v-if="salasDisponibles.length > 0">
-      <li v-for="sala in salasDisponibles" :key="sala.idSala">
-        {{ sala.nombre }} - Capacidad: {{ sala.capacidad }}
-      </li>
-    </ul>
+    <!-- Mensaje de “Actualizado” situado *fuera* de .form-width para que aparezca debajo -->
+    <div v-if="showUpdated" class="mensaje actualizado">
+      Actualizado
+    </div>
   </div>
 </template>
 
@@ -77,23 +78,34 @@ import { useFiltrosStore } from '../store/filtrosStore';
 
 export default defineComponent({
   setup() {
-    const salasStore = useSalasStore();
+    const salasStore   = useSalasStore();
     const filtrosStore = useFiltrosStore();
 
-    const hoy = new Date();
+    const hoy    = new Date();
     const manana = new Date(hoy);
     manana.setDate(manana.getDate() + 1);
 
     const pad = (n: number) => String(n).padStart(2, '0');
-    const yyyy = manana.getFullYear();
-    const mm = pad(manana.getMonth() + 1);
-    const dd = pad(manana.getDate());
-    const mananaStr = `${yyyy}-${mm}-${dd}`;
+    const toDateStr = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
+    const mananaStr   = toDateStr(manana);
     const fechaMinima = mananaStr;
 
     const fechaInicio = ref(mananaStr);
     const fechaFin    = ref(mananaStr);
+
+    const esFinDeSemana = (dateStr: string) => {
+      const day = new Date(dateStr).getDay();
+      return day === 6 || day === 0;
+    };
+    const getSiguienteHabil = (dateStr: string): string => {
+      const d = new Date(dateStr);
+      while (d.getDay() === 6 || d.getDay() === 0) {
+        d.setDate(d.getDate() + 1);
+      }
+      return toDateStr(d);
+    };
 
     const horas = ref<string[]>([]);
     const generarHoras = () => {
@@ -115,6 +127,25 @@ export default defineComponent({
       return horas.value;
     });
 
+    const showUpdated = ref(false);
+
+    watch(fechaInicio, (nv) => {
+      if (esFinDeSemana(nv)) {
+        alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
+        fechaInicio.value = getSiguienteHabil(nv);
+      }
+      if (fechaFin.value < fechaInicio.value) {
+        fechaFin.value = fechaInicio.value;
+      }
+    });
+
+    watch(fechaFin, (nv) => {
+      if (esFinDeSemana(nv)) {
+        alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
+        fechaFin.value = getSiguienteHabil(nv);
+      }
+    });
+
     watch([fechaInicio, fechaFin, horaInicio], () => {
       if (
         fechaInicio.value === fechaFin.value &&
@@ -124,7 +155,8 @@ export default defineComponent({
       }
     });
 
-    const filtrar = async () => {
+    const filtrar = async (showMsg = true) => {
+      // Validaciones previas
       if (fechaFin.value < fechaInicio.value) {
         alert('La fecha fin no puede ser anterior a la fecha inicio.');
         return;
@@ -137,6 +169,7 @@ export default defineComponent({
         return;
       }
 
+      // Guardar filtros en el store
       filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
@@ -144,16 +177,26 @@ export default defineComponent({
         horaFin:     horaFin.value,
       });
 
+      // Ejecutar fetch
       await salasStore.obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
         horaInicio:  horaInicio.value,
         horaFin:     horaFin.value,
       });
+
+      // Mostrar mensaje si toca
+      if (showMsg) {
+        showUpdated.value = true;
+        setTimeout(() => {
+          showUpdated.value = false;
+        }, 2000);
+      }
     };
 
+    // Al montar, cargamos con filtros por defecto sin mostrar mensaje
     onMounted(() => {
-      filtrar();
+      filtrar(false);
     });
 
     return {
@@ -165,6 +208,7 @@ export default defineComponent({
       horas,
       horasFin,
       filtrar,
+      showUpdated,
       salasDisponibles: salasStore.salasDisponibles,
     };
   },
@@ -209,6 +253,8 @@ export default defineComponent({
     border: 1px solid #aaa;
     border-radius: 4px;
     transition: border-color 0.3s ease;
+    background: transparent;
+    color: white;
 
     &:focus {
       outline: none;
@@ -216,14 +262,11 @@ export default defineComponent({
     }
 
     &-date {
-      color: white;
-
       &::-webkit-calendar-picker-indicator {
         cursor: pointer;
         filter: brightness(0) invert(1);
         transition: filter 0.3s ease;
       }
-
       &:hover::-webkit-calendar-picker-indicator {
         filter: brightness(0) invert(1) opacity(0.8);
       }
@@ -232,9 +275,19 @@ export default defineComponent({
 
   .form-select {
     appearance: none;
-    background: black;
+    background: transparent;
     cursor: pointer;
     color: white;
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+    }
   }
 
   .btn {
@@ -247,10 +300,82 @@ export default defineComponent({
     &-primary {
       background-color: #007bff;
       color: white;
+      transition: background-color 0.2s ease;
 
       &:hover {
         background-color: #0056b3;
       }
+    }
+  }
+
+  option {
+    background-color: black;
+    color: white;
+  }
+}
+
+/* Estilo del mensaje “Actualizado” */
+.mensaje.actualizado {
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  background: #28a745;
+  color: white;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 200px;
+}
+
+/* Responsive (≤900px): dos columnas en grid */
+@media (max-width: 900px) {
+  .form-width {
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 1rem;
+  }
+
+  .filtro-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0 1rem;
+    margin: 0;
+
+    .form-group {
+      margin-top: 0.5rem;
+    }
+
+    .form-group-button {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .form-input,
+    .form-select,
+    .btn {
+      width: 100%;
+    }
+
+    .btn-primary {
+      padding: 0.75rem;
+    }
+  }
+}
+
+/* Muy móvil (≤600px): una sola columna */
+@media (max-width: 600px) {
+  .filtro-form {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+
+    .form-group {
+      margin-top: 0.5rem;
+    }
+
+    .form-group-button {
+      margin-top: 0.75rem;
     }
   }
 }

@@ -44,7 +44,11 @@ export const usePuestosStore = defineStore('puestos', () => {
     try {
       const res = await fetch(endpoint.value);
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
-      puestosDisponibles.value = await res.json();
+
+      const data = await res.json();
+      console.log("📥 Puestos disponibles recibidos:", data); // <--- LOG AQUÍ
+
+      puestosDisponibles.value = data;
     } catch (err: any) {
       error.value = err.message;
       puestosDisponibles.value = [];

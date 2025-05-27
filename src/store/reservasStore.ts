@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useFiltrosStore } from './filtrosStore';
-import { useUserStore } from './userStore';
+import { useUserStore } from './UserStore';
 
 // Interfaz para el puesto seleccionado
 interface SelectedPuesto {
