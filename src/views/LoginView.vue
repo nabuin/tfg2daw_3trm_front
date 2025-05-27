@@ -44,7 +44,7 @@ const login = async (event: Event) => {
       <input type="text" v-model="usuario" class="login__input" placeholder="Correo" required>
       <input type="password" v-model="password" class="login__input" placeholder="Contraseña" required>
       
-      <div v-if="mensajeError" class="login__error">La contraseña debe tener entre 6 y 30 caracteres</div> <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
+      <div v-if="mensajeError" class="login__error">La contraseña y/o el correo son erroneos</div> <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
       
       <button type="submit" class="login__button">→</button>
       <router-link to="/register" class="login__register">¿No tienes cuenta? Registrarte</router-link>
