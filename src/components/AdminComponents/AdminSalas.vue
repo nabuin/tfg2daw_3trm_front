@@ -293,31 +293,37 @@
     </div>
   </div>
 
-  <div class="modal fade" id="generarDisponibilidadesModal" tabindex="-1" aria-labelledby="generarDisponibilidadesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="generarDisponibilidadesModalLabel">Generar Disponibilidades</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="generarDisponibilidadesModal" tabindex="-1" aria-labelledby="generarDisponibilidadesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="generarDisponibilidadesModalLabel">Generar Disponibilidades</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Esta acción generará las disponibilidades diarias para todas las salas del año especificado.</p>
+        <p class="text-danger">Esto puede tardar varios minutos y creará una gran cantidad de registros.</p>
+        <div class="mb-3">
+          <label for="anioDisponibilidad" class="form-label">Año para Generar Disponibilidades:</label>
+          <input type="number" class="form-control" id="anioDisponibilidad" v-model.number="anioParaDisponibilidad" :min="currentYear" :max="currentYear + 5" required>
         </div>
-        <div class="modal-body">
-          <p>Esta acción generará las disponibilidades diarias para todas las salas del año especificado.</p>
-          <p class="text-danger">Esto puede tardar varios minutos y creará una gran cantidad de registros.</p>
-          <div class="mb-3">
-            <label for="anioDisponibilidad" class="form-label">Año para Generar Disponibilidades:</label>
-            <input type="number" class="form-control" id="anioDisponibilidad" v-model.number="anioParaDisponibilidad" :min="currentYear" :max="currentYear + 5" required>
+        <div v-if="isGeneratingDisponibilidades" class="alert alert-info mt-3" role="alert">
+          Generando disponibilidades, por favor espera... Esto puede tardar varios minutos.
+          <div class="spinner-border spinner-border-sm ms-2" role="status">
+            <span class="visually-hidden">Cargando...</span>
           </div>
-          <div v-if="generarDisponibilidadesMessage" :class="['alert mt-3', generarDisponibilidadesMessageType === 'success' ? 'alert-success' : 'alert-danger']" role="alert">
-            {{ generarDisponibilidadesMessage }}
-          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="clearGenerarDisponibilidadesMessage">Cancelar</button>
-          <button type="button" class="btn btn-primary" @click="generarDisponibilidadesConfirmado" :disabled="!anioParaDisponibilidad || anioParaDisponibilidad < currentYear">Confirmar y Generar</button>
+        <div v-else-if="generarDisponibilidadesMessage" :class="['alert mt-3', generarDisponibilidadesMessageType === 'success' ? 'alert-success' : 'alert-danger']" role="alert">
+          {{ generarDisponibilidadesMessage }}
         </div>
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="clearGenerarDisponibilidadesMessage">Cancelar</button>
+        <button type="button" class="btn btn-primary" @click="generarDisponibilidadesConfirmado" :disabled="!anioParaDisponibilidad || anioParaDisponibilidad < currentYear || isGeneratingDisponibilidades">Confirmar y Generar</button>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -357,10 +363,11 @@ const newCaracteristicaIdToAdd: Ref<Nullable<number>> = ref(null);
 const generarPuestosMessage: Ref<string | null> = ref(null);
 const generarPuestosMessageType: Ref<'success' | 'danger' | null> = ref(null);
 
-// estados para disponibilidades
 const anioParaDisponibilidad: Ref<number | null> = ref(null);
 const generarDisponibilidadesMessage: Ref<string | null> = ref(null);
 const generarDisponibilidadesMessageType: Ref<'success' | 'danger' | null> = ref(null);
+const isGeneratingDisponibilidades: Ref<boolean> = ref(false);
+
 const currentYear = new Date().getFullYear();
 
 
@@ -372,6 +379,7 @@ let caracteristicaModalInstance: Nullable<Modal> = null
 let deleteCaracteristicaModalInstance: Nullable<Modal> = null
 let gestionCaracteristicasSalaModalInstance: Nullable<Modal> = null
 let generarPuestosModalInstance: Nullable<Modal> = null
+// NUEVA INSTANCIA DE MODAL
 let generarDisponibilidadesModalInstance: Nullable<Modal> = null
 
 
@@ -545,8 +553,6 @@ const fetchCaracteristicasForSelectedSala = async () => {
       console.error(`Error al obtener características para la sala ${selectedSalaId.value}:`, error);
       selectedSalaCharacteristics.value = [];
     }
-  } else {
-    selectedSalaCharacteristics.value = [];
   }
 };
 
@@ -601,11 +607,11 @@ const clearGenerarPuestosMessage = () => {
   generarPuestosModalInstance?.hide();
 };
 
-// --- NUEVOS MÉTODOS PARA GENERAR DISPONIBILIDADES ---
 const openGenerarDisponibilidadesModal = () => {
   anioParaDisponibilidad.value = currentYear; // Establecer el año actual por defecto
   generarDisponibilidadesMessage.value = null; // Limpiar mensajes anteriores
   generarDisponibilidadesMessageType.value = null; // Limpiar tipos de mensaje anteriores
+  isGeneratingDisponibilidades.value = false; // Asegurarse de que el loading esté apagado al abrir
   generarDisponibilidadesModalInstance?.show();
 };
 
@@ -615,6 +621,11 @@ const generarDisponibilidadesConfirmado = async () => {
     generarDisponibilidadesMessageType.value = 'danger';
     return;
   }
+
+  isGeneratingDisponibilidades.value = true; // Activar el loading
+  generarDisponibilidadesMessage.value = null; // Limpiar mensajes anteriores
+  generarDisponibilidadesMessageType.value = null; // Limpiar tipo de mensaje anterior
+
   try {
     const result = await salasStore.generarDisponibilidadesPorAnio(anioParaDisponibilidad.value);
     generarDisponibilidadesMessage.value = result;
@@ -623,12 +634,15 @@ const generarDisponibilidadesConfirmado = async () => {
     console.error('Error al generar disponibilidades:', error);
     generarDisponibilidadesMessage.value = error.message || 'Error desconocido al generar disponibilidades.';
     generarDisponibilidadesMessageType.value = 'danger';
+  } finally {
+    isGeneratingDisponibilidades.value = false; // Desactivar el loading al finalizar
   }
 };
 
 const clearGenerarDisponibilidadesMessage = () => {
   generarDisponibilidadesMessage.value = null;
   generarDisponibilidadesMessageType.value = null;
+  isGeneratingDisponibilidades.value = false; // Asegurarse de que el loading esté apagado al cerrar
   generarDisponibilidadesModalInstance?.hide();
 };
 </script>
