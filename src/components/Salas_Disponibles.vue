@@ -1,11 +1,18 @@
 <template>
   <div class="salas-container">
+    <!-- 1️⃣ Mientras loading === true, sólo esto -->
     <div v-if="loading" class="mensaje">Cargando...</div>
-    <div v-if="error" class="mensaje error">{{ error }}</div>
-    <div v-if="!loading && salasDisponibles.length === 0 && !error" class="mensaje">
+
+    <!-- 2️⃣ Cuando loading === false y hay error -->
+    <div v-else-if="error" class="mensaje error">{{ error }}</div>
+
+    <!-- 3️⃣ Cuando loading === false, no hay error y no hay salas -->
+    <div v-else-if="salasDisponibles.length === 0" class="mensaje">
       No hay salas disponibles para esa búsqueda.
     </div>
-    <div v-if="salasDisponibles.length > 0" class="salas-lista">
+
+    <!-- 4️⃣ Cuando loading === false y hay salas -->
+    <div v-else class="salas-lista">
       <router-link
         v-for="sala in salasDisponibles"
         :key="sala.idSala"
@@ -38,30 +45,45 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import { defineComponent, computed, onMounted, watch } from 'vue';
 import { useSalasStore } from '../store/salasStore';
 import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
+import { useFiltrosStore } from '../store/filtrosStore';
+import { storeToRefs } from 'pinia';
 
 export default defineComponent({
   setup() {
-    const { salasDisponibles, error, loading, obtenerSalasDisponibles } = useSalasStore();
+    const salasStore = useSalasStore();
+    const { salasDisponibles, loading, error } = storeToRefs(salasStore);
+    const { obtenerSalasDisponibles } = salasStore;
+
     const sedeSeleccionadaStore = useSedeSeleccionadaStore();
     const salaSeleccionadaStore = useSalaSeleccionadaStore();
-
-    const buscarSalas = async () => {
-      await obtenerSalasDisponibles();
-    };
-
-    const seleccionarSala = (sala: { idSala: number; nombre: string; capacidad: number }) => {
-      salaSeleccionadaStore.setId(sala.idSala);
-    };
+    const filtrosStore = useFiltrosStore();
 
     const idSede = computed(() => sedeSeleccionadaStore.id);
 
-    onMounted(buscarSalas);
+    const buscarSalas = async () => {
+      await obtenerSalasDisponibles(filtrosStore.filtros);
+    };
+
+    const seleccionarSala = (sala: { idSala: number }) => {
+      salaSeleccionadaStore.setId(sala.idSala);
+    };
+
+    onMounted(() => {
+      buscarSalas();
+    });
+
+    watch(
+      () => filtrosStore.filtros,
+      () => {
+        buscarSalas();
+      },
+      { deep: true }
+    );
 
     watch(idSede, (newId, oldId) => {
       if (newId !== oldId) {
@@ -71,13 +93,15 @@ export default defineComponent({
 
     return {
       salasDisponibles,
-      error,
       loading,
-      seleccionarSala
+      error,
+      seleccionarSala,
     };
   },
 });
 </script>
+
+
 
 
 
