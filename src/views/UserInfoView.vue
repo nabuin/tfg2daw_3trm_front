@@ -895,6 +895,8 @@ button {
   height: 100%;
   display: flex;
   flex-direction: column;
+  max-height: 700px;
+  overflow-y: auto;
 }
 
 .user-reservations__title {
