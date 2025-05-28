@@ -41,12 +41,12 @@ const router = createRouter({
       name: 'Login',
       component: LoginView,
     },
-         {
+    {
       path: '/register',
       name: 'Register',
       component: RegisterView,
     },
-         {
+    {
       path: '/userinfo',
       name: 'UserInfo',
       component: UserInfoView,

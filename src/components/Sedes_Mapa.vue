@@ -104,7 +104,7 @@ h1 {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
+  background-color: white;
   border: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;

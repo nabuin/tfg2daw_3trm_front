@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from 'vue';
-import { useUserStore } from './userStore';
+import { useUserStore } from './UserStore';
 
 // interfaz para la data que va a traer la API
 interface Reservation {

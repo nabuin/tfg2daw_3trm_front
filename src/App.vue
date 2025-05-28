@@ -2,7 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
-import { useUserStore } from './store/userStore';
+import { useUserStore } from './store/UserStore';
 
 export default {
   components: {
@@ -31,6 +31,7 @@ export default {
 .layout {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 .layout > *:nth-last-child(2) {

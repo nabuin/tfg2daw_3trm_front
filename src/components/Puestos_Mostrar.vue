@@ -1,423 +1,565 @@
 <template>
-    <div class="puesto-selection-page-wrapper">
-        <h2>Selección de Puestos</h2>
+  <div>
+    <!-- 1. cargando… -->
+    <p v-if="loading" class="loading-message">
+      cargando puestos disponibles…
+    </p>
 
-        <p v-if="loading" class="loading-message">Cargando puestos disponibles...</p>
-        <p v-if="error" class="error-message-full">Error al cargar: {{ error }}</p>
+    <!-- 2. cuando ya cargó, pintamos las mesas en filas de 3 -->
+    <div v-else>
+      <div class="tables-grid">
+        <!-- para cada grupo de 4 puestos hacemos un bloque -->
+        <div v-for="(group, gi) in seatGroups" :key="gi" class="table-layout">
+          <!-- 2.1 cada puesto: botón con SVG inline de silla -->
+          <button v-for="(puesto, idx) in group" :key="puesto.idPuestoTrabajo" class="square" :class="[
+            positionClass(idx),
+            {
+              unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
+              selected: selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo)
+            }
+          ]" :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)" @click="handlePuestoClick(puesto)">
+            <svg class="silla-icon" width="50" height="50" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <g class="chair-wheels">
+                <circle cx="60" cy="95" r="5" />
+                <circle cx="35" cy="75" r="5" />
+                <circle cx="85" cy="75" r="5" />
+                <circle cx="25" cy="45" r="5" />
+                <circle cx="95" cy="45" r="5" />
+              </g>
+              <rect class="chair-seat" x="30" y="30" width="60" height="50" rx="8" ry="8" />
+              <rect class="chair-back" x="35" y="15" width="50" height="15" rx="7" ry="7" />
+            </svg>
+          </button>
 
-        <div v-if="!loading && !error">
-            <div v-if="puestosDisponibles.length === 0" class="no-puestos-message">
-                <p>No se encontraron puestos disponibles con los criterios seleccionados.</p>
-            </div>
-
-            <div class="puestos-grid">
-                <div
-                    v-for="puesto in puestosDisponibles"
-                    :key="puesto.idPuestoTrabajo"
-                    class="puesto-card"
-                    :class="{ 'selected': isPuestoSelected(puesto.idPuestoTrabajo) }"
-                    @click="handlePuestoClick(puesto)"
-                >
-                    <h4>Puesto #{{ puesto.numeroAsiento }} (Mesa: {{ puesto.codigoMesa }})</h4>
-                    <img v-if="puesto.urL_Imagen" :src="puesto.urL_Imagen" alt="Imagen del puesto" class="puesto-imagen"/>
-                    <p>ID Puesto: {{ puesto.idPuestoTrabajo }}</p>
-                    
-                    <div class="tramo-summary">
-                        <h5>Tramos disponibles:</h5>
-                        <p v-if="puesto.disponibilidadesEnRango && puesto.disponibilidadesEnRango.length > 0">
-                            <span v-for="(slot, idx) in puesto.disponibilidadesEnRango" :key="slot.idTramoHorario">
-                                {{ slot.horaInicio.substring(0, 5) }}<span v-if="!slot.estado">(No Disp.)</span><span v-if="idx < puesto.disponibilidadesEnRango.length - 1">, </span>
-                            </span>
-                        </p>
-                        <p v-else>No tiene tramos horarios disponibles.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="resumen-section" v-if="selectedPuestos.length > 0">
-                <h3>Puestos Seleccionados para Reserva</h3>
-                <p class="summary-count">Has seleccionado {{ selectedPuestos.length }} puesto(s).</p>
-                <div class="selected-items">
-                    <div 
-                        v-for="(puestoRef, index) in selectedPuestos" 
-                        :key="index" 
-                        class="selected-item"
-                    >
-                        Puesto ID: {{ puestoRef.idPuestoTrabajo }} (Hora inicio ref: {{ puestoRef.horaInicioPrimerTramo.substring(0,5) }})
-                        <button @click="removePuesto(index)" class="remove-button">X</button>
-                    </div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button 
-                        @click="resetSelection" 
-                        class="cancel-button" 
-                        :disabled="isReserving"
-                    >
-                        Cancelar Selección
-                    </button>
-                    <button 
-                        @click="handleSubmit" 
-                        class="submit-button" 
-                        :disabled="isReserving || selectedPuestos.length === 0"
-                    >
-                        {{ isReserving ? 'Procesando...' : 'Confirmar Reserva de Todos los Tramos de los Puestos Seleccionados' }}
-                    </button>
-                </div>
-                
-                <p v-if="reservationSuccess" class="success-message">{{ reservationSuccess }}</p>
-                <p v-if="reservationError" class="error-message">{{ reservationError }}</p>
-            </div>
+          <!-- 2.2 la mesa en medio: SVG inline de mesa -->
+          <div class="table">
+            <svg class="mesa-icon" width="120" height="130" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <!-- Ajusta el alto de la mesa modificando el atributo height -->
+              <rect x="20" y="20" width="80" height="100" rx="6" ry="6" />
+            </svg>
+          </div>
         </div>
+      </div>
+
+      <!-- 3. botón comprar general -->
+      <button class="buy-button" :disabled="isReserving || selectedPuestos.length === 0" @click="submitCompra">
+        {{ isReserving ? 'procesando...' : 'comprar' }}
+      </button>
+
+    <div v-if="errorSeleccionPuestos" class="error-message">
+        {{ errorSeleccionPuestos }}
     </div>
+
+      <!-- 4. botón continuar -->
+      <button class="continue-button" @click="continuarCompra">
+        continuar
+      </button>
+    </div>
+
+    <!-- 5. popup -->
+    <div v-if="showPopup" class="popup-overlay" @click.self="showPopup = false">
+      <div class="popup-rect">
+        <div class="login">
+          <form class="login__form" @submit.prevent="login">
+            <input type="text" v-model="usuario" class="login__input" placeholder="Correo" required>
+            <input type="password" v-model="password" class="login__input" placeholder="Contraseña" required>
+
+            <div v-if="mensajeError" class="login__error">{{ mensajeError }}</div>
+            <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
+
+            <button type="submit" class="login__button" :disabled="isLoggingIn">
+              {{ isLoggingIn ? '...' : '→' }}
+            </button>
+            <router-link to="/register" class="login__register">¿No tienes cuenta? Registrarte</router-link>
+          </form>
+        </div>
+        <button @click="showPopup = false">cerrar</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, watch } from 'vue';
+import { defineComponent, onMounted, watch, computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { usePuestosStore } from '../store/asientosStore';
-import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore'; 
+import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
 import { useReservasStore } from '../store/reservasStore';
-import { useUserStore } from '../store/userStore';
-
+import { LoginStore } from '../store/LoginStore';
 import { storeToRefs } from 'pinia';
 
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export default defineComponent({
-    setup() {
-        const puestosStore = usePuestosStore();
-        const salaStore = useSalaSeleccionadaStore();
-        const filtrosStore = useFiltrosStore();
-        const reservasStore = useReservasStore();
-        const userStore = useUserStore();
+  name: 'PuestoSelectionAroundTable',
+  setup() {
+    const router = useRouter();
+    const puestosStore = usePuestosStore();
+    const salaStore = useSalaSeleccionadaStore();
+    const filtrosStore = useFiltrosStore();
+    const reservasStore = useReservasStore();
+    const loginStore = LoginStore();
 
-        // Obtener los estados del store de puestos
-        const { loading, error, puestosDisponibles } = storeToRefs(puestosStore);
+    const { puestosDisponibles, loading } = storeToRefs(puestosStore);
+    const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
 
-        // Obtener los estados del store de reservas
-        const { 
-            selectedPuestos, 
-            isReserving,
-            reservationError,
-            reservationSuccess,
-            isPuestoSelected 
-        } = storeToRefs(reservasStore);
+    // estado para el popup
+    const showPopup = ref(false);
+    const errorSeleccionPuestos = ref<string | null>(null);
+    
+    // estados para el login
+    const usuario = ref('');
+    const password = ref('');
+    const mensajeError = ref<string | null>(null);
+    const isLoggingIn = ref(false);
 
-        // Obtener el estado del usuario del store de usuario
-        const { user } = storeToRefs(userStore);
+    onMounted(() => {
+      if (salaStore.id !== null) {
+        puestosStore.obtenerPuestosDisponibles();
+      }
+    });
 
-        // Cargar los asientos si hay ID sala al montar el componente
-        onMounted(() => {
-            if (salaStore.id !== null) {
-                puestosStore.obtenerPuestosDisponibles();
-            }
-        });
+    watch(
+      () => [
+        salaStore.id,
+        filtrosStore.fechaInicio,
+        filtrosStore.fechaFin,
+        filtrosStore.horaInicio,
+        filtrosStore.horaFin,
+      ],
+      async () => {
+        if (salaStore.id !== null) {
+          await puestosStore.obtenerPuestosDisponibles();
+          reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
+          reservasStore.resetSelection();
+        }
+      },
+      { immediate: true }
+    );
 
-        // Recargar puestos disponibles al cambiar los filtros
-        watch(
-            () => [
-                salaStore.id,
-                filtrosStore.fechaInicio,
-                filtrosStore.fechaFin,
-                filtrosStore.horaInicio,
-                filtrosStore.horaFin,
-            ],
-            async () => {
-                if (salaStore.id !== null) {
-                    await puestosStore.obtenerPuestosDisponibles();
-                    // IMPORTANTE: Pasar las disponibilidades actuales al store de reservas
-                    // para que createReservation pueda acceder a todos los tramos del puesto.
-                    reservasStore.setPuestoDisponibilidades(puestosStore.puestosDisponibles);
-                    reservasStore.resetSelection(); // Reset selection when filters change
-                } else {
-                    puestosStore.puestosDisponibles = [];
-                    reservasStore.setPuestoDisponibilidades([]); // Also clear in reservasStore
-                    reservasStore.resetSelection(); // Reset selection when sala is null
-                }
-            },
-            { immediate: true } // Ejecutarlo al inicio
-        );
+    function handlePuestoClick(puesto: any) {
+      reservasStore.togglePuestoSelection(puesto);
+    }
 
-        // Función para manejar los clics en los puestos
-        const handlePuestoClick = (puesto: any) => {
-            reservasStore.togglePuestoSelection(puesto);
+    function submitCompra() {
+      reservasStore.createReservation('compra de puestos');
+    }
+
+    function positionClass(index: number): string {
+      return [
+        'seat-left-top',
+        'seat-right-top',
+        'seat-left-bottom',
+        'seat-right-bottom'
+      ][index] || '';
+    }
+
+    async function login() {
+      if (isLoggingIn.value) return;
+      
+      isLoggingIn.value = true;
+      mensajeError.value = null;
+
+      try {
+        const loginData = {
+          email: usuario.value,
+          contrasenia: password.value
         };
 
-        // Función para eliminar un puesto clicado del resumen
-        const removePuesto = (index: number) => {
-            selectedPuestos.value.splice(index, 1);
-        };
+        const exito = await loginStore.loginUsuario(loginData);
 
-        // Función para cuando se le de a Confirmar Reserva
-        const handleSubmit = async () => {
-            const description = "Reserva completada"; 
-            await reservasStore.createReservation(description);
-        };
+        if (exito) {
+          // login correcto
+          showPopup.value = false;
+          // vaciar el formulario
+          usuario.value = '';
+          password.value = '';
+          mensajeError.value = null;
+          // ir a la pagina de pago ya logeado
+          router.push('/sedes/salas/puestos/pago');
+        } else {
+          // login fallido - extraer solo la parte después de "Error generating the token: "
+          let mensajeErrorAPI = loginStore.errorMessage || 'La contraseña y/o el correo son erróneos';
+          if (mensajeErrorAPI.includes('Error generating the token: ')) {
+            mensajeErrorAPI = mensajeErrorAPI.split('Error generating the token: ')[1]; // para que no saque el mensaje de error del token, solo el de problema con correo o contraseña, [1] ya que la primera parte seria [0]
+          }
+          mensajeError.value = mensajeErrorAPI;
+        }
+      } catch (error) {
+        console.error('Error durante el login:', error);
+        mensajeError.value = 'Error de conexión. Inténtalo de nuevo.';
+      } finally {
+        isLoggingIn.value = false;
+      }
+    }
 
-        return {
-            // De puestosStore
-            loading,
-            error,
-            puestosDisponibles,
+    function continuarCompra() {
+        // validar que al menos un puesto esté seleccionado
+        if (selectedPuestos.value.length === 0) {
+            errorSeleccionPuestos.value = "Por favor, selecciona al menos un puesto para continuar.";
+            // Opcional: limpiar el mensaje después de un tiempo
+            setTimeout(() => {
+                errorSeleccionPuestos.value = null;
+            }, 6000); // el mensaje saldrá durante 6 segundos
+            return;
+        }
 
-            // De reservasStore
-            selectedPuestos,
-            isReserving,
-            reservationError,
-            reservationSuccess,
-            isPuestoSelected,
+        // limpiar errores previos
+        errorSeleccionPuestos.value = null;
 
-            user, // Acceso al user del userStore
+        // 2. Comprobar si hay token de autenticación
+        const authToken = localStorage.getItem("authToken");
 
-            // Funciones
-            handlePuestoClick,
-            removePuesto,
-            handleSubmit,
-            resetSelection: reservasStore.resetSelection, // Exponer resetSelection para el botón
-        };
-    },
+        if (!authToken) {
+            // Si no hay token, mostrar el popup de login
+            showPopup.value = true;
+        } else {
+            // Si hay token, navegar a la página de pago para continuar la compra
+            router.push('/sedes/salas/puestos/pago');
+        }
+    }
+
+    // Agrupamos de 4 en 4 pero la UI controla número por fila
+    const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
+
+    return {
+      loading,
+      seatGroups,
+      selectedPuestos,
+      isReserving,
+      handlePuestoClick,
+      submitCompra,
+      positionClass,
+      showPopup,
+      continuarCompra,
+      errorSeleccionPuestos,
+      // login related
+      usuario,
+      password,
+      mensajeError,
+      isLoggingIn,
+      login,
+    };
+  },
 });
 </script>
 
-<style scoped>
-.puesto-selection-page-wrapper {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
-    background-color: #f8f9fa;
-    min-height: calc(100vh - 60px); /* Adjust for header/footer if present */
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-h2 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 25px;
-    font-size: 28px;
-}
-
-.loading-message, .no-puestos-message {
-    text-align: center;
-    padding: 20px;
-    color: #555;
-    background-color: #e9ecef;
-    border-radius: 8px;
-}
-
-.error-message-full {
-    background-color: #ffe6e6;
-    border-left: 4px solid #ff3333;
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    color: #cc0000;
-    text-align: center;
-}
-
-.puestos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.puesto-card {
-    border: 1px solid #ccc;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.puesto-card:hover:not(.selected) {
-    background-color: #f0f0f0;
-    border-color: #a0a0a0;
-}
-
-.puesto-card.selected {
-    background-color: #e0f2f7; 
-    border-color: #007bff;
-    box-shadow: 0 0 12px rgba(0, 123, 255, 0.3);
-}
-
-.puesto-card h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #333;
-    font-size: 1.2em;
-}
-
-.puesto-imagen {
-    max-width: 100px;
-    height: auto;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid #eee;
-}
-
-.puesto-card p {
-    margin: 5px 0;
-    color: #555;
-}
-
-.tramo-summary {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-    width: 100%;
-}
-
-.tramo-summary h5 {
-    margin: 0 0 8px 0;
-    color: #666;
-    font-size: 1em;
-}
-
-.tramo-summary p {
-    font-size: 0.9em;
-    color: #444;
-}
-
-/* Resumen Section */
-.resumen-section {
-    margin-top: 30px;
-    padding: 25px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background-color: #f5f5f5;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-.resumen-section h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
-    font-size: 1.5em;
-    text-align: center;
-}
-
-.summary-count {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #007bff;
-}
-
-.selected-items {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-bottom: 20px;
-    padding-right: 5px;
-}
-
-.selected-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    margin-bottom: 8px;
-    background-color: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    font-size: 0.95em;
-    color: #333;
-}
-
-.remove-button {
-    background-color: red;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-}
-
-.remove-button:hover {
-    background-color: #c82333;
-}
-
-.action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 25px;
-}
-
-.submit-button, .cancel-button {
-    padding: 12px 25px;
-    border-radius: 5px;
-    cursor: pointer;
-    border: none;
-    font-weight: bold;
-    font-size: 1.1em;
-    transition: background-color 0.2s ease, opacity 0.2s ease;
-}
-
-.submit-button {
-    background-color: green;
-    color: white;
-}
-
-.submit-button:hover:not(:disabled) {
-    background-color: #218838;
-}
-
-.submit-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.cancel-button {
-    background-color: gray;
-    color: white;
-}
-
-.cancel-button:hover:not(:disabled) {
-    background-color: #5a6268;
-}
-
-.cancel-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.success-message {
-    margin-top: 20px;
-    padding: 10px 15px;
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    border-left: 5px solid #28a745;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: bold;
-}
+<style scoped lang="scss">
 
 .error-message {
-    margin-top: 20px;
+    background-color: #ffcccc;
+    color: #cc0000;
+    border: 1px solid #cc0000;
     padding: 10px 15px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    border-left: 5px solid #dc3545;
-    border-radius: 5px;
-    text-align: center;
+    margin: 10px auto;
+    border-radius: 8px;
+    font-size: 0.95em;
     font-weight: bold;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.loading-message {
+  text-align: center;
+  padding: 1em;
+  font-weight: 600;
+  font-size: 1.1em;
+  color: #555;
+}
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(3, max-content); // 3 columnas por defecto
+  gap: 48px 32px;
+  justify-content: center;
+  padding: 32px;
+  border-radius: 8px;
+}
+
+/* Centro si es único en la última fila */
+.tables-grid>.table-layout:last-child:nth-child(3n+1) {
+  grid-column: 2;
+}
+
+/* Responsive: 2 columnas hasta 900px */
+@media (max-width: 900px) {
+  .tables-grid {
+    grid-template-columns: repeat(2, max-content);
+  }
+}
+
+/* Responsive: 1 columna hasta 600px */
+@media (max-width: 600px) {
+  .tables-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.table-layout {
+  display: grid;
+  grid-template-columns: 50px 120px 50px;
+  grid-template-rows: 50px 50px;
+  gap: 16px;
+  background: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  justify-items: center;
+  align-items: center;
+}
+
+.square {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.silla-icon {
+  width: 100%;
+  height: 100%;
+}
+
+/* estilos del SVG internos */
+.silla-icon .chair-wheels circle {
+  fill: #000;
+  stroke: #000;
+  stroke-width: 4;
+}
+
+.silla-icon .chair-seat,
+.silla-icon .chair-back {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 4;
+}
+
+/* ocupados: rojo */
+.square.unavailable .silla-icon .chair-seat,
+.square.unavailable .silla-icon .chair-back {
+  fill: #ff0000;
+}
+
+/* seleccionados: amarillo */
+.square.selected .silla-icon .chair-seat,
+.square.selected .silla-icon .chair-back {
+  fill: #ffff00;
+}
+
+/* mesa SVG */
+.table .mesa-icon rect {
+  fill: #ddd;
+  stroke: #333;
+  stroke-width: 2;
+}
+
+.seat-left-top {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.seat-right-top {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.seat-left-bottom {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.seat-right-bottom {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.table {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.buy-button {
+  display: block;
+  margin: 36px auto 0;
+  padding: 14px 36px;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #21618c;
+  background: #e1f5fe;
+  border: 1px solid #81d4fa;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.buy-button:hover:not(:disabled) {
+  background: #b3e5fc;
+  transform: translateY(-2px);
+}
+
+.buy-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* botón continuar */
+.continue-button {
+  display: block;
+  margin: 16px auto 0;
+  padding: 12px 32px;
+  font-size: 1em;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border: 1px solid #999;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color .2s, transform .2s;
+}
+
+.continue-button:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+/* popup */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.popup-rect {
+  width: 240px;
+  height: 380px;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .25);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+.login {
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color:white;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 90%;
+    max-width: 360px;
+  }
+
+  &__input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #4A3F35;
+    background: transparent;
+    font-size: 16px;
+    padding: 5px;
+    outline: none;
+    color: #4A3F35;
+
+    &::placeholder {
+      color: #4A3F35;
+      font-weight: bold;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+  }
+
+  &__error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  &__button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #4A3F35;
+    transition: transform 0.2s ease;
+
+    &:hover:not(:disabled) {
+      transform: scale(1.1);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__register {
+    font-size: 12px;
+    color: #4A3F35;
+    text-decoration: none;
+    margin-top: 10px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (min-width: 768px) {
+    height: calc(100vh - 75px - 98px);
+
+    &__form {
+      gap: 20px;
+      max-width: 400px;
+    }
+
+    &__input {
+      font-size: 18px;
+    }
+
+    &__button {
+      font-size: 20px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    height: calc(100vh - 80px - 98px);
+
+    &__form {
+      max-width: 450px;
+    }
+
+    &__input {
+      font-size: 20px;
+    }
+
+    &__button {
+      font-size: 22px;
+    }
+  }
+}
+
+
 </style>

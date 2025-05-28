@@ -1,7 +1,7 @@
 <script></script>
 
 <template>
-    <div class="form">
+    <div id="form" class="form">
         <h2 class="form__title">Formulario de Contacto</h2>
 
         <div class="form__info">
@@ -33,9 +33,10 @@
                 <label class="form__label" for="consulta">Escriba su Consulta*</label>
                 <textarea id="consulta" class="form__textarea"></textarea>
             </div>
-
             <div class="form__boton">
+                <router-link to="/home"> 
                 <button type="submit" class="form__enviar">Enviar</button>
+            </router-link>
             </div>
         </form>
     </div>

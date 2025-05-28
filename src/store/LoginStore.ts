@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { useUserStore } from "./userStore"; 
+import { useUserStore } from "./UserStore"; 
 
 interface LoginData {
   email: string;

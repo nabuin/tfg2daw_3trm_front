@@ -6,7 +6,7 @@
         <div class="div-block-info_center">
             <div class="div-block-info_center-left">
                 <div class="div-block-info_center-image">
-                    <img src="#" alt="">
+                    <img src="../imgs/others/jovenes.png" alt="">
                 </div>
             </div>
             <div class="div-block-info_center-right">
