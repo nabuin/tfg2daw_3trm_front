@@ -37,7 +37,7 @@
 
 
       <div class="header-child-2_right">
-        <router-link to="/login">
+        <router-link :to="userLink">
           <img src="../imgs/icons/User_Logo.svg" alt="User logo" />
         </router-link>
       </div>
@@ -45,6 +45,23 @@
   </div>
 </template>
 
+<script setup>
+import { computed, onMounted } from 'vue';
+import { useUserStore } from '../store/userStore';
+
+const userStore = useUserStore();
+
+// condicional si se tiene usuario en sesion o no
+const userLink = computed(() => {
+  const authToken = localStorage.getItem('authToken');
+  // comprobar si esta el token jwt y si el usuario esta cargando (siempre que haya token jwt lo estara, solo por si acaso)
+  if (authToken && userStore.user) {
+    return '/userinfo'; // si hay sesion iniciada, lleva a la pagina de info del usuario
+  } else {
+    return '/login'; // si no hay sesion, lleva a la pagina de login
+  }
+});
+</script>
 <style lang="scss" scoped>
 h6 {
   color: white;
