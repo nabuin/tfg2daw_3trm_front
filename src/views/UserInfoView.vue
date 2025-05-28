@@ -2,14 +2,17 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { useUserStore } from "../store/UserStore";
 import { useReservationStore } from "../store/usuarioReservasStore";
+import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
 const reservationStore = useReservationStore(); // necesaria para tener las reservas del usuario
+const router = useRouter(); // para el redirect a login
 const errorMessage = ref("");
 const successMessage = ref("");
 const currentPassword = ref("");
 const newPassword = ref("");
 const validationErrorMessage = ref(""); // errores
+const showLogoutConfirm = ref(false);
 
 // limite de chars de cada campo acorde a lo que admite la bbdd
 const CHAR_LIMITS = {
@@ -286,6 +289,22 @@ const cancelarEditar = () => {
   successMessage.value = ""; // reset mensajes de éxito
 };
 
+// abrir popup confirmar logout
+const openLogoutConfirm = () => {
+  showLogoutConfirm.value = true;
+};
+
+// cancelar el logout con el botonh
+const cancelLogout = () => {
+  showLogoutConfirm.value = false;
+};
+
+// confirmar y ejecutar logout
+const confirmLogout = () => {
+  userStore.logout();
+  showLogoutConfirm.value = false;
+  router.push('/login'); // mover a login una vez cerrada sesion
+};
 
 
 // Función para verificar si se puede cancelar la reserva
@@ -302,7 +321,8 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
       const [datePart] = fechaHoraInicio.split(" "); // parte de la fecha (antes del espacio) = 24/05/2025
       const [day, month, year] = datePart.split("/").map(Number);
       const [hour, minute] = horaFin.split(":").map(Number);
-      
+
+
       fechaFin = new Date(year, month - 1, day, hour, minute);
     } else {
       // Formato original: "04/06/2025 08:00 - 18/06/2025 19:00"
@@ -406,6 +426,11 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 <button @click="changePassword" class="main-action-button">Cambiar Contraseña</button>
               </div>
             </div>
+
+            <div class="button-container logout-button-container">
+              <button @click="openLogoutConfirm" class="logout-button">Cerrar Sesión</button>
+            </div>
+
           </div>
           <div v-else-if="!errorMessage" class="loading-message">
             <p>Cargando información del usuario...</p>
@@ -473,6 +498,18 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
         </div>
       </div>
     </div>
+
+    <div v-if="showLogoutConfirm" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Confirmar Cierre de Sesión</h3>
+        <p>¿Estás seguro de que quieres cerrar tu sesión?</p>
+        <div class="modal-actions">
+          <button @click="confirmLogout" class="modal-button confirm">Sí, Cerrar Sesión</button>
+          <button @click="cancelLogout" class="modal-button cancel">No, Permanecer</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -808,7 +845,7 @@ button {
 }
 
 .reservation-card__title {
-  font-size: 1.20px; 
+  font-size: 1.20px;
   color: black;
   margin-bottom: 8px;
   text-align: center;
@@ -875,4 +912,91 @@ button {
     }
   }
 }
+
+.logout-button-container {
+  margin-top: 25px;
+}
+
+.logout-button {
+  background-color: red;
+  color: white;
+  max-width: 300px;
+  width: 100%;
+
+  &:hover {
+    background-color: #c82333;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 22px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.modal-content p {
+  margin: 15px 0 25px 0;
+  color: #555;
+  font-size: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.modal-button.confirm {
+  background-color: red;
+  color: white;
+
+  &:hover {
+    background-color: #c82333;
+  }
+}
+
+.modal-button.cancel {
+  background-color: #6c757d;
+  color: white;
+
+  &:hover {
+    background-color: #5a6268;
+  }
+}
+
+
 </style>
