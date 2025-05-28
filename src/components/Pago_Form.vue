@@ -192,7 +192,9 @@
           :disabled="!formValid || isReserving"
           @click="submit"
         >
-          {{ isReserving ? 'Procesando...' : `Pagar ${totalFormatted}` }}
+          {{ isReserving
+             ? 'Procesando...'
+             : `Pagar ${totalFormatted}` }}
         </v-btn>
       </v-card-actions>
 
@@ -206,7 +208,6 @@
   </v-container>
 </template>
 
-
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -214,8 +215,9 @@ import { useReservasStore } from '../store/reservasStore'
 import { useFiltrosStore } from '../store/filtrosStore'
 import { usePuestosStore } from '../store/asientosStore'
 import { useSalaAsientoStore } from '../store/salaAsientoStore'
+import { useAsientosPreciosStore } from '../store/asientosPreciosStore'
 
-// Stores
+// inicializa el store de reservas
 const reservasStore = useReservasStore()
 const {
   selectedPuestos,
@@ -225,27 +227,52 @@ const {
   currentPuestoDisponibilidades
 } = storeToRefs(reservasStore)
 
+// store de filtros para mostrar fechas y horas
 const filtrosStore = useFiltrosStore()
 const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore)
 
+// store de puestos para cargar disponiblidades
 const puestosStore = usePuestosStore()
 const { puestosDisponibles } = storeToRefs(puestosStore)
 
+// store para obtener nombre de sala segun puesto
 const salaAsientoStore = useSalaAsientoStore()
 
-// Carga puestos y sincroniza con reservas
+//store encargada de calcular precios
+const precioStore = useAsientosPreciosStore()
+const { precioTotal } = storeToRefs(precioStore)
+
+// funcion q recalcule el precio total segun la cantidad de asientos seleccionados
+async function recalcPrice() {
+  const ids = selectedPuestos.value.map(p => p.idPuestoTrabajo) // extrae IDs
+  await precioStore.calcularPrecio(ids) // llama al store de precio
+}
+
+// al montar el componente, carga puestos y recalc precio init
 onMounted(() => {
-  puestosStore.obtenerPuestosDisponibles()
+  puestosStore.obtenerPuestosDisponibles()  // trae del backend
+  recalcPrice() // calcula precio recien cargados
 })
+
+// watch para actualizar currentPuestoDisponibilidades cuando cambian los puestos disponibles
 watch(
   puestosDisponibles,
-  (nuevos) => {
-    reservasStore.setPuestoDisponibilidades(nuevos)
-  },
-  { immediate: true }
+  nuevos => reservasStore.setPuestoDisponibilidades(nuevos),
+  { immediate: true } // lanza tb al inicializar
 )
 
-// Computed para cruzar selección con detalles
+// watch para recalcular precio cada vez q cambian los puestos seleccionados
+watch(selectedPuestos, recalcPrice)
+
+// formato de total en moneda local para mostrar en boton
+const totalFormatted = computed(() =>
+  new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(precioTotal.value)
+)
+
+// computed q cruza selectedPuestos con datos completos para obtener numeroAsiento
 const selectedSeatDetails = computed(() =>
   selectedPuestos.value.map(sel => {
     const info = currentPuestoDisponibilidades.value.find(
@@ -258,33 +285,28 @@ const selectedSeatDetails = computed(() =>
   })
 )
 
-// Cache reactivo de nombres de sala
+// caché reactivo para nombres de sala, evita petis repetidos
 const salaNombres = reactive<Record<number,string>>({})
-
-// Cada vez que cambian las selecciones, pide el nombre de la sala
 watch(
   selectedSeatDetails,
-  (list) => {
+  list => {
     list.forEach(seat => {
       if (!(seat.id in salaNombres)) {
         salaAsientoStore
-          .obtenerSalaNombre(seat.id)
-          .then(name => {
-            salaNombres[seat.id] = name
-          })
-          .catch(() => {
-            salaNombres[seat.id] = 'Desconocida'
-          })
+          .obtenerSalaNombre(seat.id) // fetch al endpoint
+          .then(name => salaNombres[seat.id] = name)
+          .catch(() => salaNombres[seat.id] = 'Desconocida')
       }
     })
   },
   { immediate: true }
 )
 
-// Formulario de pago
+// estado y validacion del formulario
 const form = ref(null)
 const formValid = ref(false)
 
+// datos reactivoss del pago
 const payment = reactive({
   cardName: '',
   cardNumber: '',
@@ -292,6 +314,7 @@ const payment = reactive({
   cvv: '',
 })
 
+// datos reactivos de facturacion
 const billing = reactive({
   addressLine1: '',
   addressLine2: '',
@@ -301,43 +324,40 @@ const billing = reactive({
   country: null,
 })
 
+// lista de paises para select
 const countries = [
   'España', 'México', 'Argentina',
   'Estados Unidos', 'Canadá', 'Chile', 'Colombia',
 ]
 
+// checkbox de terminos
 const acceptTerms = ref(false)
 
-const total = ref(29.99)
-const totalFormatted = computed(() =>
-  new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(total.value)
-)
-
+// reglas sencillas para validar tarjeta y cvv
 const rules = {
   cardNumberDigits: (v: string) =>
     (v && v.replace(/\s/g, '').length === 16) ||
-    'La tarjeta debe tener 16 dígitos',
+    'la tarjeta debe tener 16 dígitos',
   cvvDigits: (v: string) =>
     (v && /^\d{3,4}$/.test(v)) ||
-    'El CVV debe tener 3 – 4 dígitos',
+    'el cvv debe tener 3 – 4 dígitos',
 }
 
+// funcion q se dispara al enviar form
 async function submit() {
-  if (!formValid.value || !acceptTerms.value) return
+  if (!formValid.value || !acceptTerms.value) return  // sale si no está ok
 
   try {
-    await reservasStore.createReservation('reserva desde zona de pago')
-    alert('Reserva completada con éxito.')
-    form.value.reset()
+    await reservasStore.createReservation('reserva desde zona de pago') // llama al store de reservas
+    alert('reserva completada con éxito') // notifica success
+    form.value.reset() // resetea form
   } catch (error) {
-    console.error('Error al hacer la reserva:', error)
-    alert('Ocurrió un error al procesar la reserva.')
+    console.error('error al hacer la reserva:', error) // log en consola
+    alert('ocurrió un error al procesar la reserva.')
   }
 }
 </script>
+
 
 
 

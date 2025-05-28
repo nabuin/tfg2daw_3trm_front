@@ -46,7 +46,7 @@ export const usePuestosStore = defineStore('puestos', () => {
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
       const data = await res.json();
-      console.log("📥 Puestos disponibles recibidos:", data); // <--- LOG AQUÍ
+      console.log(" Puestos disponibles recibidos:", data); // <--- LOG AQUÍ
 
       puestosDisponibles.value = data;
     } catch (err: any) {
