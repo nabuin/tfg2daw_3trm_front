@@ -10,13 +10,22 @@
     </div>
     <div class="mb-3">
       <label for="email" class="form-label">Email</label>
-      <input type="email" class="form-control" id="email" v-model="formData.email" required>
+      <input type="email" class="form-control-plaintext" id="email" :value="formData.email" readonly>
     </div>
     <div class="mb-3">
-      <label for="contrasenia" class="form-label">Contraseña</label>
-      <input type="password" class="form-control" id="contrasenia" v-model="formData.contrasenia" :required="!formData.idUsuario">
-      <small class="form-text text-muted" v-if="formData.idUsuario">Deja en blanco para no cambiar la contraseña.</small>
+      <label for="rol" class="form-label">Rol</label>
+      <select class="form-select" id="rol" v-model="formData.idRol" required>
+        <option :value="1">Administrador</option>
+        <option :value="2">Cliente</option>
+      </select>
     </div>
+    
+    <div class="mb-3" v-if="!formData.idUsuario">
+      <label for="contrasenia" class="form-label">Contraseña</label>
+      <input type="password" class="form-control" id="contrasenia" v-model="formData.contrasenia" required>
+      <small class="form-text text-muted">La contraseña es obligatoria para nuevos usuarios.</small>
+    </div>
+    
     <div class="d-flex justify-content-end mt-4">
       <button type="button" class="btn btn-secondary me-2" @click="$emit('cancel')">Cancelar</button>
       <button type="submit" class="btn btn-primary">{{ usuario?.idUsuario ? 'Guardar Cambios' : 'Añadir Usuario' }}</button>
@@ -25,60 +34,66 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
-import { useAdminStore } from '@/store/AdminStores/adminUsuariosStore';
+import { ref, watch } from 'vue'
 
+// define las propiedades que recibe el componente
 const props = defineProps({
   usuario: {
     type: Object,
-    default: null // Será rellenado al editar
+    default: null // se llena si se esta editando un usuario existente
   }
-});
+})
 
-const emit = defineEmits(['submit-form', 'cancel']);
-const adminStore = useAdminStore();
+// define los eventos que el componente puede emitir
+const emit = defineEmits(['submit-form', 'cancel'])
 
-// Inicializar formData valores vacios o la data del usuario
+// datos del formulario inicializados vacios o con datos del usuario si se edita
 const formData = ref({
   idUsuario: null,
   nombre: '',
   apellidos: '',
   email: '',
-  contrasenia: '', // la contraseña solo se envía si se cambia o es un nuevo usuario
-});
+  contrasenia: '', // la contraseña solo se envia si se cambia o si es un nuevo usuario
+  idRol: 2 // por defecto se asigna el rol cliente que es el 2
+})
 
-// Cargar roles cuando el componente se monta
-onMounted(() => {
-  // solo cargar roles si no están ya en el store para evitar llamadas duplicadas
-  if (adminStore.roles.length === 0) {
-    adminStore.obtenerTodosLosRoles();
-  }
-});
-
-// Observar cambios en la prop 'usuario' para rellenar el formulario para edición, con la info q ya estaba
+// observa cambios en la propiedad usuario para llenar el formulario si se edita
 watch(() => props.usuario, (newUsuario) => {
   if (newUsuario) {
-    // Rellenar formulario con datos de usuario existente
-    formData.value = { ...newUsuario, contrasenia: '' }; // la contraseña tampoco la saca por el dto
+    // llena el formulario con los datos existentes del usuario
+    formData.value = { 
+      ...newUsuario, 
+      contrasenia: '', // la contraseña no se carga por seguridad
+      idRol: newUsuario.idRol || 2 // usa el rol del usuario o asigna cliente por defecto
+    } 
   } else {
-    // Resetear formulario para un nuevo usuario
+    // si no hay usuario se reinicia el formulario para uno nuevo
     formData.value = {
       idUsuario: null,
       nombre: '',
       apellidos: '',
       email: '',
       contrasenia: '',
-      idRol: 2, // Por defecto, rol de Cliente
-    };
+      idRol: 2 // asigna cliente por defecto
+    }
   }
-}, { immediate: true }); // Ejecutar inmediatamente al montar el componente para inicializar
+}, { immediate: true }) // se ejecuta al iniciar el componente para cargar los datos
 
+// funcion que se ejecuta al enviar el formulario
 const handleSubmit = () => {
-  // Emitir el formulario con los datos
-  const dataToSubmit = { ...formData.value };
-  if (!dataToSubmit.contrasenia) {
-    delete dataToSubmit.contrasenia; // No enviar la contraseña si no se ha puesto
+  // se hace una copia de los datos del formulario
+  const dataToSubmit = { ...formData.value }
+
+  // si se esta actualizando un usuario y no se ingreso contraseña se elimina del envio
+  if (dataToSubmit.idUsuario && !dataToSubmit.contrasenia.trim()) { 
+    delete dataToSubmit.contrasenia 
+  } else if (!dataToSubmit.idUsuario && !dataToSubmit.contrasenia.trim()) {
+    // si es un nuevo usuario y la contraseña esta vacia se muestra un aviso
+    alert('la contraseña es obligatoria para añadir un nuevo usuario')
+    return
   }
-  emit('submit-form', dataToSubmit);
-};
+
+  // emite los datos del formulario para que el padre los reciba
+  emit('submit-form', dataToSubmit)
+}
 </script>
