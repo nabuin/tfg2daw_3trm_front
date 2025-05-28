@@ -1,23 +1,33 @@
-
 <template>
   <div class="admin-page">
     <section class="top-image-gallery">
-      <div class="image-item">
-        <img src="../../imgs/icons/admin-usuario.svg" alt="Gestionar Usuarios" class="gallery-image" />
-        <p class="image-text">Usuarios</p>
-      </div>
-      <div class="image-item">
-        <img src="../../imgs/icons/admin-zonas.svg" alt="Gestionar Sedes" class="gallery-image" />
-        <p class="image-text">Sedes</p>
-      </div>
-      <div class="image-item">
-        <img src="../../imgs/icons/admin-oficina.svg" alt="Gestionar Salas" class="gallery-image" />
-        <p class="image-text">Salas</p>
-      </div>
-      <div class="image-item">
-        <img src="../../imgs/icons/admin-usuario.svg" alt="Gestionar Reservas" class="gallery-image" /> <!-- cambiar logo-->
-        <p class="image-text">Reservas</p>
-      </div>
+      <router-link to="/adminusers" class="image-link">
+        <div class="image-item">
+          <img src="../../imgs/icons/admin-usuario.svg" alt="Gestionar Usuarios" class="gallery-image" />
+          <p class="image-text">Usuarios</p>
+        </div>
+      </router-link>
+
+      <router-link to="/adminsedes" class="image-link">
+        <div class="image-item">
+          <img src="../../imgs/icons/admin-oficina.svg" alt="Gestionar Sedes" class="gallery-image" />
+          <p class="image-text">Sedes</p>
+        </div>
+      </router-link> 
+
+      <router-link to="/adminsalas" class="image-link">
+        <div class="image-item">
+          <img src="../../imgs/icons/admin-zonas.svg" alt="Gestionar Salas" class="gallery-image" />
+          <p class="image-text">Salas</p>
+        </div>
+      </router-link>
+
+      <router-link to="/adminreservas" class="image-link">
+        <div class="image-item">
+          <img src="../../imgs/icons/admin-calendario.svg" alt="Gestionar Reservas" class="gallery-image" />
+          <p class="image-text">Reservas</p>
+        </div>
+      </router-link>
     </section>
   </div>
 </template>
