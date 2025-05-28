@@ -13,6 +13,9 @@ const currentPassword = ref("");
 const newPassword = ref("");
 const validationErrorMessage = ref(""); // errores
 const showLogoutConfirm = ref(false);
+const mostrarQR = ref(false);
+const currentQrCodeUrl = ref<string | null>(null);
+const qrErrorMessage = ref<string | null>(null);
 
 // limite de chars de cada campo acorde a lo que admite la bbdd
 const CHAR_LIMITS = {
@@ -28,6 +31,53 @@ const InfoUsuarioEditable = ref({
     apellidos: "",
     email: "",
 });
+
+const obtenerQRReservaFetch = async (reservationId: number) => {
+    // limpia mensajes de error anteriores
+    qrErrorMessage.value = null
+    // limpia url de qr anterior
+    currentQrCodeUrl.value = null
+    // obtiene token de auth
+    const token = localStorage.getItem("authToken")
+
+    // si no hay token muestra error
+    if (!token) {
+        qrErrorMessage.value = "no hay token de autenticación por favor inicie sesión"
+        return
+    }
+
+    try {
+        // pide imagen del qr al store
+        const qrImagen = await reservationStore.fetchQrCode(reservationId, token)
+        if (qrImagen) {
+            // crea url para mostrar imagen
+            currentQrCodeUrl.value = URL.createObjectURL(qrImagen)
+            // abre modal con el qr
+            mostrarQR.value = true
+        } else {
+            // si no llega imagen muestra error
+            qrErrorMessage.value = "no se pudo obtener el código qr"
+        }
+    } catch (error: any) {
+        // en caso de error al fetch muestra mensaje
+        console.error("error al obtener el qr en el componente", error)
+        qrErrorMessage.value = error.message || "error al obtener el código qr"
+    }
+}
+
+const closeQrModal = () => {
+    // cierra modal de qr
+    mostrarQR.value = false
+    // si hay url libera el objeto
+    if (currentQrCodeUrl.value) {
+        URL.revokeObjectURL(currentQrCodeUrl.value)
+        currentQrCodeUrl.value = null
+    }
+    // limpia mensajes de error
+    qrErrorMessage.value = null
+}
+
+
 
 // seccion de reservas del usuario
 
@@ -480,17 +530,27 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
-                <div
-            class="button-container"
-            v-if="puedeSerCancelada(reservation.rangoHorarioReserva)"
-          >
-            <button
-              @click="confirmarCancelacion(reservation.idReserva)"
-              class="cancel-reservation-button"
-            >
-              Cancelar
-            </button>
-          </div>
+              <div class="button-container">
+                  <div
+                      class="button-container"
+                      v-if="puedeSerCancelada(reservation.rangoHorarioReserva)"
+                  >
+                      <button
+                          @click="confirmarCancelacion(reservation.idReserva)"
+                          class="cancel-reservation-button"
+                      >
+                          Cancelar
+                      </button>
+                  </div>
+                  <div class="button-container">
+                      <button
+                          @click="obtenerQRReservaFetch(reservation.idReserva)"
+                          class="view-qr-button"
+                      >
+                          Ver QR
+                      </button>
+                  </div>
+              </div>
                 </div>
               </div>
             </div>
@@ -511,9 +571,70 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
     </div>
 
   </div>
+
+  <div v-if="mostrarQR" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Código QR de tu Reserva</h3>
+        <div v-if="qrErrorMessage" class="error-message">
+            <p>{{ qrErrorMessage }}</p>
+        </div>
+        <div v-else-if="currentQrCodeUrl" class="qr-code-display">
+            <img :src="currentQrCodeUrl" alt="Código QR de la reserva" class="qr-image" />
+            <p>Codigo QR necesario para acceder</p>
+        </div>
+        <div v-else>
+            <p>Cargando código QR...</p>
+        </div>
+        <div class="modal-actions">
+            <button @click="closeQrModal" class="modal-button confirm">Cerrar</button>
+        </div>
+    </div>
+</div>
 </template>
 
 <style scoped lang="scss">
+/* Estilos generales para el contenedor de botones */
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.cancel-reservation-button,
+.view-qr-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-reservation-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.cancel-reservation-button:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.view-qr-button {
+    background-color: #007bff;
+    color: white; 
+}
+
+.view-qr-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
 
 
 .cancel-reservation-button {

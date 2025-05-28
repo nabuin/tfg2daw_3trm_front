@@ -114,5 +114,36 @@ export const useReservationStore = defineStore("reservation", {
                 this.loading = false; // desactiva el loading
             }
         },
+
+        // metodo para obtener el código QR de una reserva
+        async fetchQrCode(reservationId: number, token: string): Promise<Blob | null> {
+            this.error = null; // Limpia errores previos relacionados con QR
+            try {
+                const endpoint = `https://localhost:7179/api/Reservas/generarqr/${reservationId}`;
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'image/png' // este endpoint responde el qr en formato PNG
+                    }
+                });
+
+                if (!response.ok) {
+                    let errorText = await response.text(); // si algo falla devolverá un txt de error
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorText = errorJson.message || errorJson.detail || errorText;
+                    } catch { }
+                    throw new Error(`Error al obtener el QR para la reserva ${reservationId}: ${errorText}`);
+                }
+
+                const imageBlob = await response.blob(); // blob es Binary Large Object, osea, usado para manejar binarios grandes como imagenes, png aqui
+                return imageBlob;
+
+            } catch (err: any) {
+                console.error(`Error al obtener el QR para la reserva ${reservationId}:`, err);
+                this.error = err.message || "Error al obtener el código QR."; // asigna el error al estado del store
+                return null; // devuelve null en caso de error
+            }
+        },
     },
 });
