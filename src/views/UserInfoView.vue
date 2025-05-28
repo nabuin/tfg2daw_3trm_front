@@ -274,11 +274,7 @@ const ComenzarCambioInfo = () => {
     validationErrorMessage.value = "";
 };
 
-// validar el formato del email
-const esFormatoEmail = (email: string): boolean => { 
-  const formatoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // revisa que tenga @ intercalado y acabe con un dominio (string).(string)
-  return formatoEmail.test(email); // el .test comprueba que se cumple el formato de email, si no es, devolverá false y abajo en el if condicional parará el proceso dde cambio
-};
+
 
 const GuadarUserInfo = async () => {
   validationErrorMessage.value = "";
@@ -297,11 +293,7 @@ const GuadarUserInfo = async () => {
     validationErrorMessage.value = `El correo electrónico no puede exceder los ${CHAR_LIMITS.email} caracteres.`;
     return;
   }
-  // new filter
-  if (!esFormatoEmail(InfoUsuarioEditable.value.email)) {
-    validationErrorMessage.value = "El formato del email no es válido.";
-    return;
-  }
+
   const token = localStorage.getItem("authToken");
   const idUsuario = userStore.user?.idUsuario;
 
@@ -443,10 +435,7 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 <label for="editApellidos">Apellidos:</label>
                 <input type="text" id="editApellidos" v-model="InfoUsuarioEditable.apellidos" />
               </div>
-              <div class="form-group">
-                <label for="editEmail">Email:</label>
-                <input type="email" id="editEmail" v-model="InfoUsuarioEditable.email" />
-              </div>
+              <p><strong>Email:</strong> {{ userStore.user?.email }}</p> 
               <p><strong>Rol:</strong> {{ userRole }}</p>
               <p><strong>Fecha Registro:</strong> {{ darFormatoFecha(userStore.user?.fechaRegistro ?? '') }}
               </p>
