@@ -1,12 +1,12 @@
 <template>
   <v-container fluid class="py-8 d-flex justify-center">
-    <v-card class="flat-card rectangle-card" elevation="10" rounded="xl">
+    <v-card class="flat-card rectangle-card">
       <v-card-text>
         <v-form ref="form" v-model="formValid" lazy-validation>
           <v-row no-gutters>
             <!-- IZQUIERDA: Datos de pago -->
             <v-col cols="12" md="6" class="pa-6 section-left">
-              <h6 class="section-title mb-4">💳 Datos de pago</h6>
+              <h6 class="section-title">Datos de pago</h6>
 
               <v-text-field
                 class="flat-field"
@@ -59,7 +59,7 @@
 
             <!-- DERECHA: Dirección de facturación -->
             <v-col cols="12" md="6" class="pa-6 section-right">
-              <h6 class="section-title mb-4">📍 Dirección de facturación</h6>
+              <h6 class="section-title">Dirección de facturación</h6>
 
               <v-text-field
                 class="flat-field"
@@ -143,31 +143,30 @@
             </v-col>
           </v-row>
         </v-form>
-
-        <!-- Detalles de la reserva decorado -->
         <v-divider class="my-6"></v-divider>
         <v-card class="mx-6 mb-6 pa-4" elevation="2" color="#f9f9f9" rounded="lg">
           <h6 class="section-title mb-4">📝 Detalles de la reserva</h6>
 
           <v-row dense>
-            <v-col cols="12" sm="6" md="4">
-              <p><strong>📅 Fecha de inicio:</strong><br>{{ reserva.fechaInicio }}</p>
-            </v-col>
+<v-col cols="12" sm="6" md="4">
+  <p><strong>📅 Fecha de inicio:</strong><br>{{ fechaInicio }}</p>
+</v-col>
 
-            <v-col cols="12" sm="6" md="4">
-              <p><strong>📅 Fecha de fin:</strong><br>{{ reserva.fechaFin }}</p>
-            </v-col>
+<v-col cols="12" sm="6" md="4">
+  <p><strong>📅 Fecha de fin:</strong><br>{{ fechaFin }}</p>
+</v-col>
 
-            <v-col cols="12" sm="6" md="4">
-              <p><strong>⏰ Hora de inicio:</strong><br>{{ reserva.horaInicio }}</p>
-            </v-col>
+<v-col cols="12" sm="6" md="4">
+  <p><strong>⏰ Hora de inicio:</strong><br>{{ horaInicio }}</p>
+</v-col>
 
-            <v-col cols="12" sm="6" md="4">
-              <p><strong>⏰ Hora de fin:</strong><br>{{ reserva.horaFin }}</p>
-            </v-col>
+<v-col cols="12" sm="6" md="4">
+  <p><strong>⏰ Hora de fin:</strong><br>{{ horaFin }}</p>
+</v-col>
+
 
             <v-col cols="12" md="8">
-              <p><strong>🎟️ Asientos reservados:</strong><br>{{ reserva.asientos }}</p>
+              <p><strong>🎟️ Asientos seleccionados:</strong><br>a</p>
             </v-col>
           </v-row>
         </v-card>
@@ -194,14 +193,24 @@
   </v-container>
 </template>
 
-<script setup>
-import { ref, reactive } from 'vue'
 
+<script setup lang="ts">
+import { ref, reactive, computed } from 'vue'
+import { useReservasStore } from '../store/reservasStore'
+import { useFiltrosStore } from '../store/filtrosStore'
+import { storeToRefs } from 'pinia'
+
+// STORE de reservas
+const reservasStore = useReservasStore()
+const { selectedPuestos, isReserving, reservationError, reservationSuccess } = storeToRefs(reservasStore)
+
+// STORE de filtros
+const filtrosStore = useFiltrosStore()
+const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore)
+
+// Formulario
+const form = ref(null)
 const formValid = ref(false)
-const acceptTerms = ref(false)
-const isReserving = ref(false)
-const reservationError = ref('')
-const reservationSuccess = ref('')
 
 const payment = reactive({
   cardName: '',
@@ -216,34 +225,172 @@ const billing = reactive({
   city: '',
   state: '',
   zip: '',
-  country: '',
+  country: null,
 })
 
-const countries = ['España', 'México', 'Argentina', 'Chile', 'Colombia']
+const countries = [
+  'España', 'México', 'Argentina',
+  'Estados Unidos', 'Canadá', 'Chile', 'Colombia',
+]
+
+const acceptTerms = ref(false)
+
+const total = ref(29.99)
+const totalFormatted = computed(() =>
+  new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(total.value)
+)
 
 const rules = {
-  cardNumberDigits: v => /^\d{16}$/.test(v.replace(/\s/g, '')) || 'Debe tener 16 dígitos',
-  cvvDigits: v => /^\d{3,4}$/.test(v) || 'CVV inválido',
+  cardNumberDigits: (v: string) =>
+    (v && v.replace(/\s/g, '').length === 16) ||
+    'La tarjeta debe tener 16 dígitos',
+  cvvDigits: (v: string) =>
+    (v && /^\d{3,4}$/.test(v)) ||
+    'El CVV debe tener 3 – 4 dígitos',
 }
 
-const totalFormatted = '25,00 €'
+async function submit() {
+  if (!formValid.value || !acceptTerms.value) return
 
-const reserva = reactive({
-  fechaInicio: '2025-06-01',
-  fechaFin: '2025-06-01',
-  horaInicio: '09:00',
-  horaFin: '11:00',
-  asientos: 'A1, A2, A3',
-})
-
-function submit() {
-  isReserving.value = true
-  reservationError.value = ''
-  reservationSuccess.value = ''
-
-  setTimeout(() => {
-    isReserving.value = false
-    reservationSuccess.value = '¡Reserva completada con éxito!'
-  }, 1500)
+  try {
+    await reservasStore.createReservation('reserva desde zona de pago')
+    alert('Reserva completada con éxito.')
+    form.value.reset()
+  } catch (error) {
+    console.error('Error al hacer la reserva:', error)
+    alert('Ocurrió un error al procesar la reserva.')
+  }
 }
 </script>
+
+
+<style scoped lang="scss">
+.flat-card {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.rectangle-card {
+  width: 800px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-left,
+.section-right {
+  background-color: #fafafa;
+}
+
+.section-left {
+  border-right: 1px solid #e0e0e0;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #424242;
+}
+
+.flat-field {
+  ::v-deep {
+    .v-field__control {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+    .v-field__outline {
+      border-color: transparent;
+    }
+  }
+}
+
+.card-number-field {
+  ::v-deep {
+    .v-field__control {
+      padding-top: 25px;
+    }
+  }
+}
+
+.flat-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.flat-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.flat-checkbox-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #bdbdbd;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 0.5rem;
+  position: relative;
+}
+
+.flat-checkbox-input:checked + .flat-checkbox-box {
+  background-color: #1976d2;
+  border-color: #1976d2;
+}
+
+.flat-checkbox-box::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.flat-checkbox-input:checked + .flat-checkbox-box::after {
+  display: block;
+}
+
+.flat-checkbox-text {
+  color: #424242;
+  font-size: 0.95rem;
+}
+
+.flat-button {
+  text-transform: none;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  box-shadow: none;
+  transition: box-shadow 0.2s ease;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 960px) {
+  .rectangle-card {
+    width: 100%;
+  }
+  .section-left {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+}
+
+.unique {
+  padding-top: 25px;
+}
+</style>
