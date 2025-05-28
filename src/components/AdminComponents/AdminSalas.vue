@@ -13,6 +13,9 @@
           <button @click="openGenerarPuestosModal" class="btn btn-secondary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#generarPuestosModal">
             <i class="bi bi-person-workspace me-2"></i>Añadir Puestos
           </button>
+          <button @click="openGenerarDisponibilidadesModal" class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#generarDisponibilidadesModal">
+            <i class="bi bi-calendar-plus me-2"></i>Generar Disponibilidades
+          </button>
         </div>
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -180,7 +183,7 @@
               <div class="col-12 col-md-6 mb-3">
                 <select class="form-select" v-model="newCaracteristicaIdToAdd">
                   <option :value="null" disabled>Selecciona una característica</option>
-                  <option v-for="caracteristica in salasStore.caracteristicasSalas" :key="caracteristica.idCaracteristica" :value="caracteristica.idCaracteristica">
+                  <option v-for="caracteristica in availableCaracteristicas" :key="caracteristica.idCaracteristica" :value="caracteristica.idCaracteristica">
                     {{ caracteristica.nombre }}
                   </option>
                 </select>
@@ -289,6 +292,32 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="generarDisponibilidadesModal" tabindex="-1" aria-labelledby="generarDisponibilidadesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="generarDisponibilidadesModalLabel">Generar Disponibilidades</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Esta acción generará las disponibilidades diarias para todas las salas del año especificado.</p>
+          <p class="text-danger">Esto puede tardar varios minutos y creará una gran cantidad de registros.</p>
+          <div class="mb-3">
+            <label for="anioDisponibilidad" class="form-label">Año para Generar Disponibilidades:</label>
+            <input type="number" class="form-control" id="anioDisponibilidad" v-model.number="anioParaDisponibilidad" :min="currentYear" :max="currentYear + 5" required>
+          </div>
+          <div v-if="generarDisponibilidadesMessage" :class="['alert mt-3', generarDisponibilidadesMessageType === 'success' ? 'alert-success' : 'alert-danger']" role="alert">
+            {{ generarDisponibilidadesMessage }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="clearGenerarDisponibilidadesMessage">Cancelar</button>
+          <button type="button" class="btn btn-primary" @click="generarDisponibilidadesConfirmado" :disabled="!anioParaDisponibilidad || anioParaDisponibilidad < currentYear">Confirmar y Generar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -328,6 +357,12 @@ const newCaracteristicaIdToAdd: Ref<Nullable<number>> = ref(null);
 const generarPuestosMessage: Ref<string | null> = ref(null);
 const generarPuestosMessageType: Ref<'success' | 'danger' | null> = ref(null);
 
+// estados para disponibilidades
+const anioParaDisponibilidad: Ref<number | null> = ref(null);
+const generarDisponibilidadesMessage: Ref<string | null> = ref(null);
+const generarDisponibilidadesMessageType: Ref<'success' | 'danger' | null> = ref(null);
+const currentYear = new Date().getFullYear();
+
 
 // instancias de modales
 let salaModalInstance: Nullable<Modal> = null
@@ -337,6 +372,8 @@ let caracteristicaModalInstance: Nullable<Modal> = null
 let deleteCaracteristicaModalInstance: Nullable<Modal> = null
 let gestionCaracteristicasSalaModalInstance: Nullable<Modal> = null
 let generarPuestosModalInstance: Nullable<Modal> = null
+let generarDisponibilidadesModalInstance: Nullable<Modal> = null
+
 
 onMounted(async () => {
   await salasStore.obtenerTodasLasSalas()
@@ -354,6 +391,7 @@ onMounted(async () => {
   deleteCaracteristicaModalInstance = new Modal(document.getElementById('deleteCaracteristicaModal')!)
   gestionCaracteristicasSalaModalInstance = new Modal(document.getElementById('gestionCaracteristicasSalaModal')!)
   generarPuestosModalInstance = new Modal(document.getElementById('generarPuestosModal')!)
+  generarDisponibilidadesModalInstance = new Modal(document.getElementById('generarDisponibilidadesModal')!)
 })
 
 // filtro salas
@@ -377,7 +415,7 @@ const availableCaracteristicas = computed(() => {
     const caracteristicasActualesIds = new Set(selectedSalaCharacteristics.value.map(c => c.idCaracteristica));
 
     return salasStore.caracteristicasSalas.filter(caracteristica =>
-        !caracteristicasActualesIds.has(caracteristica.idCaracteristica)
+      !caracteristicasActualesIds.has(caracteristica.idCaracteristica)
     );
 });
 
@@ -561,6 +599,37 @@ const clearGenerarPuestosMessage = () => {
   generarPuestosMessage.value = null;
   generarPuestosMessageType.value = null;
   generarPuestosModalInstance?.hide();
+};
+
+// --- NUEVOS MÉTODOS PARA GENERAR DISPONIBILIDADES ---
+const openGenerarDisponibilidadesModal = () => {
+  anioParaDisponibilidad.value = currentYear; // Establecer el año actual por defecto
+  generarDisponibilidadesMessage.value = null; // Limpiar mensajes anteriores
+  generarDisponibilidadesMessageType.value = null; // Limpiar tipos de mensaje anteriores
+  generarDisponibilidadesModalInstance?.show();
+};
+
+const generarDisponibilidadesConfirmado = async () => {
+  if (anioParaDisponibilidad.value === null) {
+    generarDisponibilidadesMessage.value = 'Por favor, introduce un año válido.';
+    generarDisponibilidadesMessageType.value = 'danger';
+    return;
+  }
+  try {
+    const result = await salasStore.generarDisponibilidadesPorAnio(anioParaDisponibilidad.value);
+    generarDisponibilidadesMessage.value = result;
+    generarDisponibilidadesMessageType.value = 'success';
+  } catch (error: any) {
+    console.error('Error al generar disponibilidades:', error);
+    generarDisponibilidadesMessage.value = error.message || 'Error desconocido al generar disponibilidades.';
+    generarDisponibilidadesMessageType.value = 'danger';
+  }
+};
+
+const clearGenerarDisponibilidadesMessage = () => {
+  generarDisponibilidadesMessage.value = null;
+  generarDisponibilidadesMessageType.value = null;
+  generarDisponibilidadesModalInstance?.hide();
 };
 </script>
 

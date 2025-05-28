@@ -94,7 +94,7 @@ export const useSalasStore = defineStore('salas', {
     capacidadesValidas: () => Object.keys(CAPACIDADES_VALIDAS).map(Number),
     // obtener sala con caracteristicas por id
     obtenerSalaConCaracteristicasPorId: state => (id: number) =>
-        state.salasConCaracteristicas.find(sala => sala.idSala === id)
+      state.salasConCaracteristicas.find(sala => sala.idSala === id)
   },
 
   actions: {
@@ -215,10 +215,10 @@ export const useSalasStore = defineStore('salas', {
         // actualizar el objeto SalaConCaracteristicasDTO correspondiente en el estado
         const salaIndex = this.salasConCaracteristicas.findIndex(s => s.idSala === idSala);
         if (salaIndex !== -1) {
-            this.salasConCaracteristicas[salaIndex].caracteristicas = Array.isArray(datos) ? datos : [];
+          this.salasConCaracteristicas[salaIndex].caracteristicas = Array.isArray(datos) ? datos : [];
         } else {
-            // Si la sala no está en el estado de salasConCaracteristicas, podrías añadirla o simplemente retornar los datos
-            // Para este caso, solo retornamos los datos ya que la sala principal ya debería estar en 'salas'
+          // Si la sala no está en el estado de salasConCaracteristicas, podrías añadirla o simplemente retornar los datos
+          // Para este caso, solo retornamos los datos ya que la sala principal ya debería estar en 'salas'
         }
         return Array.isArray(datos) ? datos : [];
       } catch (error) {
@@ -342,12 +342,25 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
-      async generarAsientosDeSalas() {
+    async generarAsientosDeSalas() {
       try {
         await this._llamadaApiFetch('POST', 'PuestosTrabajo/generarAsientosDeSalas');
         console.log('Asientos de salas generados/actualizados correctamente.');
       } catch (error) {
         console.error('Error al generar asientos de salas:', error);
+        throw error;
+      }
+    },
+
+    async generarDisponibilidadesPorAnio(anio: number) {
+      try {
+        // Usar _llamadaApiFetch para mayor consistencia
+        const response = await this._llamadaApiFetch('POST', `Disponibilidades/add/${anio}`);
+        console.log(`Disponibilidades generadas correctamente para el año ${anio}.`, response);
+        return `Disponibilidades generadas correctamente para el año ${anio}.`;
+      } catch (error: any) {
+        console.error(`Error al generar disponibilidades para el año ${anio}:`, error);
+        // Re-lanzamos el error para que el componente que llama pueda manejarlo
         throw error;
       }
     },
