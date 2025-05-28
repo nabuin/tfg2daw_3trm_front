@@ -4,8 +4,8 @@
       <h5 class="mb-0">Gestión de Salas</h5>
       <div class="header-controls">
         <div class="caracteristicas-buttons">
-          <button @click="openGestionCaracteristicasModal" class="btn btn-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#gestionCaracteristicasModal">
-            <i class="bi bi-gear me-2"></i>Gestionar Características
+          <button @click="openGestionCaracteristicasSalaModal" class="btn btn-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#gestionCaracteristicasSalaModal">
+            <i class="bi bi-gear me-2"></i>Gestionar Características de Sala
           </button>
           <button @click="openAddCaracteristicaModal" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#caracteristicaModal">
             <i class="bi bi-plus-circle me-2"></i>Añadir Característica
@@ -81,12 +81,12 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <SalaForm 
-            :sala="currentSala" 
+          <SalaForm
+            :sala="currentSala"
             :tiposSalas="salasStore.tiposSalas"
-            :sedes="sedesStore.sedes" 
-            @submit-form="handleSalaSubmit" 
-            @cancel="closeSalaModal" 
+            :sedes="sedesStore.sedes"
+            @submit-form="handleSalaSubmit"
+            @cancel="closeSalaModal"
           />
         </div>
       </div>
@@ -135,6 +135,60 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="gestionCaracteristicasSalaModal" tabindex="-1" aria-labelledby="gestionCaracteristicasSalaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="gestionCaracteristicasSalaModalLabel">Asignar/Desasignar Características a Salas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="selectSala" class="form-label">Seleccionar Sala:</label>
+            <select class="form-select" id="selectSala" v-model="selectedSalaId" @change="fetchCaracteristicasForSelectedSala">
+              <option :value="null" disabled>Selecciona una sala</option>
+              <option v-for="sala in salasStore.salasConCaracteristicas" :key="sala.idSala" :value="sala.idSala">
+                {{ sala.nombre }} (ID: {{ sala.idSala }})
+              </option>
+            </select>
+          </div>
+
+          <div v-if="selectedSalaId">
+            <h6>Características de la sala seleccionada:</h6>
+            <div v-if="selectedSalaCharacteristics.length > 0" class="mb-3">
+              <span v-for="caract in selectedSalaCharacteristics" :key="caract.idCaracteristica" class="badge bg-primary me-2 mb-2">
+                {{ caract.nombre }}
+                <button @click="removeCaracteristicaFromSelectedSala(caract.idCaracteristica)" class="btn-close btn-close-white ms-1" aria-label="Remove"></button>
+              </span>
+            </div>
+            <p v-else class="text-muted">Esta sala no tiene características asignadas.</p>
+
+            <h6>Añadir nuevas características:</h6>
+            <div class="row">
+              <div class="col-12 col-md-6 mb-3">
+                <select class="form-select" v-model="newCaracteristicaIdToAdd">
+                  <option :value="null" disabled>Selecciona una característica</option>
+                  <option v-for="caracteristica in availableCaracteristicas" :key="caracteristica.idCaracteristica" :value="caracteristica.idCaracteristica">
+                    {{ caracteristica.nombre }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <button @click="addCaracteristicaToSelectedSala" class="btn btn-primary w-100" :disabled="!newCaracteristicaIdToAdd">Añadir Característica</button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="alert alert-info mt-3">
+            Por favor, selecciona una sala para gestionar sus características.
           </div>
         </div>
         <div class="modal-footer">
@@ -211,9 +265,10 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, onMounted, computed, type Ref } from 'vue'
-import { useSalasStore, type Sala, type TipoSala, type CaracteristicaSala } from '../../store/AdminStores/AdminSalasStore'
+import { useSalasStore, type Sala, type TipoSala, type CaracteristicaSala, type SalasConCaracteristicasDTO } from '../../store/AdminStores/AdminSalasStore'
 import { useSedesStore } from '../../store/AdminStores/AdminSedesStore'
 import SalaForm from '../../components/forms/SalaForm.vue'
 import { Modal } from 'bootstrap'
@@ -239,18 +294,26 @@ const caracteristicaForm = ref({
   precioAniadido: 0
 })
 
+//estados reactivos para la gestión de características por sala
+const selectedSalaId: Ref<Nullable<number>> = ref(null);
+const selectedSalaCharacteristics: Ref<CaracteristicaSala[]> = ref([]);
+const newCaracteristicaIdToAdd: Ref<Nullable<number>> = ref(null);
+
+
 // instancias de modales
 let salaModalInstance: Nullable<Modal> = null
 let deleteConfirmModalInstance: Nullable<Modal> = null
 let gestionCaracteristicasModalInstance: Nullable<Modal> = null
 let caracteristicaModalInstance: Nullable<Modal> = null
 let deleteCaracteristicaModalInstance: Nullable<Modal> = null
+let gestionCaracteristicasSalaModalInstance: Nullable<Modal> = null
 
 onMounted(async () => {
   await salasStore.obtenerTodasLasSalas()
   await salasStore.obtenerTodosLosTiposSalas()
   await salasStore.obtenerTodosTiposPuestoTrabajo()
   await salasStore.obtenerTodasLasCaracteristicasSalas()
+  await salasStore.obtenerTodasLasSalasConCaracteristicas() // Cargar salas con características
   await sedesStore.obtenerTodasLasSedes()
 
   // Inicializar instancias de modales después de que el DOM esté montado
@@ -259,6 +322,7 @@ onMounted(async () => {
   gestionCaracteristicasModalInstance = new Modal(document.getElementById('gestionCaracteristicasModal')!)
   caracteristicaModalInstance = new Modal(document.getElementById('caracteristicaModal')!)
   deleteCaracteristicaModalInstance = new Modal(document.getElementById('deleteCaracteristicaModal')!)
+  gestionCaracteristicasSalaModalInstance = new Modal(document.getElementById('gestionCaracteristicasSalaModal')!) // Inicializar la nueva instancia
 })
 
 // filtro salas
@@ -273,6 +337,18 @@ const filteredSalas = computed(() => {
     sala.idSede.toString().includes(searchQuery.value)
   )
 })
+
+// Propiedad computada para características disponibles para añadir
+const availableCaracteristicas = computed(() => {
+    // Filtra las características que NO están ya en la sala seleccionada
+    if (!selectedSalaId.value) return [];
+    const salaActual = salasStore.obtenerSalaConCaracteristicasPorId(selectedSalaId.value);
+    const caracteristicasActualesIds = new Set(selectedSalaCharacteristics.value.map(c => c.idCaracteristica));
+
+    return salasStore.caracteristicasSalas.filter(caracteristica =>
+        !caracteristicasActualesIds.has(caracteristica.idCaracteristica)
+    );
+});
 
 // Métodos para la gestión de salas
 const openAddSalaModal = () => {
@@ -294,6 +370,7 @@ const handleSalaSubmit = async (salaData: Partial<Sala>) => {
     }
     closeSalaModal()
     await salasStore.obtenerTodasLasSalas() // Refrescar la lista de salas
+    await salasStore.obtenerTodasLasSalasConCaracteristicas(); // Actualizar el estado de salas con características
   } catch (error) {
     console.error('Error al guardar la sala:', error)
   }
@@ -310,6 +387,8 @@ const deleteSalaConfirmed = async () => {
       await salasStore.eliminarSala(salaToDeleteId.value)
       deleteConfirmModalInstance?.hide()
       salaToDeleteId.value = null
+      await salasStore.obtenerTodasLasSalas() // Refrescar la lista de salas
+      await salasStore.obtenerTodasLasSalasConCaracteristicas(); // Actualizar el estado de salas con características
     } catch (error) {
       console.error('Error al eliminar la sala:', error)
     }
@@ -321,7 +400,7 @@ const closeSalaModal = () => {
   currentSala.value = null
 }
 
-// Métodos para la gestión de características
+// Métodos para la gestión de características (CRUD de CaracteristicasSala)
 const openGestionCaracteristicasModal = () => {
   gestionCaracteristicasModalInstance?.show()
 }
@@ -347,6 +426,7 @@ const handleCaracteristicaSubmit = async () => {
     }
     closeCaracteristicaModal()
     await salasStore.obtenerTodasLasCaracteristicasSalas() // Refrescar la lista
+    await salasStore.obtenerTodasLasSalasConCaracteristicas(); // Actualizar el estado de salas con características
   } catch (error) {
     console.error('Error al guardar la característica:', error)
   }
@@ -364,6 +444,7 @@ const deleteCaracteristicaConfirmed = async () => {
       deleteCaracteristicaModalInstance?.hide()
       caracteristicaToDeleteId.value = null
       await salasStore.obtenerTodasLasCaracteristicasSalas() // Refrescar la lista
+      await salasStore.obtenerTodasLasSalasConCaracteristicas(); // Actualizar el estado de salas con características
     } catch (error) {
       console.error('Error al eliminar la característica:', error)
     }
@@ -375,11 +456,60 @@ const closeCaracteristicaModal = () => {
   currentCaracteristica.value = null
   caracteristicaForm.value = { nombre: '', descripcion: '', precioAniadido: 0 }
 }
+
+//  gestión de características POR SALA
+const openGestionCaracteristicasSalaModal = async () => {
+  // Asegurarse de que las salas con características estén cargadas al abrir
+  await salasStore.obtenerTodasLasSalasConCaracteristicas();
+  selectedSalaId.value = null; // Resetear la selección de sala
+  selectedSalaCharacteristics.value = []; // Resetear características mostradas
+  newCaracteristicaIdToAdd.value = null; // Resetear la característica a añadir
+  gestionCaracteristicasSalaModalInstance?.show();
+};
+
+const fetchCaracteristicasForSelectedSala = async () => {
+  if (selectedSalaId.value) {
+    try {
+      const salaConCaract = salasStore.obtenerSalaConCaracteristicasPorId(selectedSalaId.value);
+      selectedSalaCharacteristics.value = salaConCaract ? salaConCaract.caracteristicas : [];
+    } catch (error) {
+      console.error(`Error al obtener características para la sala ${selectedSalaId.value}:`, error);
+      selectedSalaCharacteristics.value = [];
+    }
+  } else {
+    selectedSalaCharacteristics.value = [];
+  }
+};
+
+const addCaracteristicaToSelectedSala = async () => {
+  if (selectedSalaId.value !== null && newCaracteristicaIdToAdd.value !== null) {
+    try {
+      await salasStore.añadirCaracteristicaASala(selectedSalaId.value, newCaracteristicaIdToAdd.value);
+      await fetchCaracteristicasForSelectedSala(); // Refrescar la lista de características de la sala
+      newCaracteristicaIdToAdd.value = null; // Limpiar la selección
+    } catch (error) {
+      console.error('Error al añadir característica a la sala:', error);
+      alert(salasStore.error || 'Error desconocido al añadir característica.');
+    }
+  }
+};
+
+const removeCaracteristicaFromSelectedSala = async (idCaracteristica: number) => {
+  if (selectedSalaId.value !== null) {
+    try {
+      await salasStore.eliminarCaracteristicaDeSala(selectedSalaId.value, idCaracteristica);
+      await fetchCaracteristicasForSelectedSala(); // Refrescar la lista de características de la sala
+    } catch (error) {
+      console.error('Error al eliminar característica de la sala:', error);
+      alert(salasStore.error || 'Error desconocido al eliminar característica.');
+    }
+  }
+};
 </script>
 
-
-
 <style lang="scss" scoped>
+// ... (tu CSS existente, se mantiene igual) ...
+
 .card-header {
   padding: 24px;
   border-bottom: 1px solid #dee2e6;
@@ -405,6 +535,13 @@ const closeCaracteristicaModal = () => {
     .btn {
       width: 100%;
     }
+
+    .caracteristicas-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
   }
 
   @media (min-width: 769px) {
@@ -424,6 +561,10 @@ const closeCaracteristicaModal = () => {
         margin-right: 0;
       }
       .btn {
+        width: auto;
+      }
+      .caracteristicas-buttons { /* Ajuste para desktop */
+        flex-direction: row;
         width: auto;
       }
     }
@@ -455,7 +596,7 @@ const closeCaracteristicaModal = () => {
       &:first-child {
         text-align: start;
       }
- 
+
     }
   }
 
@@ -498,7 +639,7 @@ const closeCaracteristicaModal = () => {
     }
   }
 
-  .table tbody td:nth-child(3) { 
+  .table tbody td:nth-child(3) {
     white-space: normal;
     display: flex;
     align-items: center;
@@ -542,5 +683,22 @@ const closeCaracteristicaModal = () => {
 .modal-content {
   border-radius: 8px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5em 0.75em;
+  font-size: 0.875em;
+}
+
+.badge .btn-close-white {
+  font-size: 0.6em;
+  margin-left: 0.5em;
+  opacity: 0.8;
+}
+
+.badge .btn-close-white:hover {
+  opacity: 1;
 }
 </style>

@@ -42,6 +42,18 @@ interface CaracteristicaSala {
   precioAniadido: number
 }
 
+// Nueva interfaz para SalasConCaracteristicasDTO
+interface SalasConCaracteristicasDTO {
+  idSala: number;
+  nombre: string;
+  url_Imagen: string;
+  capacidad: number;
+  idTipoSala: number;
+  idSede: number;
+  bloqueado: boolean;
+  caracteristicas: CaracteristicaSala[]; // Lista de características asociadas a la sala
+}
+
 // mapa de capacidades validas con su tipo de sala
 const CAPACIDADES_VALIDAS = {
   40: { idTipoSala: 1, nombre: 'sala grande publica' },
@@ -53,6 +65,7 @@ const CAPACIDADES_VALIDAS = {
 export const useSalasStore = defineStore('salas', {
   state: () => ({
     salas: [] as Sala[],
+    salasConCaracteristicas: [] as SalasConCaracteristicasDTO[], // Nuevo estado para salas con características
     tiposSalas: [] as TipoSala[],
     tiposPuestoTrabajo: [] as TipoPuestoTrabajo[],
     caracteristicasSalas: [] as CaracteristicaSala[],
@@ -78,7 +91,10 @@ export const useSalasStore = defineStore('salas', {
     getIdTipoSalaPorCapacidad: state => (capacidad: number): number | undefined =>
       CAPACIDADES_VALIDAS[capacidad as keyof typeof CAPACIDADES_VALIDAS]?.idTipoSala,
     // lista de capacidades validas
-    capacidadesValidas: () => Object.keys(CAPACIDADES_VALIDAS).map(Number)
+    capacidadesValidas: () => Object.keys(CAPACIDADES_VALIDAS).map(Number),
+    // obtener sala con caracteristicas por id
+    obtenerSalaConCaracteristicasPorId: state => (id: number) =>
+        state.salasConCaracteristicas.find(sala => sala.idSala === id)
   },
 
   actions: {
@@ -158,6 +174,59 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
+    // obtener todas las salas con sus características
+    async obtenerTodasLasSalasConCaracteristicas() {
+      try {
+        const datos = await this._llamadaApiFetch('GET', 'salas/con-caracteristicas');
+        this.salasConCaracteristicas = Array.isArray(datos) ? datos : [];
+      } catch (error) {
+        console.error('Error al obtener salas con características:', error);
+      }
+    },
+
+    // zñadir una característica a una sala
+    async añadirCaracteristicaASala(idSala: number, idCaracteristica: number) {
+      try {
+        await this._llamadaApiFetch('POST', `salas/${idSala}/caracteristicas/${idCaracteristica}`);
+        // actualizar el estado de salasConCaracteristicas para la sala específica
+        await this.obtenerCaracteristicasPorSala(idSala);
+        console.log(`Característica ${idCaracteristica} añadida a la sala ${idSala}`);
+      } catch (error) {
+        console.error(`Error al añadir característica ${idCaracteristica} a la sala ${idSala}:`, error);
+        throw error;
+      }
+    },
+
+    // eliminar una característica de una sala
+    async eliminarCaracteristicaDeSala(idSala: number, idCaracteristica: number) {
+      try {
+        await this._llamadaApiFetch('DELETE', `salas/${idSala}/caracteristicas/${idCaracteristica}`);
+        await this.obtenerCaracteristicasPorSala(idSala);
+        console.log(`Característica ${idCaracteristica} eliminada de la sala ${idSala}`);
+      } catch (error) {
+        console.error(`Error al eliminar característica ${idCaracteristica} de la sala ${idSala}:`, error);
+        throw error;
+      }
+    },
+
+    async obtenerCaracteristicasPorSala(idSala: number) {
+      try {
+        const datos = await this._llamadaApiFetch('GET', `salas/${idSala}/caracteristicas`);
+        // actualizar el objeto SalaConCaracteristicasDTO correspondiente en el estado
+        const salaIndex = this.salasConCaracteristicas.findIndex(s => s.idSala === idSala);
+        if (salaIndex !== -1) {
+            this.salasConCaracteristicas[salaIndex].caracteristicas = Array.isArray(datos) ? datos : [];
+        } else {
+            // Si la sala no está en el estado de salasConCaracteristicas, podrías añadirla o simplemente retornar los datos
+            // Para este caso, solo retornamos los datos ya que la sala principal ya debería estar en 'salas'
+        }
+        return Array.isArray(datos) ? datos : [];
+      } catch (error) {
+        console.error(`Error al obtener características de la sala ${idSala}:`, error);
+        throw error;
+      }
+    },
+
     // agregar sala nueva
     async agregarSala(nuevaSala: Partial<Sala>) {
       try {
@@ -195,6 +264,8 @@ export const useSalasStore = defineStore('salas', {
       try {
         await this._llamadaApiFetch('DELETE', `salas/${idSala}`)
         this.salas = this.salas.filter(s => s.idSala !== idSala)
+        // También eliminarla de salasConCaracteristicas si existe
+        this.salasConCaracteristicas = this.salasConCaracteristicas.filter(s => s.idSala !== idSala);
       } catch (error) {
         console.error('error al eliminar sala', error)
         throw error
@@ -214,7 +285,7 @@ export const useSalasStore = defineStore('salas', {
     // obtener todos los tipos de puesto de trabajo
     async obtenerTodosTiposPuestoTrabajo() {
       try {
-        const datos = await this._llamadaApiFetch('GET', 'tiposPuestoTrabajo')
+        const datos = await this._llamadaApiFetch('GET', 'tiposPuestosTrabajo')
         this.tiposPuestoTrabajo = Array.isArray(datos) ? datos : []
       } catch (error) {
         console.error('error al obtener tipos de puesto trabajo', error)
@@ -341,4 +412,4 @@ export const useSalasStore = defineStore('salas', {
 })
 
 // exportar tipos para usar en otros componentes
-export type { Sala, TipoSala, TipoPuestoTrabajo, CaracteristicaSala }
+export type { Sala, TipoSala, TipoPuestoTrabajo, CaracteristicaSala, SalasConCaracteristicasDTO }
