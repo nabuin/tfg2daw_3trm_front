@@ -10,6 +10,9 @@
           <button @click="openAddCaracteristicaModal" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#caracteristicaModal">
             <i class="bi bi-plus-circle me-2"></i>Añadir Característica
           </button>
+          <button @click="openGenerarPuestosModal" class="btn btn-secondary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#generarPuestosModal">
+            <i class="bi bi-person-workspace me-2"></i>Añadir Puestos
+          </button>
         </div>
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -177,7 +180,7 @@
               <div class="col-12 col-md-6 mb-3">
                 <select class="form-select" v-model="newCaracteristicaIdToAdd">
                   <option :value="null" disabled>Selecciona una característica</option>
-                  <option v-for="caracteristica in availableCaracteristicas" :key="caracteristica.idCaracteristica" :value="caracteristica.idCaracteristica">
+                  <option v-for="caracteristica in salasStore.caracteristicasSalas" :key="caracteristica.idCaracteristica" :value="caracteristica.idCaracteristica">
                     {{ caracteristica.nombre }}
                   </option>
                 </select>
@@ -264,6 +267,28 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="generarPuestosModal" tabindex="-1" aria-labelledby="generarPuestosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="generarPuestosModalLabel">Generar Puestos de Trabajo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Esto revisará cada sala y su capacidad. Si faltan asientos para cubrir su capacidad, se añadirán automáticamente.</p>
+          <p class="text-danger">Esta acción puede tardar un momento y creará nuevos registros de puestos de trabajo.</p>
+          <div v-if="generarPuestosMessage" :class="['alert mt-3', generarPuestosMessageType === 'success' ? 'alert-success' : 'alert-danger']" role="alert">
+            {{ generarPuestosMessage }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="clearGenerarPuestosMessage">Cancelar</button>
+          <button type="button" class="btn btn-primary" @click="generarPuestosTrabajoConfirmado">Confirmar y Generar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -299,6 +324,10 @@ const selectedSalaId: Ref<Nullable<number>> = ref(null);
 const selectedSalaCharacteristics: Ref<CaracteristicaSala[]> = ref([]);
 const newCaracteristicaIdToAdd: Ref<Nullable<number>> = ref(null);
 
+// Estado reactivo para el mensaje de generación de puestos
+const generarPuestosMessage: Ref<string | null> = ref(null);
+const generarPuestosMessageType: Ref<'success' | 'danger' | null> = ref(null);
+
 
 // instancias de modales
 let salaModalInstance: Nullable<Modal> = null
@@ -307,6 +336,7 @@ let gestionCaracteristicasModalInstance: Nullable<Modal> = null
 let caracteristicaModalInstance: Nullable<Modal> = null
 let deleteCaracteristicaModalInstance: Nullable<Modal> = null
 let gestionCaracteristicasSalaModalInstance: Nullable<Modal> = null
+let generarPuestosModalInstance: Nullable<Modal> = null
 
 onMounted(async () => {
   await salasStore.obtenerTodasLasSalas()
@@ -322,7 +352,8 @@ onMounted(async () => {
   gestionCaracteristicasModalInstance = new Modal(document.getElementById('gestionCaracteristicasModal')!)
   caracteristicaModalInstance = new Modal(document.getElementById('caracteristicaModal')!)
   deleteCaracteristicaModalInstance = new Modal(document.getElementById('deleteCaracteristicaModal')!)
-  gestionCaracteristicasSalaModalInstance = new Modal(document.getElementById('gestionCaracteristicasSalaModal')!) // Inicializar la nueva instancia
+  gestionCaracteristicasSalaModalInstance = new Modal(document.getElementById('gestionCaracteristicasSalaModal')!)
+  generarPuestosModalInstance = new Modal(document.getElementById('generarPuestosModal')!)
 })
 
 // filtro salas
@@ -457,7 +488,7 @@ const closeCaracteristicaModal = () => {
   caracteristicaForm.value = { nombre: '', descripcion: '', precioAniadido: 0 }
 }
 
-//  gestión de características POR SALA
+//  gestión de características POR SALA
 const openGestionCaracteristicasSalaModal = async () => {
   // Asegurarse de que las salas con características estén cargadas al abrir
   await salasStore.obtenerTodasLasSalasConCaracteristicas();
@@ -489,7 +520,7 @@ const addCaracteristicaToSelectedSala = async () => {
       newCaracteristicaIdToAdd.value = null; // Limpiar la selección
     } catch (error) {
       console.error('Error al añadir característica a la sala:', error);
-      alert(salasStore.error || 'Error desconocido al añadir característica.');
+      // alert(salasStore.error || 'Error desconocido al añadir característica.'); // Replaced by in-modal message
     }
   }
 };
@@ -501,14 +532,39 @@ const removeCaracteristicaFromSelectedSala = async (idCaracteristica: number) =>
       await fetchCaracteristicasForSelectedSala(); // Refrescar la lista de características de la sala
     } catch (error) {
       console.error('Error al eliminar característica de la sala:', error);
-      alert(salasStore.error || 'Error desconocido al eliminar característica.');
     }
   }
+};
+
+// Nuevos métodos para generar puestos de trabajo
+const openGenerarPuestosModal = () => {
+  generarPuestosMessage.value = null; // Clear previous message
+  generarPuestosMessageType.value = null; // Clear previous message type
+  generarPuestosModalInstance?.show();
+};
+
+const generarPuestosTrabajoConfirmado = async () => {
+  try {
+    const result = await salasStore.generarAsientosDeSalas();
+    // si la api da respuesta, es decir, todo salió bien
+    generarPuestosMessage.value = result || 'Asientos de trabajo añadidos para las salas que lo necesitaban';
+    generarPuestosMessageType.value = 'success';
+  } catch (error: any) {
+    console.error('Error al generar puestos de trabajo:', error);
+    generarPuestosMessage.value = error.message || 'Error desconocido al generar puestos de trabajo.';
+    generarPuestosMessageType.value = 'danger';
+  }
+};
+
+// borrar el mensaje cuando se cierre el popup
+const clearGenerarPuestosMessage = () => {
+  generarPuestosMessage.value = null;
+  generarPuestosMessageType.value = null;
+  generarPuestosModalInstance?.hide();
 };
 </script>
 
 <style lang="scss" scoped>
-// ... (tu CSS existente, se mantiene igual) ...
 
 .card-header {
   padding: 24px;

@@ -342,6 +342,16 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
+      async generarAsientosDeSalas() {
+      try {
+        await this._llamadaApiFetch('POST', 'PuestosTrabajo/generarAsientosDeSalas');
+        console.log('Asientos de salas generados/actualizados correctamente.');
+      } catch (error) {
+        console.error('Error al generar asientos de salas:', error);
+        throw error;
+      }
+    },
+
     // preparar datos para enviar al backend
     _prepararDatosParaBackend(datos: any, esActualizacion: boolean = false) {
       // validar capacidad
