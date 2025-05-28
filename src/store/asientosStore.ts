@@ -1,4 +1,4 @@
-// src/store/puestosStore.ts
+
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useSalaSeleccionadaStore } from './salaSeleccionadaStore';

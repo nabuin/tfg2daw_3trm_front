@@ -1,4 +1,4 @@
-// src/store/sedeSeleccionadaStore.ts
+
 import { defineStore } from 'pinia';
 
 export const useSedeSeleccionadaStore = defineStore('sedeSeleccionada', {

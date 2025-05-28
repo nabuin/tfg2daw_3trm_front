@@ -1,17 +1,13 @@
 <template>
   <div class="salas-container">
-    <!-- 1️⃣ Mientras loading === true, sólo esto -->
     <div v-if="loading" class="mensaje">Cargando...</div>
 
-    <!-- 2️⃣ Cuando loading === false y hay error -->
     <div v-else-if="error" class="mensaje error">{{ error }}</div>
 
-    <!-- 3️⃣ Cuando loading === false, no hay error y no hay salas -->
     <div v-else-if="salasDisponibles.length === 0" class="mensaje">
       No hay salas disponibles para esa búsqueda.
     </div>
 
-    <!-- 4️⃣ Cuando loading === false y hay salas -->
     <div v-else class="salas-lista">
       <router-link
         v-for="sala in salasDisponibles"
