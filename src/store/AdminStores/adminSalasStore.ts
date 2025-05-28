@@ -1,4 +1,3 @@
-// src/store/SalasStore.ts
 import { defineStore } from 'pinia'
 import { useSedesStore } from '@/store/AdminStores/adminSedesStore'
 
@@ -42,7 +41,7 @@ interface CaracteristicaSala {
   precioAniadido: number
 }
 
-// Nueva interfaz para SalasConCaracteristicasDTO
+// SalasConCaracteristicasDTO
 interface SalasConCaracteristicasDTO {
   idSala: number;
   nombre: string;
@@ -54,18 +53,11 @@ interface SalasConCaracteristicasDTO {
   caracteristicas: CaracteristicaSala[]; // Lista de características asociadas a la sala
 }
 
-// mapa de capacidades validas con su tipo de sala
-const CAPACIDADES_VALIDAS = {
-  40: { idTipoSala: 1, nombre: 'sala grande publica' },
-  32: { idTipoSala: 2, nombre: 'sala mediana publica' },
-  12: { idTipoSala: 3, nombre: 'sala pequena publica' },
-  20: { idTipoSala: 4, nombre: 'sala privada' }
-} as const
 
 export const useSalasStore = defineStore('salas', {
   state: () => ({
     salas: [] as Sala[],
-    salasConCaracteristicas: [] as SalasConCaracteristicasDTO[], // Nuevo estado para salas con características
+    salasConCaracteristicas: [] as SalasConCaracteristicasDTO[], // estado para salas con características
     tiposSalas: [] as TipoSala[],
     tiposPuestoTrabajo: [] as TipoPuestoTrabajo[],
     caracteristicasSalas: [] as CaracteristicaSala[],
@@ -87,11 +79,6 @@ export const useSalasStore = defineStore('salas', {
     // obtener caracteristica por id
     obtenerCaracteristicaPorId: state => (id: number) =>
       state.caracteristicasSalas.find(caracteristica => caracteristica.idCaracteristica === id),
-    // calcular id tipo sala segun capacidad
-    getIdTipoSalaPorCapacidad: state => (capacidad: number): number | undefined =>
-      CAPACIDADES_VALIDAS[capacidad as keyof typeof CAPACIDADES_VALIDAS]?.idTipoSala,
-    // lista de capacidades validas
-    capacidadesValidas: () => Object.keys(CAPACIDADES_VALIDAS).map(Number),
     // obtener sala con caracteristicas por id
     obtenerSalaConCaracteristicasPorId: state => (id: number) =>
       state.salasConCaracteristicas.find(sala => sala.idSala === id)
@@ -156,13 +143,6 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
-    // validar capacidad permitida
-    _validarCapacidad(capacidad: number): void {
-      const capacidades = Object.keys(CAPACIDADES_VALIDAS).map(Number)
-      if (!capacidades.includes(capacidad)) {
-        throw new Error(`capacidad no valida ${capacidad} capacidades permitidas ${capacidades.join(', ')}`)
-      }
-    },
 
     // obtener todas las salas
     async obtenerTodasLasSalas() {
@@ -367,14 +347,9 @@ export const useSalasStore = defineStore('salas', {
 
     // preparar datos para enviar al backend
     _prepararDatosParaBackend(datos: any, esActualizacion: boolean = false) {
-      // validar capacidad
-      const capacidad = datos.capacidad ? parseInt(datos.capacidad) : 0
-      this._validarCapacidad(capacidad)
-
-      // determinar id tipo sala
-      const idTipoSala = this.getIdTipoSalaPorCapacidad(capacidad)
+      const idTipoSala = datos.idTipoSala ? parseInt(datos.idTipoSala) : 0;
       if (!idTipoSala) {
-        throw new Error(`no se pudo determinar tipo sala para capacidad ${capacidad}`)
+        throw new Error(`no se pudo determinar tipo sala. idTipoSala es ${idTipoSala}`);
       }
 
       // obtener datos de sede completa
@@ -414,7 +389,8 @@ export const useSalasStore = defineStore('salas', {
       const salaParaEnviar: any = {
         nombre: datos.nombre || '',
         urL_Imagen: datos.url_Imagen || '',
-        capacidad: capacidad,
+        // Capacidad se toma directamente de datos, ya que no se valida por el mapa
+        capacidad: datos.capacidad ? parseInt(datos.capacidad) : 0, 
         idTipoSala: idTipoSala,
         idSede: datos.idSede ? parseInt(datos.idSede) : 0,
         bloqueado: typeof datos.bloqueado === 'boolean' ? datos.bloqueado : false,
