@@ -148,19 +148,34 @@
       <v-card-actions class="justify-end pa-6">
         <v-btn
           class="flat-button"
-          :disabled="!formValid"
+          :disabled="!formValid || isReserving"
           @click="submit"
         >
-          Pagar {{ totalFormatted }}
+          {{ isReserving ? 'Procesando...' : `Pagar ${totalFormatted}` }}
         </v-btn>
       </v-card-actions>
+
+      <!-- Mensajes de error/éxito -->
+      <div v-if="reservationError" class="mt-4 pa-4" style="color: red; text-align: center;">
+        {{ reservationError }}
+      </div>
+      <div v-if="reservationSuccess" class="mt-4 pa-4" style="color: green; text-align: center;">
+        {{ reservationSuccess }}
+      </div>
     </v-card>
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useReservasStore } from '../store/reservasStore'
+import { storeToRefs } from 'pinia'
 
+// STORE de reservas
+const reservasStore = useReservasStore()
+const { selectedPuestos, isReserving, reservationError, reservationSuccess } = storeToRefs(reservasStore)
+
+// Formulario
 const form = ref(null)
 const formValid = ref(false)
 
@@ -196,17 +211,25 @@ const totalFormatted = computed(() =>
 )
 
 const rules = {
-  cardNumberDigits: v =>
+  cardNumberDigits: (v: string) =>
     (v && v.replace(/\s/g, '').length === 16) ||
     'La tarjeta debe tener 16 dígitos',
-  cvvDigits: v =>
+  cvvDigits: (v: string) =>
     (v && /^\d{3,4}$/.test(v)) ||
     'El CVV debe tener 3 – 4 dígitos',
 }
 
-function submit() {
-  if (!formValid.value) return
-  form.value.reset()
+async function submit() {
+  if (!formValid.value || !acceptTerms.value) return
+
+  try {
+    await reservasStore.createReservation('reserva desde zona de pago')
+    alert('Reserva completada con éxito.')
+    form.value.reset()
+  } catch (error) {
+    console.error('Error al hacer la reserva:', error)
+    alert('Ocurrió un error al procesar la reserva.')
+  }
 }
 </script>
 
@@ -261,7 +284,6 @@ function submit() {
   }
 }
 
-/* Estilos del checkbox nativo */
 .flat-checkbox-label {
   display: flex;
   align-items: center;
@@ -313,7 +335,6 @@ function submit() {
   font-size: 0.95rem;
 }
 
-/* Botón */
 .flat-button {
   text-transform: none;
   border-radius: 8px;
@@ -325,7 +346,6 @@ function submit() {
   }
 }
 
-/* Responsive */
 @media (max-width: 960px) {
   .rectangle-card {
     width: 100%;
@@ -335,7 +355,8 @@ function submit() {
     border-bottom: 1px solid #e0e0e0;
   }
 }
-.unique{
+
+.unique {
   padding-top: 25px;
 }
 </style>

@@ -41,10 +41,6 @@
         </div>
       </div>
 
-      <!-- 3. botón comprar general -->
-      <button class="buy-button" :disabled="isReserving || selectedPuestos.length === 0" @click="submitCompra">
-        {{ isReserving ? 'procesando...' : 'comprar' }}
-      </button>
 
     <div v-if="errorSeleccionPuestos" class="error-message">
         {{ errorSeleccionPuestos }}
