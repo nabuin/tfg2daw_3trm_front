@@ -52,6 +52,10 @@ const router = createRouter({
       name: 'Pago',
       component: PagoView,
     },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/home',
+    },
   ],
 });
 
