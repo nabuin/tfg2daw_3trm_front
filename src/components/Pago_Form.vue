@@ -143,30 +143,44 @@
             </v-col>
           </v-row>
         </v-form>
+
         <v-divider class="my-6"></v-divider>
+
         <v-card class="mx-6 mb-6 pa-4" elevation="2" color="#f9f9f9" rounded="lg">
           <h6 class="section-title mb-4">📝 Detalles de la reserva</h6>
 
           <v-row dense>
-<v-col cols="12" sm="6" md="4">
-  <p><strong>📅 Fecha de inicio:</strong><br>{{ fechaInicio }}</p>
-</v-col>
+            <v-col cols="12" sm="6">
+              <p><strong>📅 Fecha de inicio:</strong><br>{{ fechaInicio }}</p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p><strong>📅 Fecha de fin:</strong><br>{{ fechaFin }}</p>
+            </v-col>
+          </v-row>
 
-<v-col cols="12" sm="6" md="4">
-  <p><strong>📅 Fecha de fin:</strong><br>{{ fechaFin }}</p>
-</v-col>
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <p><strong>⏰ Hora de inicio:</strong><br>{{ horaInicio }}</p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p><strong>⏰ Hora de fin:</strong><br>{{ horaFin }}</p>
+            </v-col>
+          </v-row>
 
-<v-col cols="12" sm="6" md="4">
-  <p><strong>⏰ Hora de inicio:</strong><br>{{ horaInicio }}</p>
-</v-col>
-
-<v-col cols="12" sm="6" md="4">
-  <p><strong>⏰ Hora de fin:</strong><br>{{ horaFin }}</p>
-</v-col>
-
-
-            <v-col cols="12" md="8">
-              <p><strong>🎟️ Asientos seleccionados:</strong><br>a</p>
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <p><strong>🏢 Sala:</strong><br>
+                {{ salaNombres[selectedSeatDetails[0]?.id] || 'Cargando…' }}
+              </p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p><strong>🎟️ Asientos seleccionados:</strong></p>
+              <ul v-if="selectedSeatDetails.length">
+                <li v-for="seat in selectedSeatDetails" :key="seat.id">
+                  Puesto: {{ seat.numeroAsiento }}
+                </li>
+              </ul>
+              <p v-else>No hay asientos seleccionados.</p>
             </v-col>
           </v-row>
         </v-card>
@@ -182,7 +196,6 @@
         </v-btn>
       </v-card-actions>
 
-      <!-- Mensajes de error/éxito -->
       <div v-if="reservationError" class="mt-4 pa-4" style="color: red; text-align: center;">
         {{ reservationError }}
       </div>
@@ -195,20 +208,80 @@
 
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useReservasStore } from '../store/reservasStore'
 import { useFiltrosStore } from '../store/filtrosStore'
-import { storeToRefs } from 'pinia'
+import { usePuestosStore } from '../store/asientosStore'
+import { useSalaAsientoStore } from '../store/salaAsientoStore'
 
-// STORE de reservas
+// Stores
 const reservasStore = useReservasStore()
-const { selectedPuestos, isReserving, reservationError, reservationSuccess } = storeToRefs(reservasStore)
+const {
+  selectedPuestos,
+  isReserving,
+  reservationError,
+  reservationSuccess,
+  currentPuestoDisponibilidades
+} = storeToRefs(reservasStore)
 
-// STORE de filtros
 const filtrosStore = useFiltrosStore()
 const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore)
 
-// Formulario
+const puestosStore = usePuestosStore()
+const { puestosDisponibles } = storeToRefs(puestosStore)
+
+const salaAsientoStore = useSalaAsientoStore()
+
+// Carga puestos y sincroniza con reservas
+onMounted(() => {
+  puestosStore.obtenerPuestosDisponibles()
+})
+watch(
+  puestosDisponibles,
+  (nuevos) => {
+    reservasStore.setPuestoDisponibilidades(nuevos)
+  },
+  { immediate: true }
+)
+
+// Computed para cruzar selección con detalles
+const selectedSeatDetails = computed(() =>
+  selectedPuestos.value.map(sel => {
+    const info = currentPuestoDisponibilidades.value.find(
+      p => p.idPuestoTrabajo === sel.idPuestoTrabajo
+    )
+    return {
+      id: sel.idPuestoTrabajo,
+      numeroAsiento: info?.numeroAsiento || `Puesto ${sel.idPuestoTrabajo}`
+    }
+  })
+)
+
+// Cache reactivo de nombres de sala
+const salaNombres = reactive<Record<number,string>>({})
+
+// Cada vez que cambian las selecciones, pide el nombre de la sala
+watch(
+  selectedSeatDetails,
+  (list) => {
+    list.forEach(seat => {
+      if (!(seat.id in salaNombres)) {
+        salaAsientoStore
+          .obtenerSalaNombre(seat.id)
+          .then(name => {
+            salaNombres[seat.id] = name
+          })
+          .catch(() => {
+            salaNombres[seat.id] = 'Desconocida'
+          })
+      }
+    })
+  },
+  { immediate: true }
+)
+
+// Formulario de pago
 const form = ref(null)
 const formValid = ref(false)
 
@@ -265,6 +338,7 @@ async function submit() {
   }
 }
 </script>
+
 
 
 <style scoped lang="scss">
