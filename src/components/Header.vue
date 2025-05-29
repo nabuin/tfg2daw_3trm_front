@@ -18,6 +18,7 @@
         </div>
       </div>
     </div>
+
     <div class="header-child-2">
       <div class="header-child-2_left">
         <router-link to="/home">
@@ -33,9 +34,24 @@
           <router-link to="/servicios" class="header-child-2_mid_servicios">Sérvicios</router-link>
           <a href="/home#form" class="header-child-2_mid_masInfo">Más Info</a>
         </div>
+
+        <div class="hamburger" @click="toggleMenu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="hamburger-menu" v-if="menuOpen">
+          <router-link to="/home" @click="toggleMenu">Bienvenido</router-link>
+          <router-link to="/sedes" @click="toggleMenu">Sedes</router-link>
+          <router-link to="/precios" @click="toggleMenu">Precios</router-link>
+          <router-link to="/servicios" @click="toggleMenu">Servicios</router-link>
+          <a href="/home#form" @click="toggleMenu">Más Info</a>
+          <router-link to="/login" @click="toggleMenu">Login</router-link>
+        </div>
       </div>
 
-
+      <!-- ICONO LOGIN SOLO EN >1250px -->
       <div class="header-child-2_right">
         <router-link to="/login">
           <img src="../imgs/icons/User_Logo.svg" alt="User logo" />
@@ -44,6 +60,14 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+const menuOpen = ref(false)
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value
+}
+</script>
 
 <style lang="scss" scoped>
 h6 {
@@ -55,7 +79,6 @@ h6 {
   height: 150px;
 
   .header-child-1 {
-
     background-color: black;
     height: 50px;
     display: flex;
@@ -83,54 +106,18 @@ h6 {
         width: 65%;
       }
 
-      .header-child-1_right_phone {
-        width: 33%;
-        display: flex;
-        height: 100%;
-        justify-content: flex-end;
-        align-items: center;
-        position: relative;
-        gap: 8px;
-
-        &::before {
-          content: "";
-          display: inline-block;
-          width: 17px;
-          height: 17px;
-          background-size: contain;
-          background-repeat: no-repeat;
-          background-position: center;
-          background-image: url('../imgs/icons/phone.svg');
-        }
-      }
-
-      .header-child-1_right_email {
-        width: 33%;
-        display: flex;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-
-        &::before {
-          content: "";
-          display: inline-block;
-          width: 17px;
-          height: 17px;
-          background-size: contain;
-          background-repeat: no-repeat;
-          background-position: center;
-          background-image: url('../imgs/icons/email.svg');
-        }
-      }
-
+      .header-child-1_right_phone,
+      .header-child-1_right_email,
       .header-child-1_right_ubi {
         width: 33%;
         display: flex;
         height: 100%;
-        justify-content: flex-start;
         align-items: center;
         gap: 8px;
+
+        h6 {
+          margin: 0;
+        }
 
         &::before {
           content: "";
@@ -140,8 +127,19 @@ h6 {
           background-size: contain;
           background-repeat: no-repeat;
           background-position: center;
-          background-image: url('../imgs/icons/ubi.svg');
         }
+      }
+
+      .header-child-1_right_phone::before {
+        background-image: url('../imgs/icons/phone.svg');
+      }
+
+      .header-child-1_right_email::before {
+        background-image: url('../imgs/icons/email.svg');
+      }
+
+      .header-child-1_right_ubi::before {
+        background-image: url('../imgs/icons/ubi.svg');
       }
     }
   }
@@ -151,6 +149,7 @@ h6 {
     display: flex;
     flex-direction: row;
     background: #e5e5e5;
+    position: relative;
 
     .header-child-2_left {
       height: 100%;
@@ -164,54 +163,22 @@ h6 {
       height: 100%;
       width: 50%;
       display: flex;
-      flex-direction: row;
       justify-content: center;
       align-items: center;
+      position: relative;
 
       @media (max-width: 1500px) {
         width: 60%;
       }
-
 
       .header-child-2_mid_heigt {
         display: flex;
         flex-direction: row;
         height: 65px;
 
-        .header-child-2_mid_bienvenido {
-          display: flex;
-          align-items: center;
-          margin: 5px 0px 0 25px;
-          padding-right: 25px;
-          font-size: 25px;
-          font-weight: 500;
-          display: flex;
-          flex-direction: row;
-          border-right: 2px solid black;
-        }
-
-        .header-child-2_mid_espacios {
-          display: flex;
-          align-items: center;
-          margin: 5px 0px 0 25px;
-          padding-right: 25px;
-          font-size: 25px;
-          font-weight: 500;
-          flex-direction: row;
-          border-right: 2px solid black;
-        }
-
-        .header-child-2_mid_precios {
-          display: flex;
-          align-items: center;
-          margin: 5px 0px 0 25px;
-          padding-right: 25px;
-          font-size: 25px;
-          font-weight: 500;
-          flex-direction: row;
-          border-right: 2px solid black;
-        }
-
+        .header-child-2_mid_bienvenido,
+        .header-child-2_mid_espacios,
+        .header-child-2_mid_precios,
         .header-child-2_mid_servicios {
           display: flex;
           align-items: center;
@@ -253,11 +220,13 @@ h6 {
             background-position: center;
             background-image: url('../imgs/icons/arrow.svg');
           }
-
         }
-
       }
 
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
     }
 
     .header-child-2_right {
@@ -271,21 +240,89 @@ h6 {
         width: 15%;
       }
 
+      @media (max-width: 1250px) {
+        display: none;
+      }
+
       img {
         height: 56px;
         margin-top: 5px;
       }
     }
-
   }
 }
 
-.header-child-2_mid {
-  a {
-    text-decoration: none;
-    color: inherit;
+/* ------------------ Menú hamburguesa hasta 1250px ------------------ */
+/* ------------------ Menú hamburguesa hasta 1250px ------------------ */
+@media (max-width: 1250px) {
+  .header-child-2 {
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+  }
+
+  .header-child-2_left {
+    width: auto !important;
+    justify-content: flex-start !important;
+    padding-left: 0 !important;
+
+    img {
+      height: 60px;
+      width: auto;
+      max-width: 100%;
+    }
+  }
+
+  .header-child-2_mid {
+    width: auto !important;
+    flex: unset !important;
+    justify-content: flex-end !important;
+  }
+
+  .header-child-2_mid_heigt {
+    display: none !important;
+  }
+
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 25px;
+    cursor: pointer;
+    margin-left: auto;
+
+    span {
+      height: 4px;
+      width: 100%;
+      background: black;
+      border-radius: 2px;
+    }
+  }
+
+  .hamburger-menu {
+    position: absolute;
+    top: 100%;
+    right: 20px;
+    background: white;
+    border: 2px solid black;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 999;
+
+    a {
+      color: black;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 500;
+    }
+  }
+
+  .header-child-2_right {
+    display: none !important;
   }
 }
 
-/*Menu hamburguesa apartir de 1250px*/
 </style>
