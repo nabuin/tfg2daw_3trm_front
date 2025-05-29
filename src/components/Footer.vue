@@ -7,12 +7,42 @@
     <div class="footer-child-2">
       <div class="footer-child-2_social">
         <div class="footer-child-2_social-icons">
-          <div class="icon-fb"><img src="../imgs/social/fb.svg" alt=""></div>
-          <div class="icon-ig"><img src="../imgs/social/ig.svg" alt=""></div>
-          <div class="icon-in"><img src="../imgs/social/in.svg" alt=""></div>
-          <div class="icon-tw"><img src="../imgs/social/tw.svg" alt=""></div>
-          <div class="icon-x"><img src="../imgs/social/x.svg" alt=""></div>
-          <div class="icon-yt"><img src="../imgs/social/yt.svg" alt=""></div>
+          <div class="icon-fb">
+            <a href="https://www.facebook.com/profile.php?id=61575937731949" target="_blank" rel="noopener noreferrer"
+              class="icon-ig">
+              <img src="../imgs/social/fb.svg" alt="">
+            </a>
+          </div>
+          <div class="icon-ig">
+            <a href="https://www.instagram.com/coworkingzaragozaoficial/" target="_blank" rel="noopener noreferrer"
+              class="icon-ig">
+              <img src="../imgs/social/ig.svg" alt="">
+            </a>
+          </div>
+          <div class="icon-in">
+            <a href="https://www.linkedin.com/in/nicolas-undefined-207812362/" target="_blank" rel="noopener noreferrer"
+              class="icon-ig">
+              <img src="../imgs/social/in.svg" alt="">
+            </a>
+          </div>
+          <div class="icon-tw">
+            <a href="https://x.com/CoworkingZgzOf" target="_blank" rel="noopener noreferrer"
+              class="icon-ig">
+              <img src="../imgs/social/tw.svg" alt="">
+            </a>
+          </div>
+          <div class="icon-x">
+            <a href="https://x.com/CoworkingZgzOf" target="_blank" rel="noopener noreferrer"
+              class="icon-ig">
+              <img src="../imgs/social/x.svg" alt="">
+            </a>
+          </div>
+          <div class="icon-yt">
+            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer"
+              class="icon-ig">
+              <img src="../imgs/social/yt.svg" alt="">
+            </a>
+          </div>
         </div>
       </div>
       <div class="footer-child-2_info">
