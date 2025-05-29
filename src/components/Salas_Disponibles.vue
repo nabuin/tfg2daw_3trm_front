@@ -1,16 +1,17 @@
 <template>
   <div class="salas-container">
     <div v-if="loading" class="mensaje">Cargando...</div>
-
     <div v-else-if="error" class="mensaje error">{{ error }}</div>
-
     <div v-else-if="salasDisponibles.length === 0" class="mensaje">
       No hay salas disponibles para esa búsqueda.
     </div>
-
     <div v-else class="salas-lista">
+      <button class="sort-button" @click="toggleOrden">
+        Invertir orden ({{ ordenarDesc ? 'Mayor a menor' : 'Menor a mayor' }})
+      </button>
+
       <router-link
-        v-for="sala in salasDisponibles"
+        v-for="sala in sortedSalas"
         :key="sala.idSala"
         class="sala-button"
         to="/sedes/salas/puestos"
@@ -42,12 +43,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, watch } from 'vue';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useSalasStore } from '../store/salasStore';
 import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
 import { useSalaSeleccionadaStore } from '../store/salaSeleccionadaStore';
 import { useFiltrosStore } from '../store/filtrosStore';
-import { storeToRefs } from 'pinia';
 
 export default defineComponent({
   setup() {
@@ -59,8 +60,27 @@ export default defineComponent({
     const salaSeleccionadaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
 
-    const idSede = computed(() => sedeSeleccionadaStore.id);
+    // --- NUEVO: control de orden, por defecto Mayor a menor ---
+    const ordenarDesc = ref(true);
 
+    // Computed que devuelve las salas ordenadas
+    const sortedSalas = computed(() => {
+      // crea una copia del array para no trabajar sobre los datos en caliente y el .short los compara
+      return [...salasDisponibles.value].sort((a, b) => {
+        //hace el calculo para saber cual de los datos es mayor
+        const diff = b.puestosDisponibles - a.puestosDisponibles;
+        //sirve para indicar el orden diff es de mayor  a menos y -diff alreves
+        return ordenarDesc.value ? diff : -diff;
+      });
+    });
+
+    // Alterna entre orden descendente/ascendente
+    const toggleOrden = () => {
+      ordenarDesc.value = !ordenarDesc.value;
+      console.log('ordenarDesc ahora es', ordenarDesc.value);
+    };
+
+    // funcion para cargar salas
     const buscarSalas = async () => {
       await obtenerSalasDisponibles(filtrosStore.filtros);
     };
@@ -69,37 +89,34 @@ export default defineComponent({
       salaSeleccionadaStore.setId(sala.idSala);
     };
 
-    onMounted(() => {
-      buscarSalas();
-    });
+    onMounted(buscarSalas);
 
     watch(
       () => filtrosStore.filtros,
-      () => {
-        buscarSalas();
-      },
+      buscarSalas,
       { deep: true }
     );
 
-    watch(idSede, (newId, oldId) => {
-      if (newId !== oldId) {
-        buscarSalas();
+    watch(
+      () => sedeSeleccionadaStore.id,
+      (newId, oldId) => {
+        if (newId !== oldId) buscarSalas();
       }
-    });
+    );
 
     return {
       salasDisponibles,
       loading,
       error,
       seleccionarSala,
+      // --- NUEVO ---
+      sortedSalas,
+      ordenarDesc,
+      toggleOrden
     };
   },
 });
 </script>
-
-
-
-
 
 <style scoped lang="scss">
 .salas-container {
@@ -121,11 +138,26 @@ export default defineComponent({
 
 .salas-lista {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
   max-width: 800px;
+  gap: 1rem;
+}
+
+/* ESTILOS DEL BOTÓN DE ORDENACIÓN */
+.sort-button {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.sort-button:hover {
+  background: #0056b3;
 }
 
 .sala-button {
@@ -176,7 +208,7 @@ export default defineComponent({
 .info-right {
   display: flex;
   align-items: center;
-  padding-right: 1rem; /* espacio con el borde derecho */
+  padding-right: 1rem;
 }
 
 .tarjetas-puestos {
@@ -186,7 +218,7 @@ export default defineComponent({
 }
 
 .tarjeta {
-  flex: 1; /* ambas tarjetas con igual ancho */
+  flex: 1;
   padding: 0.75rem 1rem;
   border-radius: 6px;
   text-align: center;
@@ -216,11 +248,9 @@ export default defineComponent({
 
 @media (max-width: 700px) {
   .sala-info {
-    display: flex;
     flex-direction: column;
-
-        align-items: stretch;
-        gap: 20px;
+    align-items: stretch;
+    gap: 20px;
   }
 }
 </style>
