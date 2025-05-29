@@ -1,5 +1,34 @@
-<script></script>
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useFormularioHomeStore } from '../store/formularioHomeStore';
 
+// iniciar el store
+const formStore = useFormularioHomeStore();
+
+// estados campo formulario
+const formData = ref({
+    nombre: '',
+    apellidos: '',
+    correo: '',
+    consulta: ''
+});
+
+// funcion envio formulario
+const enviarFormulario = async () => {
+    // Llama a la acción del store para enviar el formulario
+    const enviado = await formStore.submitFormulario(formData.value);
+
+    if (enviado) {
+        // si se envia, se reinicia todo, por si se envia otro asegurar que no queden datos del anterior
+        formData.value = {
+            nombre: '',
+            apellidos: '',
+            correo: '',
+            consulta: ''
+        };
+    }
+};
+</script>
 <template>
     <div id="form" class="form">
         <h2 class="form__title">Formulario de Contacto</h2>
@@ -13,32 +42,40 @@
             </div>
         </div>
 
-        <form class="form__formulario">
+        <form class="form__formulario" @submit.prevent="enviarFormulario">
             <div class="form__fila">
                 <div class="form__grupo">
                     <label class="form__label" for="nombre">Nombre*</label>
-                    <input type="text" id="nombre" class="form__input" />
+                    <input type="text" id="nombre" class="form__input" v-model="formData.nombre" required />
                 </div>
                 <div class="form__grupo">
                     <label class="form__label" for="apellidos">Apellidos*</label>
-                    <input type="text" id="apellidos" class="form__input" />
+                    <input type="text" id="apellidos" class="form__input" v-model="formData.apellidos" required />
                 </div>
                 <div class="form__grupo">
                     <label class="form__label" for="correo">Correo*</label>
-                    <input type="email" id="correo" class="form__input" />
+                    <input type="email" id="correo" class="form__input" v-model="formData.correo" required />
                 </div>
             </div>
 
             <div class="form__grupo form__grupo--textarea">
                 <label class="form__label" for="consulta">Escriba su Consulta*</label>
-                <textarea id="consulta" class="form__textarea"></textarea>
+                <textarea id="consulta" class="form__textarea" v-model="formData.consulta" required></textarea>
             </div>
+            
             <div class="form__boton">
-                <router-link to="/home"> 
-                <button type="submit" class="form__enviar">Enviar</button>
-            </router-link>
+                <button type="submit" class="form__enviar" :disabled="formStore.loading">
+                    {{ formStore.loading ? 'Enviando...' : 'Enviar' }}
+                </button>
             </div>
         </form>
+
+        <div v-if="formStore.successMessage" class="message success">
+            <p>{{ formStore.successMessage }}</p>
+        </div>
+        <div v-if="formStore.errorMessage" class="message error">
+            <p>{{ formStore.errorMessage }}</p>
+        </div>
     </div>
 </template>
 
