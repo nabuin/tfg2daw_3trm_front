@@ -15,7 +15,8 @@
             positionClass(idx),
             {
               unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
-              selected: selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo)
+              selected: selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo),
+              selectedPrivate: puesto.idTipoPuestoTrabajo === 2
             }
           ]" :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)" @click="handlePuestoClick(puesto)">
             <svg class="silla-icon" width="50" height="50" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
@@ -42,9 +43,9 @@
       </div>
 
 
-    <div v-if="errorSeleccionPuestos" class="error-message">
+      <div v-if="errorSeleccionPuestos" class="error-message">
         {{ errorSeleccionPuestos }}
-    </div>
+      </div>
 
       <!-- 4. botón continuar -->
       <button class="continue-button" @click="continuarCompra">
@@ -106,11 +107,9 @@ export default defineComponent({
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
     const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
 
-    // estado para el popup
     const showPopup = ref(false);
     const errorSeleccionPuestos = ref<string | null>(null);
-    
-    // estados para el login
+
     const usuario = ref('');
     const password = ref('');
     const mensajeError = ref<string | null>(null);
@@ -118,7 +117,12 @@ export default defineComponent({
 
     onMounted(() => {
       if (salaStore.id !== null) {
-        puestosStore.obtenerPuestosDisponibles();
+        puestosStore.obtenerPuestosDisponibles().then(() => {
+          const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
+          reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
+          reservasStore.resetSelection();
+          puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
+        });
       }
     });
 
@@ -133,14 +137,17 @@ export default defineComponent({
       async () => {
         if (salaStore.id !== null) {
           await puestosStore.obtenerPuestosDisponibles();
+          const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
           reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
           reservasStore.resetSelection();
+          puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
         }
       },
       { immediate: true }
     );
 
     function handlePuestoClick(puesto: any) {
+      if (puesto.idTipoPuestoTrabajo === 2) return;
       reservasStore.togglePuestoSelection(puesto);
     }
 
@@ -159,7 +166,7 @@ export default defineComponent({
 
     async function login() {
       if (isLoggingIn.value) return;
-      
+
       isLoggingIn.value = true;
       mensajeError.value = null;
 
@@ -172,19 +179,15 @@ export default defineComponent({
         const exito = await loginStore.loginUsuario(loginData);
 
         if (exito) {
-          // login correcto
           showPopup.value = false;
-          // vaciar el formulario
           usuario.value = '';
           password.value = '';
           mensajeError.value = null;
-          // ir a la pagina de pago ya logeado
           router.push('/sedes/salas/puestos/pago');
         } else {
-          // login fallido - extraer solo la parte después de "Error generating the token: "
           let mensajeErrorAPI = loginStore.errorMessage || 'La contraseña y/o el correo son erróneos';
           if (mensajeErrorAPI.includes('Error generating the token: ')) {
-            mensajeErrorAPI = mensajeErrorAPI.split('Error generating the token: ')[1]; // para que no saque el mensaje de error del token, solo el de problema con correo o contraseña, [1] ya que la primera parte seria [0]
+            mensajeErrorAPI = mensajeErrorAPI.split('Error generating the token: ')[1];
           }
           mensajeError.value = mensajeErrorAPI;
         }
@@ -197,32 +200,25 @@ export default defineComponent({
     }
 
     function continuarCompra() {
-        // validar que al menos un puesto esté seleccionado
-        if (selectedPuestos.value.length === 0) {
-            errorSeleccionPuestos.value = "Por favor, selecciona al menos un puesto para continuar.";
-            // Opcional: limpiar el mensaje después de un tiempo
-            setTimeout(() => {
-                errorSeleccionPuestos.value = null;
-            }, 6000); // el mensaje saldrá durante 6 segundos
-            return;
-        }
+      if (selectedPuestos.value.length === 0) {
+        errorSeleccionPuestos.value = "Por favor, selecciona al menos un puesto para continuar.";
+        setTimeout(() => {
+          errorSeleccionPuestos.value = null;
+        }, 6000);
+        return;
+      }
 
-        // limpiar errores previos
-        errorSeleccionPuestos.value = null;
+      errorSeleccionPuestos.value = null;
 
-        // 2. Comprobar si hay token de autenticación
-        const authToken = localStorage.getItem("authToken");
+      const authToken = localStorage.getItem("authToken");
 
-        if (!authToken) {
-            // Si no hay token, mostrar el popup de login
-            showPopup.value = true;
-        } else {
-            // Si hay token, navegar a la página de pago para continuar la compra
-            router.push('/sedes/salas/puestos/pago');
-        }
+      if (!authToken) {
+        showPopup.value = true;
+      } else {
+        router.push('/sedes/salas/puestos/pago');
+      }
     }
 
-    // Agrupamos de 4 en 4 pero la UI controla número por fila
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
     return {
@@ -236,7 +232,6 @@ export default defineComponent({
       showPopup,
       continuarCompra,
       errorSeleccionPuestos,
-      // login related
       usuario,
       password,
       mensajeError,
@@ -247,20 +242,20 @@ export default defineComponent({
 });
 </script>
 
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .error-message {
-    background-color: #ffcccc;
-    color: #cc0000;
-    border: 1px solid #cc0000;
-    padding: 10px 15px;
-    margin: 10px auto;
-    border-radius: 8px;
-    font-size: 0.95em;
-    font-weight: bold;
-    text-align: center;
-    max-width: 400px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #ffcccc;
+  color: #cc0000;
+  border: 1px solid #cc0000;
+  padding: 10px 15px;
+  margin: 10px auto;
+  border-radius: 8px;
+  font-size: 0.95em;
+  font-weight: bold;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .loading-message {
@@ -458,7 +453,7 @@ export default defineComponent({
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color:white;
+  background-color: white;
 
   &__form {
     display: flex;
@@ -556,6 +551,16 @@ export default defineComponent({
     }
   }
 }
+
+.square.selectedPrivate .silla-icon .chair-seat,
+.square.selectedPrivate .silla-icon .chair-back {
+  fill: #ffff00;
+}
+
+.square.selectedPrivate {
+  cursor: not-allowed;
+}
+
 
 
 </style>
