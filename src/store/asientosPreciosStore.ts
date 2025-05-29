@@ -1,67 +1,55 @@
-// src/store/asientosPreciosStore.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useAsientosPreciosStore = defineStore('asientosPrecios', () => {
-  // ref para almacenar el precio total calculado
   const precioTotal = ref(0)
-  // estado de carga mientras se hace el fetch
-  const loading = ref(false)
-  // guarda un mensaje de error si algo falla
-  const error = ref<string|null>(null)
+  const loading    = ref(false)
+  const error      = ref<string|null>(null)
 
-  // funcion q calcula el precio segun la cantidad de asientos
-  async function calcularPrecio(idsPuestos: number[]): Promise<number> {
-    // inicia el estado de carga
+
+  async function calcularPrecio(
+    idsPuestos: number[],
+    horas: number
+  ): Promise<number> {
     loading.value = true
-    // limpia cualquier error previo
-    error.value = null
-    // reinicia el precioTotal antes de calcular
+    error.value   = null
     precioTotal.value = 0
 
-    // si no hay ids, no hay nada que calcular
-    if (idsPuestos.length === 0) {
-      console.error('No hay asientos seleccionados para precio')
+    if (idsPuestos.length === 0 || horas <= 0) {
+      console.error('no hay asientos o las horas no son válidas')
       loading.value = false
       return 0
     }
 
-    // cogemos el primer id para pedir el precio unitario
-    const id = idsPuestos[0]
+    const id  = idsPuestos[0]
     const url = `https://localhost:7179/api/Salas/puesto/${id}/asiento-precio`
-    console.log(`🔍 Fetch precio asiento ${id}: ${url}`)
+    console.log(`🔍 fetch precio asiento ${id}: ${url}`)
 
     try {
-      // hacemos la peticion al backend
       const res = await fetch(url)
+      console.log(`response status: ${res.status}`)
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
 
-      // parseamos la respuesta como json
       const dato = await res.json()
-      // obtenemos el precio unitario, pilla numero o objeto con precio
       const precioUnitario = typeof dato === 'number'
         ? dato
         : (dato.precio as number) ?? 0
-      console.log(`Precio unitario asiento ${id}: ${precioUnitario}`)
+      console.log(`precio unitario asiento ${id}: ${precioUnitario}`)
 
-      // multiplicamos por la cantidad de ids recibidos
-      const total = precioUnitario * idsPuestos.length
+      const total = precioUnitario * idsPuestos.length * horas
       precioTotal.value = total
-      console.log(`Precio total (${idsPuestos.length} asientos): ${total}`)
+      console.log(` precio total (${idsPuestos.length} asientos × ${horas}h): ${total}`)
       return total
 
     } catch (e: any) {
-      // capturamos errores y los guardamos
       error.value = e.message
-      console.error('Error al obtener precio:', e.message)
+      console.error(' error al obtener precio:', e.message)
       return 0
+
     } finally {
-      // siempre desactivamos el loading
       loading.value = false
     }
   }
 
-  // retornamos el estado y la funcion principal
   return { precioTotal, loading, error, calcularPrecio }
 })
-

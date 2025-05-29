@@ -198,10 +198,25 @@
         </v-btn>
       </v-card-actions>
 
-      <div v-if="reservationError" class="mt-4 pa-4" style="color: red; text-align: center;">
+      <div
+        v-if="termsError"
+        class="mt-2 pa-2"
+        style="color: red; text-align: center;"
+      >
+        {{ termsError }}
+      </div>
+      <div
+        v-if="reservationError"
+        class="mt-4 pa-4"
+        style="color: red; text-align: center;"
+      >
         {{ reservationError }}
       </div>
-      <div v-if="reservationSuccess" class="mt-4 pa-4" style="color: green; text-align: center;">
+      <div
+        v-if="reservationSuccess"
+        class="mt-4 pa-4"
+        style="color: green; text-align: center;"
+      >
         {{ reservationSuccess }}
       </div>
     </v-card>
@@ -231,40 +246,52 @@ const {
 const filtrosStore = useFiltrosStore()
 const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore)
 
-// store de puestos para cargar disponiblidades
+// store de puestos para cargar disponibilidades
 const puestosStore = usePuestosStore()
 const { puestosDisponibles } = storeToRefs(puestosStore)
 
 // store para obtener nombre de sala segun puesto
 const salaAsientoStore = useSalaAsientoStore()
 
-//store encargada de calcular precios
+// store encargada de calcular precios
 const precioStore = useAsientosPreciosStore()
 const { precioTotal } = storeToRefs(precioStore)
 
-// funcion q recalcule el precio total segun la cantidad de asientos seleccionados
-async function recalcPrice() {
-  const ids = selectedPuestos.value.map(p => p.idPuestoTrabajo) // extrae IDs
-  await precioStore.calcularPrecio(ids) // llama al store de precio
+// estado para error de términos y condiciones
+const termsError = ref<string | null>(null)
+
+// calcula las horas completas entre horaInicio y horaFin
+function calcularHoras(): number {
+  const [h1, m1] = horaInicio.value.split(':').map(Number)
+  const [h2, m2] = horaFin.value.split(':').map(Number)
+  const minutos = (h2 * 60 + m2) - (h1 * 60 + m1)
+  return minutos > 0 ? minutos / 60 : 0
 }
 
-// al montar el componente, carga puestos y recalc precio init
+// recálculo del precio unitario × cantidad × horas
+async function recalcPrice() {
+  const ids   = selectedPuestos.value.map(p => p.idPuestoTrabajo)
+  const horas = calcularHoras()
+  await precioStore.calcularPrecio(ids, horas)
+}
+
+// al montar el componente, carga puestos y recalc precio inicial
 onMounted(() => {
-  puestosStore.obtenerPuestosDisponibles()  // trae del backend
-  recalcPrice() // calcula precio recien cargados
+  puestosStore.obtenerPuestosDisponibles()
+  recalcPrice()
 })
 
 // watch para actualizar currentPuestoDisponibilidades cuando cambian los puestos disponibles
 watch(
   puestosDisponibles,
   nuevos => reservasStore.setPuestoDisponibilidades(nuevos),
-  { immediate: true } // lanza tb al inicializar
+  { immediate: true }
 )
 
-// watch para recalcular precio cada vez q cambian los puestos seleccionados
-watch(selectedPuestos, recalcPrice)
+// watch para recalcular precio cada vez que cambian selección u horas
+watch([selectedPuestos, horaInicio, horaFin], recalcPrice)
 
-// formato de total en moneda local para mostrar en boton
+// formato de total en moneda local para mostrar en botón
 const totalFormatted = computed(() =>
   new Intl.NumberFormat('es-ES', {
     style: 'currency',
@@ -272,7 +299,7 @@ const totalFormatted = computed(() =>
   }).format(precioTotal.value)
 )
 
-// computed q cruza selectedPuestos con datos completos para obtener numeroAsiento
+// computed para cruzar selectedPuestos con datos completos y obtener número de asiento
 const selectedSeatDetails = computed(() =>
   selectedPuestos.value.map(sel => {
     const info = currentPuestoDisponibilidades.value.find(
@@ -285,7 +312,7 @@ const selectedSeatDetails = computed(() =>
   })
 )
 
-// caché reactivo para nombres de sala, evita petis repetidos
+// caché reactivo para nombres de sala
 const salaNombres = reactive<Record<number,string>>({})
 watch(
   selectedSeatDetails,
@@ -293,7 +320,7 @@ watch(
     list.forEach(seat => {
       if (!(seat.id in salaNombres)) {
         salaAsientoStore
-          .obtenerSalaNombre(seat.id) // fetch al endpoint
+          .obtenerSalaNombre(seat.id)
           .then(name => salaNombres[seat.id] = name)
           .catch(() => salaNombres[seat.id] = 'Desconocida')
       }
@@ -302,11 +329,11 @@ watch(
   { immediate: true }
 )
 
-// estado y validacion del formulario
+// estado y validación del formulario
 const form = ref(null)
 const formValid = ref(false)
 
-// datos reactivoss del pago
+// datos reactivos del pago
 const payment = reactive({
   cardName: '',
   cardNumber: '',
@@ -314,7 +341,7 @@ const payment = reactive({
   cvv: '',
 })
 
-// datos reactivos de facturacion
+// datos reactivos de facturación
 const billing = reactive({
   addressLine1: '',
   addressLine2: '',
@@ -324,13 +351,13 @@ const billing = reactive({
   country: null,
 })
 
-// lista de paises para select
+// lista de países para select
 const countries = [
   'España', 'México', 'Argentina',
   'Estados Unidos', 'Canadá', 'Chile', 'Colombia',
 ]
 
-// checkbox de terminos
+// checkbox de términos
 const acceptTerms = ref(false)
 
 // reglas sencillas para validar tarjeta y cvv
@@ -343,23 +370,25 @@ const rules = {
     'el cvv debe tener 3 – 4 dígitos',
 }
 
-// funcion q se dispara al enviar form
+// función que se dispara al enviar form
 async function submit() {
-  if (!formValid.value || !acceptTerms.value) return  // sale si no está ok
+  termsError.value = null
+  if (!acceptTerms.value) {
+    termsError.value = 'Debes aceptar los términos y condiciones'
+    return
+  }
+  if (!formValid.value) return
 
   try {
-    await reservasStore.createReservation('reserva desde zona de pago') // llama al store de reservas
-    alert('reserva completada con éxito') // notifica success
-    form.value.reset() // resetea form
+    await reservasStore.createReservation('reserva desde zona de pago')
+    alert('reserva completada con éxito')
+    form.value.reset()
   } catch (error) {
-    console.error('error al hacer la reserva:', error) // log en consola
+    console.error('error al hacer la reserva:', error)
     alert('ocurrió un error al procesar la reserva.')
   }
 }
 </script>
-
-
-
 
 <style scoped lang="scss">
 .flat-card {
