@@ -62,6 +62,11 @@ const router = createRouter({
       name: 'InfoPedidoView',
       component: InfoPedidoView,
     },
+    {
+      path: '/sedes/salas/puestos/pago',
+      name: 'Pago',
+      component: PagoView,
+    },
      {
       path: '/AdminSedes',
       name: 'Admin Sedes',
