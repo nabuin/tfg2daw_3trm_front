@@ -120,7 +120,6 @@
 
 
             .div-block-info_center-text {
-                height: 300px;
                 width: 430px;
                 margin-left: 25px;
                 display: flex;

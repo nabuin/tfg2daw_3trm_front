@@ -400,4 +400,9 @@ h6 {
   }
 }
 
+@media(min-width:1250px){
+  .hamburger-menu{
+    display: none !important;
+  }
+}
 </style>
