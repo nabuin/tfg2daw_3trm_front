@@ -1,11 +1,9 @@
 <template>
   <div class="map-container">
     <div id="mapa"></div>
-    <div class="map-header">
-      Selecciona la sede de coworking donde deseas alquilar tu espacio.
-    </div>
+
     <div class="map-footer">
-      Pasa el ratón por encima de una sede para ver más detalles o confirmar tu reserva.
+      Pulsa con el ratón encima de una sede para ver más detalles o confirmar tu reserva.
     </div>
   </div>
 </template>

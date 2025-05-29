@@ -99,7 +99,7 @@
       </v-card-text>
       <v-card-actions class="justify-end pa-6">
         <v-btn class="flat-button" :disabled="!formValid || isReserving" @click="submit">
-          {{ isReserving ? 'Procesando...' : `Pagar ${totalFormatted}` }}
+          {{ isReserving ? 'Procesando...' : `Pagar: ${totalFormatted}` }}
         </v-btn>
       </v-card-actions>
       <div v-if="termsError" class="mt-2 pa-2" style="color: red; text-align: center;">
