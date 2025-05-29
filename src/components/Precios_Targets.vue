@@ -1,7 +1,7 @@
 <template>
   <div class="tarjetas">
     <div class="tarjetas__item tarjetas__item--izquierda">
-      <img src="../imgs/others/sillaplus.png" alt="Imagen 1" class="tarjetas__imagen" />
+      <img src="../imgs/others/sillaplus.png" alt="Imagen 1" class="tarjetas__imagen" @click="irASedes">
       <h3 class="tarjetas__titulo">Caracteristicas Especiales</h3>
       <p class="tarjetas__texto">En La Oficina ofrecemos asientos especiales con mayor comodidad, ergonomía mejorada,
         luz personalizada y ubicación preferente.
@@ -11,7 +11,7 @@
       </p>
     </div>
 
-    <div class="tarjetas__item tarjetas__item--centro">
+    <div class="tarjetas__item tarjetas__item--centro" @click="irASedes">
       <img src="../imgs/others/silla-de-escritorio.png" alt="Imagen 2" class="tarjetas__imagen" />
       <h3 class="tarjetas__titulo">Salas Privadas</h3>
       <p class="tarjetas__texto">En La Oficina te ofrecemos salas privadas ideales para reuniones, sesiones de equipo o
@@ -21,7 +21,7 @@
       </p>
     </div>
 
-    <div class="tarjetas__item tarjetas__item--derecha">
+    <div class="tarjetas__item tarjetas__item--derecha" @click="irASedes">
       <img src="../imgs/others/silla-de-oficina.png" alt="Imagen 3" class="tarjetas__imagen" />
       <h3 class="tarjetas__titulo">Sala de Trabajo</h3>
       <p class="tarjetas__texto">
@@ -35,12 +35,23 @@
 </template>
 
 
+<script setup>
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const irASedes = () => {
+  router.push('/sedes')
+}
+</script>
+
+
+
 <style lang="scss" scoped>
 .tarjetas {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  cursor: pointer;
   padding: 2rem;
 
   &__item {
@@ -55,6 +66,10 @@
     flex-direction: column;
     justify-content: flex-start;
     padding-bottom: 1rem;
+
+        &:hover {
+      transform: scale(1.02);
+    }
   }
 
   &__item--izquierda {
