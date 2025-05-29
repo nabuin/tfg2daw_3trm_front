@@ -252,8 +252,7 @@ h6 {
   }
 }
 
-/* ------------------ Menú hamburguesa hasta 1250px ------------------ */
-/* ------------------ Menú hamburguesa hasta 1250px ------------------ */
+
 @media (max-width: 1250px) {
   .header-child-2 {
     justify-content: space-between;
@@ -319,10 +318,59 @@ h6 {
       font-weight: 500;
     }
   }
+}
 
-  .header-child-2_right {
-    display: none !important;
+@media(max-width: 1300px) {
+  .header{
+    height: auto;
+  }
+  .header-child-1_left {
+    width: 40% !important;
+  }
+
+  .header-child-1_right {
+    gap: 20px;
+    width: 65%;
+
+    .header-child-1_right_phone {
+      width: auto !important;
+    }
+
+    .header-child-1_right_email {
+      width: auto !important;
+    }
+
+    .header-child-1_right_ubi {
+      width: auto !important;
+    }
   }
 }
 
+@media(max-width: 950px) {
+  .header-child-1 {
+    height: auto !important;
+    flex-direction: column !important;
+
+    .header-child-1_left {
+      width: 100% !important;
+      padding: 5px 0;
+    }
+
+    .header-child-1_right {
+      width: 100% !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 0 5px;
+
+          .header-child-1_right_phone {      padding: 5px 0;
+    }
+
+    .header-child-1_right_email {      padding: 5px 0;
+    }
+
+    .header-child-1_right_ubi {      padding: 5px 0;
+    }
+    }
+  }
+}
 </style>
