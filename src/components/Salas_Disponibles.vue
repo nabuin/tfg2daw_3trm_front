@@ -6,17 +6,18 @@
       No hay salas disponibles para esa búsqueda.
     </div>
     <div v-else class="salas-lista">
-      <button class="sort-button" @click="toggleOrden">
-        Invertir orden ({{ ordenarDesc ? 'Mayor a menor' : 'Menor a mayor' }})
-      </button>
+      <!-- DESPLEGABLE DE ORDENACIÓN -->
+      <div class="sort-container">
+        <label for="orden-select">Ordenar de:</label>
+        <select id="orden-select" v-model="ordenarDesc">
+          <option :value="true">Mayor a Menor</option>
+          <option :value="false">Menor a Mayor</option>
+        </select>
+      </div>
 
-      <router-link
-        v-for="sala in sortedSalas"
-        :key="sala.idSala"
-        class="sala-button"
-        to="/sedes/salas/puestos"
-        @click="seleccionarSala(sala)"
-      >
+      <!-- ITERAMOS SOBRE sortedSalas -->
+      <router-link v-for="sala in sortedSalas" :key="sala.idSala" class="sala-button" to="/sedes/salas/puestos"
+        @click="seleccionarSala(sala)">
         <div class="sala-info">
           <div class="info-left">
             <h3>{{ sala.nombre }} – España</h3>
@@ -60,12 +61,12 @@ export default defineComponent({
     const salaSeleccionadaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
 
-    // --- NUEVO: control de orden, por defecto Mayor a menor ---
+    // Dirección de orden: true = Mayor a Menos, false = Menor a Mayor
     const ordenarDesc = ref(true);
 
-    // Computed que devuelve las salas ordenadas
+    // Computed que devuelve las salas ordenadas sin mutar el store
     const sortedSalas = computed(() => {
-      // crea una copia del array para no trabajar sobre los datos en caliente y el .short los compara
+      // crea una copia del array para no trabajar sobre los datos en
       return [...salasDisponibles.value].sort((a, b) => {
         //hace el calculo para saber cual de los datos es mayor
         const diff = b.puestosDisponibles - a.puestosDisponibles;
@@ -74,13 +75,7 @@ export default defineComponent({
       });
     });
 
-    // Alterna entre orden descendente/ascendente
-    const toggleOrden = () => {
-      ordenarDesc.value = !ordenarDesc.value;
-      console.log('ordenarDesc ahora es', ordenarDesc.value);
-    };
-
-    // funcion para cargar salas
+    // Cargar salas
     const buscarSalas = async () => {
       await obtenerSalasDisponibles(filtrosStore.filtros);
     };
@@ -109,10 +104,8 @@ export default defineComponent({
       loading,
       error,
       seleccionarSala,
-      // --- NUEVO ---
       sortedSalas,
-      ordenarDesc,
-      toggleOrden
+      ordenarDesc
     };
   },
 });
@@ -145,19 +138,21 @@ export default defineComponent({
   gap: 1rem;
 }
 
-/* ESTILOS DEL BOTÓN DE ORDENACIÓN */
-.sort-button {
-  margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  background: #007bff;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-end;
 }
-.sort-button:hover {
-  background: #0056b3;
+
+.sort-container label {
+  font-size: 0.95rem;
+}
+
+.sort-container select {
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
 .sala-button {
@@ -169,14 +164,14 @@ export default defineComponent({
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0 2px 6px rgba(0, 0, 0, 0.1);
   min-height: 180px;
 }
 
 .sala-button:hover {
   transform: scale(1.03);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .sala-info {
@@ -222,7 +217,7 @@ export default defineComponent({
   padding: 0.75rem 1rem;
   border-radius: 6px;
   text-align: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
