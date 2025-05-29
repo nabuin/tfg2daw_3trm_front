@@ -561,6 +561,11 @@ export default defineComponent({
   cursor: not-allowed;
 }
 
-
-
+@media(max-width: 675px) {
+  .tables-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
 </style>
