@@ -15,6 +15,7 @@ import AdminSedesView from '../views/AdminViews/AdminSedesView.vue';
 import AdminUsersView from '@/views/AdminViews/AdminUsersView.vue';
 import AdminSalasView from '@/views/AdminViews/AdminSalasView.vue';
 import AdminReservasView from '@/views/AdminViews/AdminReservasView.vue';
+import GraficoView from '@/views/GraficoView.vue'
 
 
 
@@ -96,6 +97,11 @@ const router = createRouter({
       path: '/servicios',
       name: 'Servicios',
       component: ServiciosView,
+    },
+    {
+      path: '/grafico',
+      name: 'GraficoView',
+      component: GraficoView,
     },
     {
       path: '/:pathMatch(.*)*',
