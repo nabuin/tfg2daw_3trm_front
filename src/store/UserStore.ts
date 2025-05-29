@@ -86,8 +86,11 @@ export const useUserStore = defineStore("user", {
       }
     }
 ,
-
-
+    // funcion para cerrar sesion
+  logout() {
+      localStorage.removeItem("authToken"); // borrar el token
+      this.user = null; // poner el array del usuario a null
+    },
 
 
 

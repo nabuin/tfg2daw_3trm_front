@@ -2,14 +2,20 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { useUserStore } from "../store/UserStore";
 import { useReservationStore } from "../store/usuarioReservasStore";
+import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
 const reservationStore = useReservationStore(); // necesaria para tener las reservas del usuario
+const router = useRouter(); // para el redirect a login
 const errorMessage = ref("");
 const successMessage = ref("");
 const currentPassword = ref("");
 const newPassword = ref("");
 const validationErrorMessage = ref(""); // errores
+const showLogoutConfirm = ref(false);
+const mostrarQR = ref(false);
+const currentQrCodeUrl = ref<string | null>(null);
+const qrErrorMessage = ref<string | null>(null);
 
 // limite de chars de cada campo acorde a lo que admite la bbdd
 const CHAR_LIMITS = {
@@ -25,6 +31,53 @@ const InfoUsuarioEditable = ref({
     apellidos: "",
     email: "",
 });
+
+const obtenerQRReservaFetch = async (reservationId: number) => {
+    // limpia mensajes de error anteriores
+    qrErrorMessage.value = null
+    // limpia url de qr anterior
+    currentQrCodeUrl.value = null
+    // obtiene token de auth
+    const token = localStorage.getItem("authToken")
+
+    // si no hay token muestra error
+    if (!token) {
+        qrErrorMessage.value = "no hay token de autenticación por favor inicie sesión"
+        return
+    }
+
+    try {
+        // pide imagen del qr al store
+        const qrImagen = await reservationStore.fetchQrCode(reservationId, token)
+        if (qrImagen) {
+            // crea url para mostrar imagen
+            currentQrCodeUrl.value = URL.createObjectURL(qrImagen)
+            // abre modal con el qr
+            mostrarQR.value = true
+        } else {
+            // si no llega imagen muestra error
+            qrErrorMessage.value = "no se pudo obtener el código qr"
+        }
+    } catch (error: any) {
+        // en caso de error al fetch muestra mensaje
+        console.error("error al obtener el qr en el componente", error)
+        qrErrorMessage.value = error.message || "error al obtener el código qr"
+    }
+}
+
+const closeQrModal = () => {
+    // cierra modal de qr
+    mostrarQR.value = false
+    // si hay url libera el objeto
+    if (currentQrCodeUrl.value) {
+        URL.revokeObjectURL(currentQrCodeUrl.value)
+        currentQrCodeUrl.value = null
+    }
+    // limpia mensajes de error
+    qrErrorMessage.value = null
+}
+
+
 
 // seccion de reservas del usuario
 
@@ -221,11 +274,7 @@ const ComenzarCambioInfo = () => {
     validationErrorMessage.value = "";
 };
 
-// validar el formato del email
-const esFormatoEmail = (email: string): boolean => { 
-  const formatoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // revisa que tenga @ intercalado y acabe con un dominio (string).(string)
-  return formatoEmail.test(email); // el .test comprueba que se cumple el formato de email, si no es, devolverá false y abajo en el if condicional parará el proceso dde cambio
-};
+
 
 const GuadarUserInfo = async () => {
   validationErrorMessage.value = "";
@@ -244,11 +293,7 @@ const GuadarUserInfo = async () => {
     validationErrorMessage.value = `El correo electrónico no puede exceder los ${CHAR_LIMITS.email} caracteres.`;
     return;
   }
-  // new filter
-  if (!esFormatoEmail(InfoUsuarioEditable.value.email)) {
-    validationErrorMessage.value = "El formato del email no es válido.";
-    return;
-  }
+
   const token = localStorage.getItem("authToken");
   const idUsuario = userStore.user?.idUsuario;
 
@@ -284,6 +329,66 @@ const cancelarEditar = () => {
   validationErrorMessage.value = "";
   errorMessage.value = ""; // reset mensjaes de error
   successMessage.value = ""; // reset mensajes de éxito
+};
+
+// abrir popup confirmar logout
+const openLogoutConfirm = () => {
+  showLogoutConfirm.value = true;
+};
+
+// cancelar el logout con el botonh
+const cancelLogout = () => {
+  showLogoutConfirm.value = false;
+};
+
+// confirmar y ejecutar logout
+const confirmLogout = () => {
+  userStore.logout();
+  showLogoutConfirm.value = false;
+  router.push('/login'); // mover a login una vez cerrada sesion
+};
+
+
+// Función para verificar si se puede cancelar la reserva
+const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
+  try {
+    console.log("Verificando reserva:", rangoHorarioReserva);
+    
+    let fechaFin: Date; // fecha y hora de fin que se usará para comparar
+    
+    // Verificar si el formato es "DD/MM/YYYY HH:mm - HH:mm" (mismo día)
+    if (rangoHorarioReserva.includes(" - ") && !rangoHorarioReserva.split(" - ")[1].includes("/")) {
+      // comprobar si es solo un dia y no varios en la reserva, tipo: 24/05/2025 08:00 - 09:00
+      const [fechaHoraInicio, horaFin] = rangoHorarioReserva.split(" - "); // se separa el dia y fecha de inicio, y la hora de fin, fechaHoraInicio = 24/05/2025 08:00 y horaFin = 09:00
+      const [datePart] = fechaHoraInicio.split(" "); // parte de la fecha (antes del espacio) = 24/05/2025
+      const [day, month, year] = datePart.split("/").map(Number);
+      const [hour, minute] = horaFin.split(":").map(Number);
+
+
+      fechaFin = new Date(year, month - 1, day, hour, minute);
+    } else {
+      // Formato original: "04/06/2025 08:00 - 18/06/2025 19:00"
+      const [, endStr] = rangoHorarioReserva.split(" - ");
+      const [datePart, timePart] = endStr.split(" ");
+      const [day, month, year] = datePart.split("/").map(Number);
+      const [hour, minute] = timePart.split(":").map(Number);
+      
+      fechaFin = new Date(year, month - 1, day, hour, minute);
+    }
+    
+    // Crear la fecha/hora actual
+    const ahora = new Date();
+    
+    console.log("Fecha fin de reserva:", fechaFin);
+    console.log("Fecha actual:", ahora);
+    console.log("¿Se puede cancelar?", fechaFin > ahora);
+    
+    // Verificar si la fecha de fin es mayor a la fecha actual
+    return fechaFin > ahora;
+  } catch (error) {
+    console.error("Error al verificar si se puede cancelar la reserva:", error);
+    return false; // En caso de error, no permitir cancelación por seguridad
+  }
 };
 </script>
 
@@ -330,10 +435,7 @@ const cancelarEditar = () => {
                 <label for="editApellidos">Apellidos:</label>
                 <input type="text" id="editApellidos" v-model="InfoUsuarioEditable.apellidos" />
               </div>
-              <div class="form-group">
-                <label for="editEmail">Email:</label>
-                <input type="email" id="editEmail" v-model="InfoUsuarioEditable.email" />
-              </div>
+              <p><strong>Email:</strong> {{ userStore.user?.email }}</p> 
               <p><strong>Rol:</strong> {{ userRole }}</p>
               <p><strong>Fecha Registro:</strong> {{ darFormatoFecha(userStore.user?.fechaRegistro ?? '') }}
               </p>
@@ -363,6 +465,11 @@ const cancelarEditar = () => {
                 <button @click="changePassword" class="main-action-button">Cambiar Contraseña</button>
               </div>
             </div>
+
+            <div class="button-container logout-button-container">
+              <button @click="openLogoutConfirm" class="logout-button">Cerrar Sesión</button>
+            </div>
+
           </div>
           <div v-else-if="!errorMessage" class="loading-message">
             <p>Cargando información del usuario...</p>
@@ -412,12 +519,27 @@ const cancelarEditar = () => {
                 <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
-                  <button
-                    @click="confirmarCancelacion(reservation.idReserva)"
-                    class="cancel-reservation-button"
+              <div class="button-container">
+                  <div
+                      class="button-container"
+                      v-if="puedeSerCancelada(reservation.rangoHorarioReserva)"
                   >
-                    Cancelar
-                  </button>
+                      <button
+                          @click="confirmarCancelacion(reservation.idReserva)"
+                          class="cancel-reservation-button"
+                      >
+                          Cancelar
+                      </button>
+                  </div>
+                  <div class="button-container">
+                      <button
+                          @click="obtenerQRReservaFetch(reservation.idReserva)"
+                          class="view-qr-button"
+                      >
+                          Ver QR
+                      </button>
+                  </div>
+              </div>
                 </div>
               </div>
             </div>
@@ -425,10 +547,83 @@ const cancelarEditar = () => {
         </div>
       </div>
     </div>
+
+    <div v-if="showLogoutConfirm" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Confirmar Cierre de Sesión</h3>
+        <p>¿Estás seguro de que quieres cerrar tu sesión?</p>
+        <div class="modal-actions">
+          <button @click="confirmLogout" class="modal-button confirm">Sí, Cerrar Sesión</button>
+          <button @click="cancelLogout" class="modal-button cancel">No, Permanecer</button>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+  <div v-if="mostrarQR" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Código QR de tu Reserva</h3>
+        <div v-if="qrErrorMessage" class="error-message">
+            <p>{{ qrErrorMessage }}</p>
+        </div>
+        <div v-else-if="currentQrCodeUrl" class="qr-code-display">
+            <img :src="currentQrCodeUrl" alt="Código QR de la reserva" class="qr-image" />
+            <p>Codigo QR necesario para acceder</p>
+        </div>
+        <div v-else>
+            <p>Cargando código QR...</p>
+        </div>
+        <div class="modal-actions">
+            <button @click="closeQrModal" class="modal-button confirm">Cerrar</button>
+        </div>
+    </div>
+</div>
 </template>
 
 <style scoped lang="scss">
+/* Estilos generales para el contenedor de botones */
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.cancel-reservation-button,
+.view-qr-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-reservation-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.cancel-reservation-button:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.view-qr-button {
+    background-color: #007bff;
+    color: white; 
+}
+
+.view-qr-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
 
 
 .cancel-reservation-button {
@@ -700,6 +895,8 @@ button {
   height: 100%;
   display: flex;
   flex-direction: column;
+  max-height: 700px;
+  overflow-y: auto;
 }
 
 .user-reservations__title {
@@ -760,7 +957,7 @@ button {
 }
 
 .reservation-card__title {
-  font-size: 1.20px; 
+  font-size: 1.20px;
   color: black;
   margin-bottom: 8px;
   text-align: center;
@@ -827,4 +1024,91 @@ button {
     }
   }
 }
+
+.logout-button-container {
+  margin-top: 25px;
+}
+
+.logout-button {
+  background-color: red;
+  color: white;
+  max-width: 300px;
+  width: 100%;
+
+  &:hover {
+    background-color: #c82333;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 22px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.modal-content p {
+  margin: 15px 0 25px 0;
+  color: #555;
+  font-size: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.modal-button.confirm {
+  background-color: red;
+  color: white;
+
+  &:hover {
+    background-color: #c82333;
+  }
+}
+
+.modal-button.cancel {
+  background-color: #6c757d;
+  color: white;
+
+  &:hover {
+    background-color: #5a6268;
+  }
+}
+
+
 </style>

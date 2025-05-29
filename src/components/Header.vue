@@ -47,13 +47,13 @@
           <router-link to="/precios" @click="toggleMenu">Precios</router-link>
           <router-link to="/servicios" @click="toggleMenu">Servicios</router-link>
           <a href="/home#form" @click="toggleMenu">Más Info</a>
-          <router-link to="/login" @click="toggleMenu">Login</router-link>
+          <router-link :to="userLink" @click="toggleMenu">Login</router-link>
         </div>
       </div>
 
       <!-- ICONO LOGIN SOLO EN >1250px -->
       <div class="header-child-2_right">
-        <router-link to="/login">
+        <router-link :to="userLink">
           <img src="../imgs/icons/User_Logo.svg" alt="User logo" />
         </router-link>
       </div>
@@ -62,13 +62,42 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useUserStore } from '../store/userStore'
+
 const menuOpen = ref(false)
+const userStore = useUserStore()
+
+// variable reactiva para saber si el usuario esta autenticado
+const isAuthenticated = ref(false)
+
+// funcion para alternar el estado del menu
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
 }
-</script>
 
+// funcion para verificar si el usuario esta autenticado
+const checkAuth = () => {
+  const authToken = localStorage.getItem('authToken') // obtiene el token del almacenamiento local
+  isAuthenticated.value = !!authToken && !!userStore.user // verifica si hay token y usuario en el store
+}
+
+// ruta dinamica segun si el usuario esta autenticado o no
+const userLink = computed(() => {
+  return isAuthenticated.value ? '/userinfo' : '/login'
+})
+
+// al montar el componente se verifica la autenticacion
+onMounted(() => {
+  checkAuth()
+})
+
+// observa los cambios en el usuario del store y verifica la autenticacion cada vez que cambia
+watch(() => userStore.user, () => {
+  checkAuth()
+}, { immediate: true })
+
+</script>
 <style lang="scss" scoped>
 h6 {
   color: white;

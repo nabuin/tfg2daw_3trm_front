@@ -10,6 +10,12 @@ import  UserInfoView from '../views/UserInfoView.vue';
 import  PagoView from '../views/PagoView.vue';
 import PreciosView from '../views/PreciosView.vue'
 import ServiciosView from '../views/ServiciosView.vue'
+import InfoPedidoView from '@/views/InfoPedidoView.vue';
+import AdminSedesView from '../views/AdminViews/AdminSedesView.vue';
+import AdminUsersView from '@/views/AdminViews/AdminUsersView.vue';
+import AdminSalasView from '@/views/AdminViews/AdminSalasView.vue';
+import AdminReservasView from '@/views/AdminViews/AdminReservasView.vue';
+
 
 
 const router = createRouter({
@@ -50,10 +56,31 @@ const router = createRouter({
       name: 'UserInfo',
       component: UserInfoView,
     },
+
     {
-      path: '/sedes/salas/puestos/pago',
-      name: 'Pago',
-      component: PagoView,
+      path: '/infopedido',
+      name: 'InfoPedidoView',
+      component: InfoPedidoView,
+    },
+     {
+      path: '/AdminSedes',
+      name: 'Admin Sedes',
+      component: AdminSedesView,
+    },
+      {
+      path: '/adminusers',
+      name: 'Admin users',
+      component: AdminUsersView,
+    },
+      {
+      path: '/adminsalas',
+      name: 'Admin salas',
+      component: AdminSalasView,
+    },
+     {
+      path: '/adminreservas',
+      name: 'Admin reservas',
+      component: AdminReservasView,
     },
     {
       path: '/precios',
