@@ -8,6 +8,9 @@ import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import  UserInfoView from '../views/UserInfoView.vue';
 import  PagoView from '../views/PagoView.vue';
+import PreciosView from '../views/PreciosView.vue'
+import ServiciosView from '../views/ServiciosView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +54,16 @@ const router = createRouter({
       path: '/sedes/salas/puestos/pago',
       name: 'Pago',
       component: PagoView,
+    },
+    {
+      path: '/precios',
+      name: 'Precios',
+      component: PreciosView,
+    },
+    {
+      path: '/servicios',
+      name: 'Servicios',
+      component: ServiciosView,
     },
     {
       path: '/:pathMatch(.*)*',
