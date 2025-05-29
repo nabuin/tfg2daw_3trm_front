@@ -4,136 +4,53 @@
       <v-card-text>
         <v-form ref="form" v-model="formValid" lazy-validation>
           <v-row no-gutters>
-            <!-- IZQUIERDA: Datos de pago -->
             <v-col cols="12" md="6" class="pa-6 section-left">
               <h6 class="section-title">Datos de pago</h6>
-
-              <v-text-field
-                class="flat-field"
-                v-model="payment.cardName"
-                label="Nombre del titular"
-                outlined
-                dense
-                hide-details="auto"
-              />
-
-              <v-text-field
-                class="flat-field card-number-field unique"
-                v-model="payment.cardNumber"
-                :rules="[rules.cardNumberDigits]"
-                label="Número de tarjeta"
-                outlined
-                dense
-                hide-details="auto"
-                maxlength="19"
-                placeholder="1234 5678 9012 3456"
-              />
-
+              <v-text-field class="flat-field" v-model="payment.cardName" label="Nombre del titular" outlined dense
+                hide-details="auto" />
+              <v-text-field class="flat-field card-number-field unique" v-model="payment.cardNumber"
+                :rules="[rules.cardNumberDigits]" label="Número de tarjeta" outlined dense hide-details="auto"
+                maxlength="19" placeholder="1234 5678 9012 3456" />
               <v-row class="mt-4">
                 <v-col cols="6">
-                  <v-text-field
-                    class="flat-field"
-                    v-model="payment.expiry"
-                    label="MM/AA"
-                    outlined
-                    dense
-                    hide-details="auto"
-                    maxlength="5"
-                    placeholder="05/28"
-                  />
+                  <v-text-field class="flat-field" v-model="payment.expiry" label="MM/AA" outlined dense
+                    hide-details="auto" maxlength="5" placeholder="05/28" />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field
-                    class="flat-field"
-                    v-model="payment.cvv"
-                    :rules="[rules.cvvDigits]"
-                    label="CVV"
-                    outlined
-                    dense
-                    hide-details="auto"
-                    maxlength="4"
-                  />
+                  <v-text-field class="flat-field" v-model="payment.cvv" :rules="[rules.cvvDigits]" label="CVV" outlined
+                    dense hide-details="auto" maxlength="4" />
                 </v-col>
               </v-row>
             </v-col>
-
-            <!-- DERECHA: Dirección de facturación -->
             <v-col cols="12" md="6" class="pa-6 section-right">
               <h6 class="section-title">Dirección de facturación</h6>
-
-              <v-text-field
-                class="flat-field"
-                v-model="billing.addressLine1"
-                label="Dirección"
-                outlined
-                dense
-                hide-details="auto"
-              />
-
-              <v-text-field
-                class="flat-field mt-4"
-                v-model="billing.addressLine2"
-                label="Apto / Piso (opcional)"
-                outlined
-                dense
-                hide-details="auto"
-              />
-
+              <v-text-field class="flat-field" v-model="billing.addressLine1" label="Dirección" outlined dense
+                hide-details="auto" />
+              <v-text-field class="flat-field mt-4" v-model="billing.addressLine2" label="Apto / Piso (opcional)"
+                outlined dense hide-details="auto" />
               <v-row class="mt-4">
                 <v-col cols="6">
-                  <v-text-field
-                    class="flat-field"
-                    v-model="billing.city"
-                    label="Ciudad"
-                    outlined
-                    dense
-                    hide-details="auto"
-                  />
+                  <v-text-field class="flat-field" v-model="billing.city" label="Ciudad" outlined dense
+                    hide-details="auto" />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field
-                    class="flat-field"
-                    v-model="billing.state"
-                    label="Provincia / Región"
-                    outlined
-                    dense
-                    hide-details="auto"
-                  />
+                  <v-text-field class="flat-field" v-model="billing.state" label="Provincia / Región" outlined dense
+                    hide-details="auto" />
                 </v-col>
               </v-row>
-
               <v-row class="mt-4">
                 <v-col cols="6">
-                  <v-text-field
-                    class="flat-field"
-                    v-model="billing.zip"
-                    label="Código postal"
-                    outlined
-                    dense
-                    hide-details="auto"
-                  />
+                  <v-text-field class="flat-field" v-model="billing.zip" label="Código postal" outlined dense
+                    hide-details="auto" />
                 </v-col>
                 <v-col cols="6">
-                  <v-select
-                    class="flat-field"
-                    v-model="billing.country"
-                    :items="countries"
-                    label="País"
-                    outlined
-                    dense
-                    hide-details="auto"
-                  />
+                  <v-select class="flat-field" v-model="billing.country" :items="countries" label="País" outlined dense
+                    hide-details="auto" />
                 </v-col>
               </v-row>
-
-              <!-- Checkbox nativo -->
               <div class="mt-6">
                 <label class="flat-checkbox-label">
-                  <input
-                    type="checkbox"
-                    v-model="acceptTerms"
-                    class="flat-checkbox-input"
-                  />
+                  <input type="checkbox" v-model="acceptTerms" class="flat-checkbox-input" />
                   <span class="flat-checkbox-box"></span>
                   <span class="flat-checkbox-text">
                     Acepto los términos y condiciones
@@ -143,12 +60,9 @@
             </v-col>
           </v-row>
         </v-form>
-
         <v-divider class="my-6"></v-divider>
-
         <v-card class="mx-6 mb-6 pa-4" elevation="2" color="#f9f9f9" rounded="lg">
           <h6 class="section-title mb-4">📝 Detalles de la reserva</h6>
-
           <v-row dense>
             <v-col cols="12" sm="6">
               <p><strong>📅 Fecha de inicio:</strong><br>{{ fechaInicio }}</p>
@@ -157,7 +71,6 @@
               <p><strong>📅 Fecha de fin:</strong><br>{{ fechaFin }}</p>
             </v-col>
           </v-row>
-
           <v-row dense>
             <v-col cols="12" sm="6">
               <p><strong>⏰ Hora de inicio:</strong><br>{{ horaInicio }}</p>
@@ -166,7 +79,6 @@
               <p><strong>⏰ Hora de fin:</strong><br>{{ horaFin }}</p>
             </v-col>
           </v-row>
-
           <v-row dense>
             <v-col cols="12" sm="6">
               <p><strong>🏢 Sala:</strong><br>
@@ -185,46 +97,43 @@
           </v-row>
         </v-card>
       </v-card-text>
-
       <v-card-actions class="justify-end pa-6">
-        <v-btn
-          class="flat-button"
-          :disabled="!formValid || isReserving"
-          @click="submit"
-        >
-          {{ isReserving
-             ? 'Procesando...'
-             : `Pagar ${totalFormatted}` }}
+        <v-btn class="flat-button" :disabled="!formValid || isReserving" @click="submit">
+          {{ isReserving ? 'Procesando...' : `Pagar ${totalFormatted}` }}
         </v-btn>
       </v-card-actions>
-
-      <div
-        v-if="termsError"
-        class="mt-2 pa-2"
-        style="color: red; text-align: center;"
-      >
+      <div v-if="termsError" class="mt-2 pa-2" style="color: red; text-align: center;">
         {{ termsError }}
       </div>
-      <div
-        v-if="reservationError"
-        class="mt-4 pa-4"
-        style="color: red; text-align: center;"
-      >
+      <div v-if="reservationError" class="mt-4 pa-4" style="color: red; text-align: center;">
         {{ reservationError }}
       </div>
-      <div
-        v-if="reservationSuccess"
-        class="mt-4 pa-4"
-        style="color: green; text-align: center;"
-      >
+      <div v-if="reservationSuccess" class="mt-4 pa-4" style="color: green; text-align: center;">
         {{ reservationSuccess }}
       </div>
     </v-card>
+
+    <v-dialog v-model="showSuccessDialog" max-width="420">
+      <v-card class="popup-card text-center">
+        <v-card-title class="popup-title">
+          ¡Reserva completada!
+        </v-card-title>
+        <v-card-text class="popup-text">
+          Tu reserva ha sido procesada con éxito. Te esperamos en tu espacio reservado.
+        </v-card-text>
+        <v-card-actions class="justify-center mt-4">
+          <v-btn class="popup-button" @click="router.push('/userinfo')">
+            Ir a mis reservas
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useReservasStore } from '../store/reservasStore'
 import { useFiltrosStore } from '../store/filtrosStore'
@@ -232,35 +141,38 @@ import { usePuestosStore } from '../store/asientosStore'
 import { useSalaAsientoStore } from '../store/salaAsientoStore'
 import { useAsientosPreciosStore } from '../store/asientosPreciosStore'
 
-// inicializa el store de reservas
-const reservasStore = useReservasStore()
-const {
-  selectedPuestos,
-  isReserving,
-  reservationError,
-  reservationSuccess,
-  currentPuestoDisponibilidades
-} = storeToRefs(reservasStore)
+const router = useRouter()
 
-// store de filtros para mostrar fechas y horas
+const reservasStore = useReservasStore()
+const { selectedPuestos, isReserving, reservationError, reservationSuccess, currentPuestoDisponibilidades } = storeToRefs(reservasStore)
+
 const filtrosStore = useFiltrosStore()
 const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore)
 
-// store de puestos para cargar disponibilidades
 const puestosStore = usePuestosStore()
 const { puestosDisponibles } = storeToRefs(puestosStore)
 
-// store para obtener nombre de sala segun puesto
 const salaAsientoStore = useSalaAsientoStore()
 
-// store encargada de calcular precios
 const precioStore = useAsientosPreciosStore()
 const { precioTotal } = storeToRefs(precioStore)
 
-// estado para error de términos y condiciones
 const termsError = ref<string | null>(null)
+const form = ref(null)
+const formValid = ref(false)
+const showSuccessDialog = ref(false)
 
-// calcula las horas completas entre horaInicio y horaFin
+const payment = reactive({ cardName: '', cardNumber: '', expiry: '', cvv: '' })
+const billing = reactive({ addressLine1: '', addressLine2: '', city: '', state: '', zip: '', country: null })
+
+const countries = ['España', 'México', 'Argentina', 'Estados Unidos', 'Canadá', 'Chile', 'Colombia']
+const acceptTerms = ref(false)
+
+const rules = {
+  cardNumberDigits: (v: string) => (v && v.replace(/\s/g, '').length === 16) || 'la tarjeta debe tener 16 dígitos',
+  cvvDigits: (v: string) => (v && /^\d{3,4}$/.test(v)) || 'el cvv debe tener 3 – 4 dígitos',
+}
+
 function calcularHoras(): number {
   const [h1, m1] = horaInicio.value.split(':').map(Number)
   const [h2, m2] = horaFin.value.split(':').map(Number)
@@ -268,109 +180,39 @@ function calcularHoras(): number {
   return minutos > 0 ? minutos / 60 : 0
 }
 
-// recálculo del precio unitario × cantidad × horas
 async function recalcPrice() {
-  const ids   = selectedPuestos.value.map(p => p.idPuestoTrabajo)
+  const ids = selectedPuestos.value.map(p => p.idPuestoTrabajo)
   const horas = calcularHoras()
   await precioStore.calcularPrecio(ids, horas)
 }
 
-// al montar el componente, carga puestos y recalc precio inicial
 onMounted(() => {
   puestosStore.obtenerPuestosDisponibles()
   recalcPrice()
 })
 
-// watch para actualizar currentPuestoDisponibilidades cuando cambian los puestos disponibles
-watch(
-  puestosDisponibles,
-  nuevos => reservasStore.setPuestoDisponibilidades(nuevos),
-  { immediate: true }
-)
-
-// watch para recalcular precio cada vez que cambian selección u horas
+watch(puestosDisponibles, nuevos => reservasStore.setPuestoDisponibilidades(nuevos), { immediate: true })
 watch([selectedPuestos, horaInicio, horaFin], recalcPrice)
 
-// formato de total en moneda local para mostrar en botón
-const totalFormatted = computed(() =>
-  new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR'
-  }).format(precioTotal.value)
-)
+const totalFormatted = computed(() => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioTotal.value))
 
-// computed para cruzar selectedPuestos con datos completos y obtener número de asiento
-const selectedSeatDetails = computed(() =>
-  selectedPuestos.value.map(sel => {
-    const info = currentPuestoDisponibilidades.value.find(
-      p => p.idPuestoTrabajo === sel.idPuestoTrabajo
-    )
-    return {
-      id: sel.idPuestoTrabajo,
-      numeroAsiento: info?.numeroAsiento || `Puesto ${sel.idPuestoTrabajo}`
+const selectedSeatDetails = computed(() => selectedPuestos.value.map(sel => {
+  const info = currentPuestoDisponibilidades.value.find(p => p.idPuestoTrabajo === sel.idPuestoTrabajo)
+  return {
+    id: sel.idPuestoTrabajo,
+    numeroAsiento: info?.numeroAsiento || `Puesto ${sel.idPuestoTrabajo}`
+  }
+}))
+
+const salaNombres = reactive<Record<number, string>>({})
+watch(selectedSeatDetails, list => {
+  list.forEach(seat => {
+    if (!(seat.id in salaNombres)) {
+      salaAsientoStore.obtenerSalaNombre(seat.id).then(name => salaNombres[seat.id] = name).catch(() => salaNombres[seat.id] = 'Desconocida')
     }
   })
-)
+}, { immediate: true })
 
-// caché reactivo para nombres de sala
-const salaNombres = reactive<Record<number,string>>({})
-watch(
-  selectedSeatDetails,
-  list => {
-    list.forEach(seat => {
-      if (!(seat.id in salaNombres)) {
-        salaAsientoStore
-          .obtenerSalaNombre(seat.id)
-          .then(name => salaNombres[seat.id] = name)
-          .catch(() => salaNombres[seat.id] = 'Desconocida')
-      }
-    })
-  },
-  { immediate: true }
-)
-
-// estado y validación del formulario
-const form = ref(null)
-const formValid = ref(false)
-
-// datos reactivos del pago
-const payment = reactive({
-  cardName: '',
-  cardNumber: '',
-  expiry: '',
-  cvv: '',
-})
-
-// datos reactivos de facturación
-const billing = reactive({
-  addressLine1: '',
-  addressLine2: '',
-  city: '',
-  state: '',
-  zip: '',
-  country: null,
-})
-
-// lista de países para select
-const countries = [
-  'España', 'México', 'Argentina',
-  'Estados Unidos', 'Canadá', 'Chile', 'Colombia',
-]
-
-// checkbox de términos
-const acceptTerms = ref(false)
-
-// reglas sencillas para validar tarjeta y cvv
-const rules = {
-  cardNumberDigits: (v: string) =>
-    (v && v.replace(/\s/g, '').length === 16) ||
-    'la tarjeta debe tener 16 dígitos',
-  cvvDigits: (v: string) =>
-    (v && /^\d{3,4}$/.test(v)) ||
-    'el cvv debe tener 3 – 4 dígitos',
-}
-
-// función que se dispara al enviar form
 async function submit() {
   termsError.value = null
   if (!acceptTerms.value) {
@@ -378,10 +220,9 @@ async function submit() {
     return
   }
   if (!formValid.value) return
-
   try {
     await reservasStore.createReservation('reserva desde zona de pago')
-    alert('reserva completada con éxito')
+    showSuccessDialog.value = true
     form.value.reset()
   } catch (error) {
     console.error('error al hacer la reserva:', error)
@@ -389,6 +230,7 @@ async function submit() {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 .flat-card {
@@ -427,6 +269,7 @@ async function submit() {
       background-color: #f9f9f9;
       border-radius: 8px;
     }
+
     .v-field__outline {
       border-color: transparent;
     }
@@ -465,7 +308,7 @@ async function submit() {
   position: relative;
 }
 
-.flat-checkbox-input:checked + .flat-checkbox-box {
+.flat-checkbox-input:checked+.flat-checkbox-box {
   background-color: #1976d2;
   border-color: #1976d2;
 }
@@ -483,7 +326,7 @@ async function submit() {
   transform: rotate(45deg);
 }
 
-.flat-checkbox-input:checked + .flat-checkbox-box::after {
+.flat-checkbox-input:checked+.flat-checkbox-box::after {
   display: block;
 }
 
@@ -498,6 +341,7 @@ async function submit() {
   padding: 0.75rem 2rem;
   box-shadow: none;
   transition: box-shadow 0.2s ease;
+
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
@@ -507,6 +351,7 @@ async function submit() {
   .rectangle-card {
     width: 100%;
   }
+
   .section-left {
     border-right: none;
     border-bottom: 1px solid #e0e0e0;
@@ -515,5 +360,35 @@ async function submit() {
 
 .unique {
   padding-top: 25px;
+}
+
+.popup-card {
+  border-radius: 16px;
+  padding: 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.popup-title {
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.popup-text {
+  font-size: 1rem;
+  color: #424242;
+  margin-top: 0.5rem;
+}
+
+.popup-button {
+  background-color: #43a047;
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  padding: 0;
+  transition: background-color 0.3s ease;
 }
 </style>
