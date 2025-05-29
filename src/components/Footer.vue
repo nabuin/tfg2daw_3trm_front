@@ -57,7 +57,7 @@
 
   .footer-child-2 {
     width: 70%;
-    height: 100%;
+    height: 0 !important;
     position: relative;
 
     .footer-child-2_social {
