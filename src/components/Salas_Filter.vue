@@ -64,7 +64,12 @@
       </form>
     </div>
 
-    <!-- Mensaje de “Actualizado” situado *fuera* de .form-width para que aparezca debajo -->
+    <!-- Mensaje de error -->
+    <div v-if="mensajeError" class="mensaje error">
+      {{ mensajeError }}
+    </div>
+
+    <!-- Mensaje de “Actualizado” -->
     <div v-if="showUpdated" class="mensaje actualizado">
       Actualizado
     </div>
@@ -81,24 +86,15 @@ export default defineComponent({
     const salasStore   = useSalasStore();
     const filtrosStore = useFiltrosStore();
 
-    const hoy    = new Date();
-    const manana = new Date(hoy);
-    manana.setDate(manana.getDate() + 1);
-
     const pad = (n: number) => String(n).padStart(2, '0');
     const toDateStr = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-    const mananaStr   = toDateStr(manana);
-    const fechaMinima = mananaStr;
-
-    const fechaInicio = ref(mananaStr);
-    const fechaFin    = ref(mananaStr);
 
     const esFinDeSemana = (dateStr: string) => {
       const day = new Date(dateStr).getDay();
       return day === 6 || day === 0;
     };
+
     const getSiguienteHabil = (dateStr: string): string => {
       const d = new Date(dateStr);
       while (d.getDay() === 6 || d.getDay() === 0) {
@@ -106,6 +102,16 @@ export default defineComponent({
       }
       return toDateStr(d);
     };
+
+    const hoy = new Date();
+    const primerDiaDisponible = getSiguienteHabil(
+      toDateStr(new Date(hoy.setDate(hoy.getDate() + 1)))
+    );
+
+    const fechaMinima = primerDiaDisponible;
+    const fechaInicio = ref(primerDiaDisponible);
+    const fechaFin    = ref(primerDiaDisponible);
+    const mensajeError = ref('');
 
     const horas = ref<string[]>([]);
     const generarHoras = () => {
@@ -131,7 +137,8 @@ export default defineComponent({
 
     watch(fechaInicio, (nv) => {
       if (esFinDeSemana(nv)) {
-        alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
+        mensajeError.value = 'No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.';
+        setTimeout(() => (mensajeError.value = ''), 4000);
         fechaInicio.value = getSiguienteHabil(nv);
       }
       if (fechaFin.value < fechaInicio.value) {
@@ -141,7 +148,8 @@ export default defineComponent({
 
     watch(fechaFin, (nv) => {
       if (esFinDeSemana(nv)) {
-        alert('No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.');
+        mensajeError.value = 'No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.';
+        setTimeout(() => (mensajeError.value = ''), 4000);
         fechaFin.value = getSiguienteHabil(nv);
       }
     });
@@ -156,20 +164,18 @@ export default defineComponent({
     });
 
     const filtrar = async (showMsg = true) => {
-      // Validaciones previas
       if (fechaFin.value < fechaInicio.value) {
-        alert('La fecha fin no puede ser anterior a la fecha inicio.');
+        mensajeError.value = 'La fecha fin no puede ser anterior a la fecha inicio.';
         return;
       }
       if (
         fechaInicio.value === fechaFin.value &&
         horaFin.value <= horaInicio.value
       ) {
-        alert('Si fecha inicio y fin son iguales, la hora fin debe ser mayor.');
+        mensajeError.value = 'Si fecha inicio y fin son iguales, la hora fin debe ser mayor.';
         return;
       }
 
-      // Guardar filtros en el store
       filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
@@ -177,7 +183,6 @@ export default defineComponent({
         horaFin:     horaFin.value,
       });
 
-      // Ejecutar fetch
       await salasStore.obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
@@ -185,7 +190,6 @@ export default defineComponent({
         horaFin:     horaFin.value,
       });
 
-      // Mostrar mensaje si toca
       if (showMsg) {
         showUpdated.value = true;
         setTimeout(() => {
@@ -194,7 +198,6 @@ export default defineComponent({
       }
     };
 
-    // Al montar, cargamos con filtros por defecto sin mostrar mensaje
     onMounted(() => {
       filtrar(false);
     });
@@ -210,6 +213,7 @@ export default defineComponent({
       filtrar,
       showUpdated,
       salasDisponibles: salasStore.salasDisponibles,
+      mensajeError,
     };
   },
 });
@@ -314,7 +318,6 @@ export default defineComponent({
   }
 }
 
-/* Estilo del mensaje “Actualizado” */
 .mensaje.actualizado {
   margin: 1rem auto;
   padding: 0.5rem 1rem;
@@ -325,7 +328,16 @@ export default defineComponent({
   max-width: 200px;
 }
 
-/* Responsive (≤900px): dos columnas en grid */
+.mensaje.error {
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  background: #dc3545;
+  color: white;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 300px;
+}
+
 @media (max-width: 900px) {
   .form-width {
     flex-direction: column;
@@ -364,7 +376,6 @@ export default defineComponent({
   }
 }
 
-/* Muy móvil (≤600px): una sola columna */
 @media (max-width: 600px) {
   .filtro-form {
     grid-template-columns: 1fr;

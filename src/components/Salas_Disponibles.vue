@@ -3,7 +3,7 @@
     <div v-if="loading" class="mensaje">Cargando...</div>
     <div v-else-if="error" class="mensaje error">{{ error }}</div>
     <div v-else-if="salasDisponibles.length === 0" class="mensaje">
-      No hay salas disponibles para esa búsqueda.
+      Cargando...
     </div>
     <div v-else class="salas-lista">
       <!-- DESPLEGABLE DE ORDENACIÓN -->
