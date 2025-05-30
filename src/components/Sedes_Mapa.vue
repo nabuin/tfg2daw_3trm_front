@@ -176,6 +176,10 @@ export default defineComponent({
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   background-color: white;
   border: 1px solid #e0e0e0;
+  
+  @media(max-width:950px){
+        flex-direction: column;
+  }
 
   .mapa-col {
     flex: 1;
