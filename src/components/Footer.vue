@@ -2,7 +2,7 @@
 
   <div class="footer">
     <div class="footer-child-1">
-      <img src="../imgs/logo.svg" alt="">
+      <img class="logo" src="../imgs/logo.png" alt="">
     </div>
     <div class="footer-child-2">
       <div class="footer-child-2_social">
@@ -120,7 +120,7 @@
       bottom: 50px;
       border: 1px solid;
       border-radius: 75px 0 0 0;
-      background: black;
+      background: #234b59;
       display: flex;
       flex-direction: row;
 
@@ -248,6 +248,8 @@
       }
     }
   }
-
+}
+.logo{
+  height: 120px;
 }
 </style>

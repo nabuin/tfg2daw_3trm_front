@@ -272,7 +272,7 @@ h6 {
     padding-left: 0 !important;
 
     img {
-      height: 60px;
+      height: 120px;
       width: auto;
       max-width: 100%;
     }
