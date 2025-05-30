@@ -1,15 +1,28 @@
 <template>
   <div class="map-container">
-    <div id="mapa"></div>
+    <!-- Columna del mapa -->
+    <div class="mapa-col">
+      <div id="mapa"></div>
+    </div>
 
-    <div class="map-footer">
-      Pulsa con el ratón encima de una sede para ver más detalles o confirmar tu reserva.
+    <!-- Columna de tarjetas de sedes -->
+    <div class="tarjetas-col">
+      <div
+        v-for="sede in coordenadas"
+        :key="sede.idSede"
+        class="sede-card"
+        @click="centrarYSaltar(sede.idSede)"
+      >
+        <h3>{{ sede.direccion }}, {{ sede.ciudad }}</h3>
+        <p>{{ sede.pais }} ({{ sede.codigoPostal }})</p>
+        <p>Planta: {{ sede.planta }}</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, watch } from 'vue';
 import { useMapaStore } from '../store/mapaStore';
 import { useRouter } from 'vue-router';
 import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
@@ -24,8 +37,14 @@ export default defineComponent({
     const router = useRouter();
     const sedeSeleccionadaStore = useSedeSeleccionadaStore();
 
+    // Mapas para guardar referencias de popups y marcadores
+    const popupMap = new Map<number, L.Popup>();
+    const markerMap = new Map<number, L.Marker>();
+    let mapa: L.Map;
+
+    // Inicializa el mapa y agrega marcadores por cada sede
     const inicializarMapa = () => {
-      const mapa = L.map('mapa', {
+      mapa = L.map('mapa', {
         center: [40.4168, -3.7038],
         zoom: 6,
         zoomControl: false,
@@ -47,21 +66,29 @@ export default defineComponent({
             popupAnchor: [0, -30],
           });
 
-          L.marker([lat, lng], { icon: icono })
-            .addTo(mapa)
-            .bindPopup(`
-              <div class="popup-content" style="width: 250px;">
-                <div class="popup-title">${sede.direccion}, ${sede.ciudad}</div>
-                <div class="popup-text">${sede.pais}, ${sede.codigoPostal}</div>
-                <div class="popup-subtext">Planta: ${sede.planta}</div>
-                <a href="#" class="popup-button" data-id="${sede.idSede}">
-                  Seleccionar sede
-                </a>
-              </div>
-            `);
+          const marker = L.marker([lat, lng], { icon: icono });
+
+          // Contenido del popup con info y botón
+          const popup = L.popup().setContent(`
+            <div class="popup-content" style="width: 250px;">
+              <div class="popup-title">${sede.direccion}, ${sede.ciudad}</div>
+              <div class="popup-text">${sede.pais}, ${sede.codigoPostal}</div>
+              <div class="popup-subtext">Planta: ${sede.planta}</div>
+              <a href="#" class="popup-button" data-id="${sede.idSede}">
+                Seleccionar sede
+              </a>
+            </div>
+          `);
+
+          marker.bindPopup(popup).addTo(mapa);
+
+          // Guardar referencias
+          markerMap.set(sede.idSede, marker);
+          popupMap.set(sede.idSede, popup);
         }
       });
 
+      // Detectar clic en botón de popup y redirigir
       document.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         if (target && target.classList.contains('popup-button')) {
@@ -76,26 +103,41 @@ export default defineComponent({
       });
     };
 
-    onMounted(async () => {
-      await store.obtenerCoordenadas();
-      inicializarMapa();
+    // Centra el mapa y abre el popup de la sede seleccionada
+    const centrarYSaltar = (idSede: number) => {
+      const marker = markerMap.get(idSede);
+      if (marker) {
+        mapa.setView(marker.getLatLng(), 15, { animate: true });
+        marker.openPopup();
+      }
+    };
+
+    // Obtener coordenadas al montar el componente
+    onMounted(() => {
+      store.obtenerCoordenadas();
     });
 
+    // Esperar a que lleguen las coordenadas y luego inicializar el mapa
+    watch(
+      () => store.coordenadas.value,
+      (nuevas) => {
+        if (nuevas.length > 0) {
+          inicializarMapa();
+        }
+      }
+    );
+
     return {
-      sedeSeleccionadaId: store.sedeSeleccionadaId,
+      coordenadas: store.coordenadas, // expone coordenadas para usarlas 
+      centrarYSaltar,
     };
   },
 });
 </script>
 
-
 <style lang="scss">
-h1 {
-  text-align: center;
-}
-
 .map-container {
-  position: relative;
+  display: flex;
   height: 75vh;
   width: 90%;
   margin: 0 auto;
@@ -104,43 +146,51 @@ h1 {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   background-color: white;
   border: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 
-  #mapa {
-    height: 100%;
-    width: 100%;
-    filter: grayscale(10%) brightness(97%) contrast(110%);
+  .mapa-col {
+    flex: 1;
+
+    #mapa {
+      height: 100%;
+      width: 100%;
+      filter: grayscale(10%) brightness(97%) contrast(110%);
+    }
   }
 
-  .map-header,
-  .map-footer {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 14px 28px;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-    font-weight: 600;
-    color: #333;
-    font-size: 1rem;
+  .tarjetas-col {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
-  .map-header {
-    top: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    width: 90%;
-  }
+  .sede-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 
-  .map-footer {
-    bottom: 0;
-    padding: 16px 24px;
-    font-size: 0.95rem;
-    color: #444;
-    border-top: 1px solid #ddd;
-    backdrop-filter: blur(5px);
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: 0.95rem;
+      margin: 2px 0;
+      color: #555;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    }
   }
 }
 
