@@ -22,7 +22,7 @@
     <div class="header-child-2">
       <div class="header-child-2_left">
         <router-link to="/home">
-          <img src="../imgs/logo.svg" alt="logo" />
+          <img class="logo"src="../imgs/logo.png" alt="logo" />
         </router-link>
       </div>
 
@@ -433,5 +433,9 @@ h6 {
   .hamburger-menu{
     display: none !important;
   }
+}
+
+.logo{
+  height: 120px;
 }
 </style>
