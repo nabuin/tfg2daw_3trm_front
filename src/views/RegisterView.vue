@@ -56,7 +56,7 @@ const registrarUsuario = async (event: Event) => {
       <input type="password" v-model="contrasenia" class="login__input login__input--full" placeholder="Contraseña" required>
 
       <div v-if="mensajeExito" class="login__success">{{ mensajeExito }}</div>
-      <div v-if="mensajeError" class="login__error">La contraseña debe tener entre 6 y 30 caracteres</div>
+      <div v-if="mensajeError" class="login__error">{{ mensajeError }}</div>
       <!-- elementos condicionales de si el registro se efectua o no para mostrar informacion aclarativa-->
 
       <button type="submit" class="login__button">→</button>
