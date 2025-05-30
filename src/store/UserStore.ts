@@ -51,8 +51,8 @@ export const useUserStore = defineStore("user", {
       idUsuario: number,
       nombre: string,
       apellidos: string,
-      email: string,
-      token: string
+      token: string,
+      idRol: number
     ){
       const endpoint = `https://localhost:7179/api/Usuarios/${idUsuario}`;
 
@@ -63,7 +63,7 @@ export const useUserStore = defineStore("user", {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ idUsuario, nombre, apellidos, email }),
+          body: JSON.stringify({ idUsuario, nombre, apellidos, idRol }),
         });
 
         if (!response.ok) {
@@ -77,7 +77,6 @@ export const useUserStore = defineStore("user", {
         if (this.user) {
           this.user.nombre = nombre;
           this.user.apellidos = apellidos;
-          this.user.email = email;
         }
         console.log("Info del usuario actualizada:", this.user); // debug
       } catch (error) {

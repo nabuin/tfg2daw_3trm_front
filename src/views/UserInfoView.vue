@@ -29,7 +29,6 @@ const EditarUserInfo = ref(false);
 const InfoUsuarioEditable = ref({
     nombre: "",
     apellidos: "",
-    email: "",
 });
 
 const obtenerQRReservaFetch = async (reservationId: number) => {
@@ -99,7 +98,7 @@ const tramoHorarioFormateado = (range: string): string => {
     const startDate = parseDateString(startStr);
     const endDate = parseDateString(endStr);
 
-    // revisar si la fecha es válida    
+    // revisar si la fecha es válida 		
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       console.error("Parsed date is Invalid Date:", range);
       return range; //si no es válida, devolver la original
@@ -200,7 +199,6 @@ const fetchUserData = async () => {
     if (userStore.user) {
       InfoUsuarioEditable.value.nombre = userStore.user.nombre;
       InfoUsuarioEditable.value.apellidos = userStore.user.apellidos;
-      InfoUsuarioEditable.value.email = userStore.user.email;
     }
   } catch (error) {
     errorMessage.value = "Error al obtener los datos del usuario.";
@@ -289,16 +287,13 @@ const GuadarUserInfo = async () => {
     validationErrorMessage.value = `Los apellidos no pueden exceder los ${CHAR_LIMITS.apellidos} caracteres.`;
     return;
   }
-  if (InfoUsuarioEditable.value.email.length > CHAR_LIMITS.email) {
-    validationErrorMessage.value = `El correo electrónico no puede exceder los ${CHAR_LIMITS.email} caracteres.`;
-    return;
-  }
 
   const token = localStorage.getItem("authToken");
   const idUsuario = userStore.user?.idUsuario;
+  const idRol = userStore.user?.idRol; // Get idRol from the store
 
-  if (!token || !idUsuario) {
-    errorMessage.value = "No has iniciado sesión.";
+  if (!token || !idUsuario || idRol === undefined) { // Check if idRol is defined
+    errorMessage.value = "No has iniciado sesión o no se pudo obtener el rol del usuario.";
     return;
   }
 
@@ -307,8 +302,8 @@ const GuadarUserInfo = async () => {
       idUsuario,
       InfoUsuarioEditable.value.nombre,
       InfoUsuarioEditable.value.apellidos,
-      InfoUsuarioEditable.value.email,
-      token
+      token,
+      idRol // Pass idRol to the store action
     );
     successMessage.value = "Información actualizada con éxito.";
     EditarUserInfo.value = false;
@@ -323,7 +318,6 @@ const cancelarEditar = () => {
   if (userStore.user) {
     InfoUsuarioEditable.value.nombre = userStore.user.nombre;
     InfoUsuarioEditable.value.apellidos = userStore.user.apellidos;
-    InfoUsuarioEditable.value.email = userStore.user.email;
   }
   EditarUserInfo.value = false;
   validationErrorMessage.value = "";
