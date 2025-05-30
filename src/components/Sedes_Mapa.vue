@@ -1,40 +1,61 @@
 <template>
   <div class="map-container">
-    <div id="mapa"></div>
+    <!-- Columna del mapa -->
+    <div class="mapa-col">
+      <div id="mapa"></div>
+    </div>
 
-    <div class="map-footer">
-      Pulsa con el ratón encima de una sede para ver más detalles o confirmar tu reserva.
+    <!-- Columna de tarjetas de sedes -->
+    <div class="tarjetas-col">
+      <div
+        v-for="sede in coordenadas"
+        :key="sede.idSede"
+        class="sede-card"
+        @click="centrarYSaltar(sede.idSede)"
+      >
+        <h3>{{ sede.direccion }}, {{ sede.ciudad }}</h3>
+        <p>{{ sede.pais }} ({{ sede.codigoPostal }})</p>
+        <p>Planta: {{ sede.planta }}</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
-import { useMapaStore } from '../store/mapaStore';
-import { useRouter } from 'vue-router';
-import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
+import { defineComponent, onMounted, watch } from 'vue';
+import { useMapaStore } from '../store/mapaStore'; 
+import { useRouter } from 'vue-router'; 
+import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore'; 
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import markerUrl from '../imgs/icons/marker.png';
+import L from "leaflet"; 
+import markerUrl from '../imgs/icons/marker.png'; 
 
 export default defineComponent({
   name: 'Sedes_Mapa',
   setup() {
-    const store = useMapaStore();
-    const router = useRouter();
-    const sedeSeleccionadaStore = useSedeSeleccionadaStore();
+    const store = useMapaStore(); // accedemos al store con las coordenadas de las sedes
+    const router = useRouter(); // esto lo usamos pa redirigir
+    const sedeSeleccionadaStore = useSedeSeleccionadaStore(); // para guardar la sede que elige el usuario
 
-    const inicializarMapa = () => {
-      const mapa = L.map('mapa', {
-        center: [40.4168, -3.7038],
-        zoom: 6,
-        zoomControl: false,
+    // estos mapas guardan los marcadores y popups por si se quieren usar luego
+    const popupMap = new Map<number, L.Popup>();
+    const markerMap = new Map<number, L.Marker>();
+    let mapa: L.Map; // variable global del mapa
+
+    // esta funcion monta el mapa y pone los marcadores de las sedes
+    const inicializarMapa = (centro: [number, number], zoom: number) => {
+      mapa = L.map('mapa', {
+        center: centro, // coordenadas pa centrar el mapa
+        zoom: zoom, // nivel de zoom
+        zoomControl: false, // quitamos los botones de zoom
       });
 
+      // ponemos los tiles del mapa de openstreetmap
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap',
       }).addTo(mapa);
 
+      // recorremos todas las sedes y añadimos sus marcadores
       store.coordenadas.value.forEach((sede) => {
         const lat = parseFloat(sede.latitud);
         const lng = parseFloat(sede.longitud);
@@ -47,28 +68,32 @@ export default defineComponent({
             popupAnchor: [0, -30],
           });
 
-          L.marker([lat, lng], { icon: icono })
-            .addTo(mapa)
-            .bindPopup(`
-              <div class="popup-content" style="width: 250px;">
-                <div class="popup-title">${sede.direccion}, ${sede.ciudad}</div>
-                <div class="popup-text">${sede.pais}, ${sede.codigoPostal}</div>
-                <div class="popup-subtext">Planta: ${sede.planta}</div>
-                <a href="#" class="popup-button" data-id="${sede.idSede}">
-                  Seleccionar sede
-                </a>
-              </div>
-            `);
+          const marker = L.marker([lat, lng], { icon: icono });
+
+          const popup = L.popup().setContent(`
+            <div class="popup-content" style="width: 250px;">
+              <div class="popup-title">${sede.direccion}, ${sede.ciudad}</div>
+              <div class="popup-text">${sede.pais}, ${sede.codigoPostal}</div>
+              <div class="popup-subtext">Planta: ${sede.planta}</div>
+              <a href="#" class="popup-button" data-id="${sede.idSede}">
+                Seleccionar sede
+              </a>
+            </div>
+          `);
+
+          marker.bindPopup(popup).addTo(mapa);
+          markerMap.set(sede.idSede, marker);
+          popupMap.set(sede.idSede, popup);
         }
       });
 
+      // si alguien hace click en el boton del popup, redirige a otra pagina
       document.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         if (target && target.classList.contains('popup-button')) {
           event.preventDefault();
           const id = target.getAttribute('data-id');
           if (id) {
-            console.log('Sede seleccionada desde mapa:', id);
             sedeSeleccionadaStore.setId(Number(id));
             router.push('/sedes/salas');
           }
@@ -76,13 +101,64 @@ export default defineComponent({
       });
     };
 
-    onMounted(async () => {
-      await store.obtenerCoordenadas();
-      inicializarMapa();
+    // esta funcion centra el mapa en una sede concreta y abre su popup
+    const centrarYSaltar = (idSede: number) => {
+      const marker = markerMap.get(idSede);
+      if (marker) {
+        mapa.setView(marker.getLatLng(), 15, { animate: true });
+        marker.openPopup();
+      }
+    };
+
+    // cuando se monta el componente, pedimos las coordenadas
+    onMounted(() => {
+      store.obtenerCoordenadas();
     });
 
+    // cuando lleguen las coordenadas de las sedes, inicializamos el mapa
+    watch(
+      () => store.coordenadas.value,
+      (nuevas) => {
+        if (nuevas.length > 0) {
+          // si el navegador permite geolocalizacion
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                // centramos el mapa en el usuario y ampliamos el zoom
+                inicializarMapa([lat, lon], 13);
+
+                // icono personalizado pa mostrar donde esta el usuario
+                const userIcon = L.icon({
+                  iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
+                  iconSize: [28, 28],
+                  iconAnchor: [14, 28],
+                  popupAnchor: [0, -25],
+                });
+
+                // marcador del usuario con popup que se abre solo
+                L.marker([lat, lon], { icon: userIcon })
+                  .addTo(mapa)
+                  .openPopup();
+              },
+              () => {
+                // si no se puede obtener la ubicacion, se centra en madrid
+                inicializarMapa([40.4168, -3.7038], 6);
+              }
+            );
+          } else {
+            // si el navegador ni soporta geolocalizacion, tambn madrid
+            inicializarMapa([40.4168, -3.7038], 6);
+          }
+        }
+      }
+    );
+
     return {
-      sedeSeleccionadaId: store.sedeSeleccionadaId,
+      coordenadas: store.coordenadas,
+      centrarYSaltar,
     };
   },
 });
@@ -90,12 +166,8 @@ export default defineComponent({
 
 
 <style lang="scss">
-h1 {
-  text-align: center;
-}
-
 .map-container {
-  position: relative;
+  display: flex;
   height: 75vh;
   width: 90%;
   margin: 0 auto;
@@ -104,43 +176,55 @@ h1 {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   background-color: white;
   border: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  #mapa {
-    height: 100%;
-    width: 100%;
-    filter: grayscale(10%) brightness(97%) contrast(110%);
+  
+  @media(max-width:950px){
+        flex-direction: column;
   }
 
-  .map-header,
-  .map-footer {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 14px 28px;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-    font-weight: 600;
-    color: #333;
-    font-size: 1rem;
+  .mapa-col {
+    flex: 1;
+
+    #mapa {
+      height: 100%;
+      width: 100%;
+      filter: grayscale(10%) brightness(97%) contrast(110%);
+    }
   }
 
-  .map-header {
-    top: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    width: 90%;
+  .tarjetas-col {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
-  .map-footer {
-    bottom: 0;
-    padding: 16px 24px;
-    font-size: 0.95rem;
-    color: #444;
-    border-top: 1px solid #ddd;
-    backdrop-filter: blur(5px);
+  .sede-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: 0.95rem;
+      margin: 2px 0;
+      color: #555;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    }
   }
 }
 

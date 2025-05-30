@@ -32,7 +32,7 @@
           <router-link to="/sedes" class="header-child-2_mid_espacios">Sedes</router-link>
           <router-link to="/precios" class="header-child-2_mid_precios">Precios</router-link>
           <router-link to="/servicios" class="header-child-2_mid_servicios">Sérvicios</router-link>
-          <a href="/home#form" class="header-child-2_mid_masInfo">Más Info</a>
+          <a href="/home#form" class="header-child-2_mid_masInfo">Contacto</a>
         </div>
 
         <div class="hamburger" @click="toggleMenu">

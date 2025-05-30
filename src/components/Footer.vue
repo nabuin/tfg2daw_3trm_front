@@ -105,7 +105,7 @@
         width: 400px;
         background: white;
         border-radius: 100px 0 0 100px;
-        border: 2px solid;
+        border: 2px solid #234b59;
         display: flex;
         flex-direction: row;
         align-items: center;
