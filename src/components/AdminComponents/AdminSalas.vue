@@ -328,8 +328,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, type Ref } from 'vue'
-import { useSalasStore, type Sala, type TipoSala, type CaracteristicaSala, type SalasConCaracteristicasDTO } from '../../store/AdminStores/AdminSalasStore'
-import { useSedesStore } from '../../store/AdminStores/AdminSedesStore'
+import { useSalasStore, type Sala, type TipoSala, type CaracteristicaSala, type SalasConCaracteristicasDTO } from '../../store/AdminStores/adminSalasStore'
+import { useSedesStore } from '../../store/AdminStores/adminSedesStore'
 import SalaForm from '../../components/forms/SalaForm.vue'
 import { Modal } from 'bootstrap'
 

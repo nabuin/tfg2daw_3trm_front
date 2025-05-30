@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useUserStore } from '../store/userStore'
+import { useUserStore } from '../store/UserStore'
 
 const menuOpen = ref(false)
 const userStore = useUserStore()
