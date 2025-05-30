@@ -23,37 +23,39 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, watch } from 'vue';
-import { useMapaStore } from '../store/mapaStore';
-import { useRouter } from 'vue-router';
-import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
+import { useMapaStore } from '../store/mapaStore'; 
+import { useRouter } from 'vue-router'; 
+import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore'; 
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import markerUrl from '../imgs/icons/marker.png';
+import L from "leaflet"; 
+import markerUrl from '../imgs/icons/marker.png'; 
 
 export default defineComponent({
   name: 'Sedes_Mapa',
   setup() {
-    const store = useMapaStore();
-    const router = useRouter();
-    const sedeSeleccionadaStore = useSedeSeleccionadaStore();
+    const store = useMapaStore(); // accedemos al store con las coordenadas de las sedes
+    const router = useRouter(); // esto lo usamos pa redirigir
+    const sedeSeleccionadaStore = useSedeSeleccionadaStore(); // para guardar la sede que elige el usuario
 
-    // Mapas para guardar referencias de popups y marcadores
+    // estos mapas guardan los marcadores y popups por si se quieren usar luego
     const popupMap = new Map<number, L.Popup>();
     const markerMap = new Map<number, L.Marker>();
-    let mapa: L.Map;
+    let mapa: L.Map; // variable global del mapa
 
-    // Inicializa el mapa y agrega marcadores por cada sede
-    const inicializarMapa = () => {
+    // esta funcion monta el mapa y pone los marcadores de las sedes
+    const inicializarMapa = (centro: [number, number], zoom: number) => {
       mapa = L.map('mapa', {
-        center: [40.4168, -3.7038],
-        zoom: 6,
-        zoomControl: false,
+        center: centro, // coordenadas pa centrar el mapa
+        zoom: zoom, // nivel de zoom
+        zoomControl: false, // quitamos los botones de zoom
       });
 
+      // ponemos los tiles del mapa de openstreetmap
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap',
       }).addTo(mapa);
 
+      // recorremos todas las sedes y añadimos sus marcadores
       store.coordenadas.value.forEach((sede) => {
         const lat = parseFloat(sede.latitud);
         const lng = parseFloat(sede.longitud);
@@ -68,7 +70,6 @@ export default defineComponent({
 
           const marker = L.marker([lat, lng], { icon: icono });
 
-          // Contenido del popup con info y botón
           const popup = L.popup().setContent(`
             <div class="popup-content" style="width: 250px;">
               <div class="popup-title">${sede.direccion}, ${sede.ciudad}</div>
@@ -81,21 +82,18 @@ export default defineComponent({
           `);
 
           marker.bindPopup(popup).addTo(mapa);
-
-          // Guardar referencias
           markerMap.set(sede.idSede, marker);
           popupMap.set(sede.idSede, popup);
         }
       });
 
-      // Detectar clic en botón de popup y redirigir
+      // si alguien hace click en el boton del popup, redirige a otra pagina
       document.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         if (target && target.classList.contains('popup-button')) {
           event.preventDefault();
           const id = target.getAttribute('data-id');
           if (id) {
-            console.log('Sede seleccionada desde mapa:', id);
             sedeSeleccionadaStore.setId(Number(id));
             router.push('/sedes/salas');
           }
@@ -103,7 +101,7 @@ export default defineComponent({
       });
     };
 
-    // Centra el mapa y abre el popup de la sede seleccionada
+    // esta funcion centra el mapa en una sede concreta y abre su popup
     const centrarYSaltar = (idSede: number) => {
       const marker = markerMap.get(idSede);
       if (marker) {
@@ -112,28 +110,60 @@ export default defineComponent({
       }
     };
 
-    // Obtener coordenadas al montar el componente
+    // cuando se monta el componente, pedimos las coordenadas
     onMounted(() => {
       store.obtenerCoordenadas();
     });
 
-    // Esperar a que lleguen las coordenadas y luego inicializar el mapa
+    // cuando lleguen las coordenadas de las sedes, inicializamos el mapa
     watch(
       () => store.coordenadas.value,
       (nuevas) => {
         if (nuevas.length > 0) {
-          inicializarMapa();
+          // si el navegador permite geolocalizacion
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                // centramos el mapa en el usuario y ampliamos el zoom
+                inicializarMapa([lat, lon], 13);
+
+                // icono personalizado pa mostrar donde esta el usuario
+                const userIcon = L.icon({
+                  iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
+                  iconSize: [28, 28],
+                  iconAnchor: [14, 28],
+                  popupAnchor: [0, -25],
+                });
+
+                // marcador del usuario con popup que se abre solo
+                L.marker([lat, lon], { icon: userIcon })
+                  .addTo(mapa)
+                  .openPopup();
+              },
+              () => {
+                // si no se puede obtener la ubicacion, se centra en madrid
+                inicializarMapa([40.4168, -3.7038], 6);
+              }
+            );
+          } else {
+            // si el navegador ni soporta geolocalizacion, tambn madrid
+            inicializarMapa([40.4168, -3.7038], 6);
+          }
         }
       }
     );
 
     return {
-      coordenadas: store.coordenadas, // expone coordenadas para usarlas 
+      coordenadas: store.coordenadas,
       centrarYSaltar,
     };
   },
 });
 </script>
+
 
 <style lang="scss">
 .map-container {
