@@ -18,8 +18,9 @@ export default {
 <template>
     <Home_Slider />
     <Home_Sercios />
-    <Home_Info />
+
     <Home_Form />
+    <Home_Info />
 </template>
 
 

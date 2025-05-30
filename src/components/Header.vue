@@ -108,7 +108,7 @@ h6 {
   height: 150px;
 
   .header-child-1 {
-    background-color: black;
+    background-color: #234b59;
     height: 50px;
     display: flex;
     flex-direction: row;
@@ -177,7 +177,7 @@ h6 {
     height: 100px;
     display: flex;
     flex-direction: row;
-    background: #e5e5e5;
+    background: white;
     position: relative;
 
     .header-child-2_left {
@@ -204,52 +204,29 @@ h6 {
         display: flex;
         flex-direction: row;
         height: 65px;
+        align-items: center;
 
         .header-child-2_mid_bienvenido,
         .header-child-2_mid_espacios,
         .header-child-2_mid_precios,
-        .header-child-2_mid_servicios {
-          display: flex;
-          align-items: center;
-          margin: 5px 0px 0 25px;
-          padding-right: 25px;
-          font-size: 25px;
-          font-weight: 500;
-          flex-direction: row;
-          border-right: 2px solid black;
-        }
-
+        .header-child-2_mid_servicios,
         .header-child-2_mid_masInfo {
           display: flex;
           align-items: center;
-          margin: 5px 0px 0 25px;
-          padding: 25px;
-          font-size: 25px;
+          padding: 0 25px;
+          font-size: 22px;
           font-weight: 500;
-          border: 2px solid black;
-
-          @media (max-width: 1657px) {
-            padding: 8px 15px;
-            min-width: 150px;
-          }
-
-          @media (max-width: 1617px) {
-            padding: 8px 10px;
-            min-width: 175px;
-          }
-
-          &::after {
-            content: "";
-            display: inline-block;
-            width: 17px;
-            height: 17px;
-            margin-left: 15px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-image: url('../imgs/icons/arrow.svg');
-          }
+          height: fit-content;
+          flex-direction: row;
+          border-right: 2px solid #234b59;
+          color: #234b59;
         }
+
+        .header-child-2_mid_masInfo{
+          border-right: none;
+        }
+
+
       }
 
       a {
