@@ -86,6 +86,7 @@ import { useReservasStore } from '../store/reservasStore';
 import { LoginStore } from '../store/LoginStore';
 import { storeToRefs } from 'pinia';
 
+// función que divide un array en partes más pequeñas
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -97,35 +98,45 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 export default defineComponent({
   name: 'PuestoSelectionAroundTable',
   setup() {
-    const router = useRouter();
-    const puestosStore = usePuestosStore();
-    const salaStore = useSalaSeleccionadaStore();
-    const filtrosStore = useFiltrosStore();
-    const reservasStore = useReservasStore();
-    const loginStore = LoginStore();
+    const router = useRouter(); // acceso al router para navegar entre páginas
+    const puestosStore = usePuestosStore(); // store de los puestos
+    const salaStore = useSalaSeleccionadaStore(); // store de la sala actual
+    const filtrosStore = useFiltrosStore(); // store de filtros aplicados
+    const reservasStore = useReservasStore(); // store de las reservas
+    const loginStore = LoginStore(); // store para el login
 
+    // referencias a datos del store (reactivos)
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
     const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
 
-    const showPopup = ref(false);
-    const errorSeleccionPuestos = ref<string | null>(null);
+    // control de login y errores
+    const showPopup = ref(false); // muestra el popup de login
+    const errorSeleccionPuestos = ref<string | null>(null); // mensaje de error al no seleccionar puestos
 
-    const usuario = ref('');
-    const password = ref('');
-    const mensajeError = ref<string | null>(null);
-    const isLoggingIn = ref(false);
+    const usuario = ref(''); // campo email login
+    const password = ref(''); // campo contraseña login
+    const mensajeError = ref<string | null>(null); // mensaje de error del login
+    const isLoggingIn = ref(false); // evita doble login
 
+    // al montar el componente
     onMounted(() => {
-      if (salaStore.id !== null) {
-        puestosStore.obtenerPuestosDisponibles().then(() => {
-          const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
-          reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
-          reservasStore.resetSelection();
-          puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
-        });
+      // si no hay sala seleccionada válida, se redirige al home
+      if (salaStore.id === null || salaStore.id < 1) {
+        console.log('[redirección] no hay sala seleccionada, volviendo al home');
+        router.push('/home');
+        return;
       }
+
+      // si hay una sala seleccionada, se piden los puestos disponibles
+      puestosStore.obtenerPuestosDisponibles().then(() => {
+        const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
+        reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
+        reservasStore.resetSelection();
+        puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
+      });
     });
 
+    // cuando cambian filtros o sala, se vuelven a cargar los puestos
     watch(
       () => [
         salaStore.id,
@@ -135,7 +146,7 @@ export default defineComponent({
         filtrosStore.horaFin,
       ],
       async () => {
-        if (salaStore.id !== null) {
+        if (salaStore.id !== null && salaStore.id > 0) {
           await puestosStore.obtenerPuestosDisponibles();
           const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
           reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
@@ -143,18 +154,23 @@ export default defineComponent({
           puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
         }
       },
-      { immediate: true }
+      { immediate: true } // también se ejecuta al principio
     );
 
+    // cuando se hace clic en un puesto
     function handlePuestoClick(puesto: any) {
+      // si el puesto es tipo privado, no hace nada
       if (puesto.idTipoPuestoTrabajo === 2) return;
+      // si no, alterna su selección
       reservasStore.togglePuestoSelection(puesto);
     }
 
+    // función para enviar la reserva (compra)
     function submitCompra() {
       reservasStore.createReservation('compra de puestos');
     }
 
+    // asigna una clase css según la posición del asiento (para estilos en la mesa)
     function positionClass(index: number): string {
       return [
         'seat-left-top',
@@ -164,6 +180,7 @@ export default defineComponent({
       ][index] || '';
     }
 
+    // proceso de login del popup
     async function login() {
       if (isLoggingIn.value) return;
 
@@ -176,32 +193,37 @@ export default defineComponent({
           contrasenia: password.value
         };
 
+        // intenta logearse
         const exito = await loginStore.loginUsuario(loginData);
 
         if (exito) {
+          // si fue bien, cierra el popup y limpia los campos
           showPopup.value = false;
           usuario.value = '';
           password.value = '';
           mensajeError.value = null;
-          router.push('/sedes/salas/puestos/pago');
+          router.push('/sedes/salas/puestos/pago'); // va a la pantalla de pago
         } else {
-          let mensajeErrorAPI = loginStore.errorMessage || 'La contraseña y/o el correo son erróneos';
+          // si falla, muestra el mensaje del backend o uno genérico
+          let mensajeErrorAPI = loginStore.errorMessage || 'la contraseña y/o el correo son erróneos';
           if (mensajeErrorAPI.includes('Error generating the token: ')) {
             mensajeErrorAPI = mensajeErrorAPI.split('Error generating the token: ')[1];
           }
           mensajeError.value = mensajeErrorAPI;
         }
       } catch (error) {
-        console.error('Error durante el login:', error);
-        mensajeError.value = 'Error de conexión. Inténtalo de nuevo.';
+        console.error('error durante el login:', error);
+        mensajeError.value = 'error de conexión. inténtalo de nuevo.';
       } finally {
         isLoggingIn.value = false;
       }
     }
 
+    // función que se ejecuta al hacer clic en “continuar”
     function continuarCompra() {
+      // si no hay puestos seleccionados, muestra error
       if (selectedPuestos.value.length === 0) {
-        errorSeleccionPuestos.value = "Por favor, selecciona al menos un puesto para continuar.";
+        errorSeleccionPuestos.value = "por favor, selecciona al menos un puesto para continuar.";
         setTimeout(() => {
           errorSeleccionPuestos.value = null;
         }, 6000);
@@ -210,17 +232,22 @@ export default defineComponent({
 
       errorSeleccionPuestos.value = null;
 
+      // revisa si el usuario está logeado
       const authToken = localStorage.getItem("authToken");
 
       if (!authToken) {
+        // si no, muestra el popup de login
         showPopup.value = true;
       } else {
+        // si sí, va directo al pago
         router.push('/sedes/salas/puestos/pago');
       }
     }
 
+    // agrupa los asientos de 4 en 4 para mostrarlos alrededor de una mesa
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
+    // se devuelven todas las variables y funciones necesarias para la plantilla
     return {
       loading,
       seatGroups,
@@ -241,6 +268,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 
 <style scoped lang="scss">
