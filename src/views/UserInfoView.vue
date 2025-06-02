@@ -919,7 +919,7 @@ button {
   height: 100%;
   display: flex;
   flex-direction: column;
-  max-height: 700px;
+  max-height: 793px;
   overflow-y: auto;
 }
 

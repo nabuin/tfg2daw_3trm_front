@@ -45,6 +45,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useSalasStore } from '../store/salasStore';
 import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
@@ -53,6 +54,8 @@ import { useFiltrosStore } from '../store/filtrosStore';
 
 export default defineComponent({
   setup() {
+    const router = useRouter();
+
     const salasStore = useSalasStore();
     const { salasDisponibles, loading, error } = storeToRefs(salasStore);
     const { obtenerSalasDisponibles } = salasStore;
@@ -61,7 +64,7 @@ export default defineComponent({
     const salaSeleccionadaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
 
-    // Dirección de orden: true = Mayor a Menos, false = Menor a Mayor
+    // Dirección de orden: true = Mayor a Menor, false = Menor a Mayor
     const ordenarDesc = ref(true);
 
     // Computed que devuelve las salas ordenadas sin mutar el store
@@ -84,14 +87,23 @@ export default defineComponent({
       salaSeleccionadaStore.setId(sala.idSala);
     };
 
-    onMounted(buscarSalas);
+    // Redireccionar si no hay sede seleccionada válida
+    onMounted(() => {
+      if (sedeSeleccionadaStore.id === null || sedeSeleccionadaStore.id < 1) {
+        router.push('/home');
+      } else {
+        buscarSalas();
+      }
+    });
 
+    // Volver a cargar salas si cambian los filtros
     watch(
       () => filtrosStore.filtros,
       buscarSalas,
       { deep: true }
     );
 
+    // Volver a cargar salas si cambia la sede seleccionada
     watch(
       () => sedeSeleccionadaStore.id,
       (newId, oldId) => {
