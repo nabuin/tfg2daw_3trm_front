@@ -5,12 +5,6 @@ import { ref } from 'vue';
 export const useSalaAsientoStore = defineStore('salaAsiento', () => {
   const salaNombreCache = ref<Record<number, string>>({});
 
-  /**
-   * obtiene el nombre de la sala para un puesto dado.
-   * si ya está en cache, lo devuelve directamente.
-   * @param idPuesto - identificador del puesto de trabajo
-   * @returns promise<string> con el nombre de la sala
-   */
   async function obtenerSalaNombre(idPuesto: number): Promise<string> {
     // si ya tenemos el nombre en cache, retornarlo
     if (salaNombreCache.value[idPuesto]) {

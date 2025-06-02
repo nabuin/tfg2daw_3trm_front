@@ -308,14 +308,12 @@ export default defineComponent({
   grid-column: 2;
 }
 
-/* Responsive: 2 columnas hasta 900px */
 @media (max-width: 900px) {
   .tables-grid {
     grid-template-columns: repeat(2, max-content);
   }
 }
 
-/* Responsive: 1 columna hasta 600px */
 @media (max-width: 600px) {
   .tables-grid {
     grid-template-columns: 1fr;
@@ -348,7 +346,6 @@ export default defineComponent({
   height: 100%;
 }
 
-/* estilos del SVG internos */
 .silla-icon .chair-wheels circle {
   fill: #000;
   stroke: #000;
@@ -362,19 +359,16 @@ export default defineComponent({
   stroke-width: 4;
 }
 
-/* ocupados: rojo */
 .square.unavailable .silla-icon .chair-seat,
 .square.unavailable .silla-icon .chair-back {
   fill: #ff0000;
 }
 
-/* seleccionados: amarillo */
 .square.selected .silla-icon .chair-seat,
 .square.selected .silla-icon .chair-back {
   fill: #ffff00;
 }
 
-/* mesa SVG */
 .table .mesa-icon rect {
   fill: #ddd;
   stroke: #333;
@@ -430,7 +424,6 @@ export default defineComponent({
   cursor: not-allowed;
 }
 
-/* botón continuar */
 .continue-button {
   display: block;
   margin: 16px auto 0;
@@ -450,7 +443,6 @@ export default defineComponent({
   transform: translateY(-2px);
 }
 
-/* popup */
 .popup-overlay {
   position: fixed;
   inset: 0;

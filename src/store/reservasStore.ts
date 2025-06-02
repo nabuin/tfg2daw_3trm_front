@@ -107,7 +107,7 @@ export const useReservasStore = defineStore('reservas', () => {
                     tramosDisponiblesParaPuesto.forEach((slot: any) => {
                         reservationLines.push({
                             idPuestoTrabajo: puestoCompleto.idPuestoTrabajo,
-                            idDisponibilidad: slot.idDisponibilidad, // ¡CAMBIO CLAVE AQUÍ!
+                            idDisponibilidad: slot.idDisponibilidad,
                         });
                     });
                 }

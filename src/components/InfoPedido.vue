@@ -105,7 +105,6 @@ strong {
   font-weight: bold;
 }
 
-/* Responsive adjustments */
 @media (min-width: 600px) {
   h1 {
     font-size: 32px;

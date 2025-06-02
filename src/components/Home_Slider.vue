@@ -17,9 +17,7 @@
   </v-container>
 </template>
 
-<script setup lang="ts">
-// No se requiere lógica por ahora
-</script>
+
 
 <style lang="scss" scoped>
 .slider-custom {

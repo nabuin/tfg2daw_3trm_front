@@ -78,9 +78,9 @@ export const useUserStore = defineStore("user", {
           this.user.nombre = nombre;
           this.user.apellidos = apellidos;
         }
-        console.log("Info del usuario actualizada:", this.user); // debug
+        console.log("Info del usuario actualizada:", this.user); 
       } catch (error) {
-        console.error("Error actualizando info del usuario:", error); // debug
+        console.error("Error actualizando info del usuario:", error); 
         throw error;
       }
     }
