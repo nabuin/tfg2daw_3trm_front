@@ -679,6 +679,7 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
 
 
 .profile-page-wrapper {
+  margin-bottom: 40px;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -916,7 +917,7 @@ button {
   height: 100%;
   display: flex;
   flex-direction: column;
-  max-height: 793px;
+  max-height: 675px;
   overflow-y: auto;
 }
 
