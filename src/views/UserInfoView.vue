@@ -373,9 +373,6 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
     // Crear la fecha/hora actual
     const ahora = new Date();
     
-    console.log("Fecha fin de reserva:", fechaFin);
-    console.log("Fecha actual:", ahora);
-    console.log("¿Se puede cancelar?", fechaFin > ahora);
     
     // Verificar si la fecha de fin es mayor a la fecha actual
     return fechaFin > ahora;
