@@ -442,6 +442,14 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
               </div>
             </div>
+            <div v-if="userStore.user?.idRol === 1" class="admin-zone">
+              <div class="button-container">
+                <router-link to="/adminusers" class="admin-button">Zona Admin</router-link>
+              </div>
+            </div>
+            <div class="button-container logout-button-container">
+              <button @click="openLogoutConfirm" class="logout-button">Cerrar Sesión</button>
+            </div>
 
             <div class="change-password">
               <h3>Cambiar Contraseña</h3>
@@ -459,11 +467,6 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 <button @click="changePassword" class="main-action-button">Cambiar Contraseña</button>
               </div>
             </div>
-
-            <div class="button-container logout-button-container">
-              <button @click="openLogoutConfirm" class="logout-button">Cerrar Sesión</button>
-            </div>
-
           </div>
           <div v-else-if="!errorMessage" class="loading-message">
             <p>Cargando información del usuario...</p>
@@ -577,6 +580,33 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
 
 <style scoped lang="scss">
 /* Estilos generales para el contenedor de botones */
+.admin-zone {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 25px;
+}
+
+.admin-button {
+  background-color: #28a745;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  max-width: 300px;
+  width: 100%;
+  text-align: center;
+  transition: background-color 0.2s ease;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: #218838;
+    text-decoration: none;
+  }
+}
 .button-container {
     display: flex;
     gap: 10px;
