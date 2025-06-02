@@ -1,6 +1,5 @@
 <template>
   <div class="sedes-view">
-    <h1>Mapa de Sedes</h1>
     <Sedes_Mapa />
   </div>
 </template>

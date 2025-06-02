@@ -7,8 +7,18 @@
 
     <!-- Columna de tarjetas de sedes -->
     <div class="tarjetas-col">
+
+      <!-- Input para filtrar sedes por palabras -->
+      <input
+        v-model="busqueda"
+        type="text"
+        placeholder="Buscar sede..."
+        class="buscador"
+      />
+
+      <!-- Recorremos las sedes filtradas en vez de todas -->
       <div
-        v-for="sede in coordenadas"
+        v-for="sede in sedesFiltradas"
         :key="sede.idSede"
         class="sede-card"
         @click="centrarYSaltar(sede.idSede)"
@@ -22,40 +32,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, watch } from 'vue';
-import { useMapaStore } from '../store/mapaStore'; 
-import { useRouter } from 'vue-router'; 
-import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore'; 
+import { defineComponent, onMounted, watch, ref, computed } from 'vue';
+import { useMapaStore } from '../store/mapaStore';
+import { useRouter } from 'vue-router';
+import { useSedeSeleccionadaStore } from '../store/sedeSeleccionadaStore';
 import "leaflet/dist/leaflet.css";
-import L from "leaflet"; 
-import markerUrl from '../imgs/icons/marker.png'; 
+import L from "leaflet";
+import markerUrl from '../imgs/icons/marker.png';
 
 export default defineComponent({
   name: 'Sedes_Mapa',
   setup() {
-    const store = useMapaStore(); // accedemos al store con las coordenadas de las sedes
-    const router = useRouter(); // esto lo usamos pa redirigir
-    const sedeSeleccionadaStore = useSedeSeleccionadaStore(); // para guardar la sede que elige el usuario
+    const store = useMapaStore();
+    const router = useRouter();
+    const sedeSeleccionadaStore = useSedeSeleccionadaStore();
 
-    // estos mapas guardan los marcadores y popups por si se quieren usar luego
     const popupMap = new Map<number, L.Popup>();
     const markerMap = new Map<number, L.Marker>();
-    let mapa: L.Map; // variable global del mapa
+    let mapa: L.Map;
 
-    // esta funcion monta el mapa y pone los marcadores de las sedes
+    //Variable reactiva para la búsqueda de sedes
+    const busqueda = ref('');
+
+    //Computed para filtrar sedes según lo que escriba el usuario
+    const sedesFiltradas = computed(() =>
+      store.coordenadas.value.filter((sede) => {
+        const termino = busqueda.value.toLowerCase();
+        return (
+          sede.direccion.toLowerCase().includes(termino) ||
+          sede.ciudad.toLowerCase().includes(termino) ||
+          sede.pais.toLowerCase().includes(termino) ||
+          sede.codigoPostal.toLowerCase().includes(termino) ||
+          sede.planta.toLowerCase().includes(termino)
+        );
+      })
+    );
+
     const inicializarMapa = (centro: [number, number], zoom: number) => {
       mapa = L.map('mapa', {
-        center: centro, // coordenadas pa centrar el mapa
-        zoom: zoom, // nivel de zoom
-        zoomControl: false, // quitamos los botones de zoom
+        center: centro,
+        zoom: zoom,
+        zoomControl: false,
       });
 
-      // ponemos los tiles del mapa de openstreetmap
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap',
       }).addTo(mapa);
 
-      // recorremos todas las sedes y añadimos sus marcadores
       store.coordenadas.value.forEach((sede) => {
         const lat = parseFloat(sede.latitud);
         const lng = parseFloat(sede.longitud);
@@ -87,7 +110,6 @@ export default defineComponent({
         }
       });
 
-      // si alguien hace click en el boton del popup, redirige a otra pagina
       document.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         if (target && target.classList.contains('popup-button')) {
@@ -101,7 +123,6 @@ export default defineComponent({
       });
     };
 
-    // esta funcion centra el mapa en una sede concreta y abre su popup
     const centrarYSaltar = (idSede: number) => {
       const marker = markerMap.get(idSede);
       if (marker) {
@@ -110,27 +131,22 @@ export default defineComponent({
       }
     };
 
-    // cuando se monta el componente, pedimos las coordenadas
     onMounted(() => {
       store.obtenerCoordenadas();
     });
 
-    // cuando lleguen las coordenadas de las sedes, inicializamos el mapa
     watch(
       () => store.coordenadas.value,
       (nuevas) => {
         if (nuevas.length > 0) {
-          // si el navegador permite geolocalizacion
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
 
-                // centramos el mapa en el usuario y ampliamos el zoom
                 inicializarMapa([lat, lon], 13);
 
-                // icono personalizado pa mostrar donde esta el usuario
                 const userIcon = L.icon({
                   iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
                   iconSize: [28, 28],
@@ -138,18 +154,15 @@ export default defineComponent({
                   popupAnchor: [0, -25],
                 });
 
-                // marcador del usuario con popup que se abre solo
                 L.marker([lat, lon], { icon: userIcon })
                   .addTo(mapa)
                   .openPopup();
               },
               () => {
-                // si no se puede obtener la ubicacion, se centra en madrid
                 inicializarMapa([40.4168, -3.7038], 6);
               }
             );
           } else {
-            // si el navegador ni soporta geolocalizacion, tambn madrid
             inicializarMapa([40.4168, -3.7038], 6);
           }
         }
@@ -159,11 +172,12 @@ export default defineComponent({
     return {
       coordenadas: store.coordenadas,
       centrarYSaltar,
+      busqueda, // 🆕 Devuelve la variable de búsqueda
+      sedesFiltradas, // 🆕 Devuelve el array filtrado de sedes
     };
   },
 });
 </script>
-
 
 <style lang="scss">
 .map-container {
@@ -176,9 +190,9 @@ export default defineComponent({
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   background-color: white;
   border: 1px solid #e0e0e0;
-  
+
   @media(max-width:950px){
-        flex-direction: column;
+    flex-direction: column;
   }
 
   .mapa-col {
@@ -199,6 +213,15 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     gap: 16px;
+
+    // 🆕 Estilos del buscador
+    .buscador {
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
   }
 
   .sede-card {
