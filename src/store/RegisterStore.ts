@@ -17,7 +17,7 @@ export const RegisterStore = defineStore("register", {
 
  actions: {
    async registerUsuario(registerData: RegisterData) {
-     const endpointRegisterPOST = "https://localhost:7179/Auth/Register"; // cambiar esta URL cuando se lance en AWS con IP fija y mas adelante con un dominio
+     const endpointRegisterPOST = "https://coworkingapi.jblas.me/Auth/Register"; // cambiar esta URL cuando se lance en AWS con IP fija y mas adelante con un dominio
 
      const res = await fetch(endpointRegisterPOST, {
        method: "POST",
