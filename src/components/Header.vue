@@ -31,7 +31,6 @@
           <router-link to="/home" class="header-child-2_mid_bienvenido">Bienvenido</router-link>
           <router-link to="/sedes" class="header-child-2_mid_espacios">Sedes</router-link>
           <router-link to="/precios" class="header-child-2_mid_precios">Precios</router-link>
-          <router-link to="/servicios" class="header-child-2_mid_servicios">Sérvicios</router-link>
           <a href="/home#form" class="header-child-2_mid_masInfo">Contacto</a>
         </div>
 
@@ -45,7 +44,6 @@
           <router-link to="/home" @click="toggleMenu">Bienvenido</router-link>
           <router-link to="/sedes" @click="toggleMenu">Sedes</router-link>
           <router-link to="/precios" @click="toggleMenu">Precios</router-link>
-          <router-link to="/servicios" @click="toggleMenu">Servicios</router-link>
           <a href="/home#form" @click="toggleMenu">Más Info</a>
           <router-link :to="userLink" @click="toggleMenu">Login</router-link>
         </div>
@@ -242,11 +240,11 @@ h6 {
       justify-content: center;
       align-items: center;
 
-      @media (max-width: 1500px) {
+      @media (max-width: 800px) {
         width: 15%;
       }
 
-      @media (max-width: 1250px) {
+      @media (max-width: 800px) {
         display: none;
       }
 
@@ -259,7 +257,7 @@ h6 {
 }
 
 
-@media (max-width: 1250px) {
+@media (max-width: 800px) {
   .header-child-2 {
     justify-content: space-between;
     align-items: center;
