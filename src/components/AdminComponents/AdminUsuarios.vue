@@ -12,10 +12,10 @@
             <i class="bi bi-plus me-2"></i>Añadir Rol
           </button>
         </div>
-        
+
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control ps-0" placeholder="Buscar usuario..." v-model="searchQuery">
+          <input type="text" class="form-control ps-0" placeholder=" Buscar usuario..." v-model="searchQuery">
         </div>
         <button @click="openAddUserModal" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal">
           <i class="bi bi-plus me-2"></i>Añadir Usuario
@@ -137,18 +137,18 @@
                 <tr v-for="rol in adminStore.roles" :key="rol.idRol">
                   <td>{{ rol.idRol }}</td>
                   <td>
-                    <input 
-                      v-if="editingRoleId === rol.idRol" 
-                      v-model="editingRoleData.nombre" 
+                    <input
+                      v-if="editingRoleId === rol.idRol"
+                      v-model="editingRoleData.nombre"
                       class="form-control form-control-sm"
                       type="text"
                     >
                     <span v-else>{{ rol.nombre }}</span>
                   </td>
                   <td>
-                    <textarea 
-                      v-if="editingRoleId === rol.idRol" 
-                      v-model="editingRoleData.descripcion" 
+                    <textarea
+                      v-if="editingRoleId === rol.idRol"
+                      v-model="editingRoleData.descripcion"
                       class="form-control form-control-sm"
                       rows="2"
                     ></textarea>
@@ -190,21 +190,21 @@
           <form @submit.prevent="handleAddRole">
             <div class="mb-3">
               <label for="roleName" class="form-label">Nombre del Rol</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                id="roleName" 
-                v-model="newRole.nombre" 
+              <input
+                type="text"
+                class="form-control"
+                id="roleName"
+                v-model="newRole.nombre"
                 required
                 placeholder="Ej: Moderador"
               >
             </div>
             <div class="mb-3">
               <label for="roleDescription" class="form-label">Descripción</label>
-              <textarea 
-                class="form-control" 
-                id="roleDescription" 
-                rows="3" 
+              <textarea
+                class="form-control"
+                id="roleDescription"
+                rows="3"
                 v-model="newRole.descripcion"
                 placeholder="Describe las funciones de este rol..."
               ></textarea>
@@ -229,7 +229,7 @@ import { useAdminStore } from '@/store/AdminStores/adminUsuariosStore';
 import UsuarioForm from '../../components/forms/UsuariosForm.vue';
 import { Modal } from 'bootstrap';
 
-const adminStore = useAdminStore(); 
+const adminStore = useAdminStore();
 const searchQuery = ref(''); // buscar elementos
 
 const currentUser = ref(null); // usuario actual para editar o añadir
@@ -350,9 +350,9 @@ const openAddRoleModal = () => {
 
 const startRoleEdit = (rol) => {
   editingRoleId.value = rol.idRol;
-  editingRoleData.value = { 
-    nombre: rol.nombre, 
-    descripcion: rol.descripcion 
+  editingRoleData.value = {
+    nombre: rol.nombre,
+    descripcion: rol.descripcion
   };
 };
 
@@ -412,7 +412,7 @@ const handleAddRole = async () => {
     .role-buttons {
       width: 100%;
       justify-content: stretch;
-      
+
       .btn {
         flex: 1;
       }
@@ -450,7 +450,7 @@ const handleAddRole = async () => {
         .btn-info{
           margin-right: 25px;
         }
-        
+
         .btn {
           flex: none;
           width: auto;
@@ -471,6 +471,8 @@ const handleAddRole = async () => {
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+    padding: 0 25px;
 }
 
 .table {
@@ -606,7 +608,7 @@ const handleAddRole = async () => {
 .modal-dialog {
   max-width: 500px;
   margin: 28px auto;
-  
+
   &.modal-lg {
     max-width: 800px;
   }

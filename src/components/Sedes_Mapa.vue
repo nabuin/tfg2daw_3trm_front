@@ -12,7 +12,7 @@
       <input
         v-model="busqueda"
         type="text"
-        placeholder="Buscar sede..."
+        placeholder=" Buscar sede..."
         class="buscador"
       />
 

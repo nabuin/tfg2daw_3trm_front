@@ -5,7 +5,7 @@
       <div class="header-controls">
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control ps-0" placeholder="Buscar sede..." v-model="searchQuery">
+          <input type="text" class="form-control ps-0" placeholder=" Buscar sede..." v-model="searchQuery">
         </div>
         <button @click="openAddSedeModal" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sedeModal">
           <i class="bi bi-plus me-2"></i>Añadir Sede
@@ -252,6 +252,8 @@ const deleteSedeConfirmed = async () => {
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+    padding: 0 25px;
 }
 
 .table {

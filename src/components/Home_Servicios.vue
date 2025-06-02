@@ -6,15 +6,15 @@
 
       <div class="servicios-block_height-horiz_block">
         <div class="servicios-block_height-horiz-text">
-          <div class="title">Servicios para nuestros usuarios</div>
+          <div class="title tt-svr">Servicios para nuestros usuarios</div>
         </div>
-        <div class="servicios-block_height-horiz-card">
+        <div class="servicios-block_height-horiz-card blue">
           <div class="icon"><img src="../imgs/service/air.svg" alt=""></div>
           <div class="title">Aire</div>
           <div class="text">Todas las zonas de nuestras instalaciones disponen de servicios de aire acondicionado para
             cuando sea necesario</div>
         </div>
-        <div class="servicios-block_height-horiz-card">
+        <div class="servicios-block_height-horiz-card green">
           <div class="icon"><img src="../imgs/service/cocina.svg" alt=""></div>
           <div class="title">Cocina</div>
           <div class="text">Aparte de las zonas de trabajo, les disponemos de una zona de cocina, en la que aparte de
@@ -23,19 +23,19 @@
       </div>
 
       <div class="servicios-block_height-horiz_block">
-        <div class="servicios-block_height-horiz-card">
+        <div class="servicios-block_height-horiz-card blue">
           <div class="icon"><img src="../imgs/service/pcs.svg" alt=""></div>
           <div class="title">PCs</div>
           <div class="text">En caso de que tu o tu equipo no dispongais de un equipo para poder trabajar, nosotros
             podemos proporcionarselo</div>
         </div>
-        <div class="servicios-block_height-horiz-card">
+        <div class="servicios-block_height-horiz-card green">
           <div class="icon"><img src="../imgs/service/seguridad.svg" alt=""></div>
           <div class="title">Seguridad</div>
           <div class="text">Disponemos de un equipo de vigilancia las 24 horas del dia, para asegurarnos de que no
             ocurra ningun altercado desafortunados a nuestros usuarios</div>
         </div>
-        <div class="servicios-block_height-horiz-card">
+        <div class="servicios-block_height-horiz-card blue">
           <div class="icon"><img src="../imgs/service/wifi.svg" alt=""></div>
           <div class="title">Internet</div>
           <div class="text">Todas nuestas instalaciones disponen de un servicio a internet siempre que sea requerido,
@@ -145,5 +145,20 @@
       }
     }
   }
+}
+
+.blue{
+    background-color: #accad440;
+    border-color: #006485;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.5);
+}
+.green{
+    background: #9fc9a247;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.tt-svr{
+    color: #002b00;
+    text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.5);
 }
 </style>

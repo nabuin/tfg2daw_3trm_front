@@ -98,7 +98,7 @@ const tramoHorarioFormateado = (range: string): string => {
     const startDate = parseDateString(startStr);
     const endDate = parseDateString(endStr);
 
-    // revisar si la fecha es válida 		
+    // revisar si la fecha es válida
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       console.error("Parsed date is Invalid Date:", range);
       return range; //si no es válida, devolver la original
@@ -347,9 +347,9 @@ const confirmLogout = () => {
 const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
   try {
     console.log("Verificando reserva:", rangoHorarioReserva);
-    
+
     let fechaFin: Date; // fecha y hora de fin que se usará para comparar
-    
+
     // Verificar si el formato es "DD/MM/YYYY HH:mm - HH:mm" (mismo día)
     if (rangoHorarioReserva.includes(" - ") && !rangoHorarioReserva.split(" - ")[1].includes("/")) {
       // comprobar si es solo un dia y no varios en la reserva, tipo: 24/05/2025 08:00 - 09:00
@@ -366,14 +366,14 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
       const [datePart, timePart] = endStr.split(" ");
       const [day, month, year] = datePart.split("/").map(Number);
       const [hour, minute] = timePart.split(":").map(Number);
-      
+
       fechaFin = new Date(year, month - 1, day, hour, minute);
     }
-    
+
     // Crear la fecha/hora actual
     const ahora = new Date();
-    
-    
+
+
     // Verificar si la fecha de fin es mayor a la fecha actual
     return fechaFin > ahora;
   } catch (error) {
@@ -426,7 +426,7 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 <label for="editApellidos">Apellidos:</label>
                 <input type="text" id="editApellidos" v-model="InfoUsuarioEditable.apellidos" />
               </div>
-              <p><strong>Email:</strong> {{ userStore.user?.email }}</p> 
+              <p><strong>Email:</strong> {{ userStore.user?.email }}</p>
               <p><strong>Rol:</strong> {{ userRole }}</p>
               <p><strong>Fecha Registro:</strong> {{ darFormatoFecha(userStore.user?.fechaRegistro ?? '') }}
               </p>
@@ -637,7 +637,7 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
 
 .view-qr-button {
     background-color: #007bff;
-    color: white; 
+    color: white;
 }
 
 .view-qr-button:hover {
@@ -679,16 +679,17 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
 
 
 .profile-page-wrapper {
-  margin-bottom: 40px;
+  margin-bottom: 40px !important;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
   box-sizing: border-box;
   background-color: #f8f9fa;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+      border-radius: 25px;
+    margin-top: 40px;
+    box-shadow: 9px 10px 27px -1px rgba(0, 88, 179, 0.75);
 }
 
 h1 {
@@ -750,7 +751,7 @@ h3 {
   gap: 20px;
 }
 
-@media (min-width: 990px) { 
+@media (min-width: 990px) {
   .main-content-grid {
     grid-template-columns: 1fr 1fr; /*dos columnas para usuario info y reservas */
     gap: 30px;
@@ -768,7 +769,7 @@ h3 {
   background-color: white;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px #9fc9a094;
 
 }
 
@@ -914,11 +915,12 @@ button {
   background-color: #ffffff;
   border-radius: 8px;
   color: #333;
-  height: 100%;
+  height: 793px;
   display: flex;
   flex-direction: column;
-  max-height: 675px;
   overflow-y: auto;
+
+    box-shadow: 0 2px 10px rgba(159, 201, 160, 0.5803921569);
 }
 
 .user-reservations__title {
