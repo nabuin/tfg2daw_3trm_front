@@ -30,9 +30,7 @@ export const useUserStore = defineStore("user", {
         const userData: User = await res.json();
         this.user = userData;
 
-        console.log("Datos del usuario obtenidos:", this.user);
       } else {
-        console.error("Error al obtener los datos del usuario");
         this.user = null;
       }
     },

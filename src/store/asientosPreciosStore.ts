@@ -23,22 +23,18 @@ export const useAsientosPreciosStore = defineStore('asientosPrecios', () => {
 
     const id  = idsPuestos[0]
     const url = `https://localhost:7179/api/Salas/puesto/${id}/asiento-precio`
-    console.log(`🔍 fetch precio asiento ${id}: ${url}`)
 
     try {
       const res = await fetch(url)
-      console.log(`response status: ${res.status}`)
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
 
       const dato = await res.json()
       const precioUnitario = typeof dato === 'number'
         ? dato
         : (dato.precio as number) ?? 0
-      console.log(`precio unitario asiento ${id}: ${precioUnitario}`)
 
       const total = precioUnitario * idsPuestos.length * horas
       precioTotal.value = total
-      console.log(` precio total (${idsPuestos.length} asientos × ${horas}h): ${total}`)
       return total
 
     } catch (e: any) {

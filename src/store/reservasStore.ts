@@ -130,8 +130,6 @@ export const useReservasStore = defineStore('reservas', () => {
             lineas: reservationLines,
         };
 
-        console.log("Sending reservation data:", JSON.stringify(reservationData, null, 2));
-
         try {
             const response = await fetch('https://localhost:7179/api/Reservas/reservacompleta', {
                 method: 'POST',
