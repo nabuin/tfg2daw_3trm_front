@@ -49,7 +49,7 @@
         </div>
         <div class="footer__info-block footer__info-block--location">
           <div class="footer__info-item footer__info-item--address">
-            <h6>C/ Rodrigo Rebolledo 67</h6>
+            <h6>coworkingzgzdaw@gmail.com 67</h6>
           </div>
           <div class="footer__info-item footer__info-item--hours">
             <h6>De 8:00 a 16:00</h6>

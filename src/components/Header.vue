@@ -11,7 +11,7 @@
           <h6>691236425</h6>
         </div>
         <div class="header__top-right-email">
-          <h6>Cooworking Las Fuentes</h6>
+          <h6>coworkingzgzdaw@gmail.com</h6>
         </div>
         <div class="header__top-right-ubi">
           <h6>C/ Rodrigo Rebolledo 67</h6>
@@ -44,7 +44,7 @@
           <router-link to="/home" @click="toggleMenu">Bienvenido</router-link>
           <router-link to="/sedes" @click="toggleMenu">Sedes</router-link>
           <router-link to="/precios" @click="toggleMenu">Precios</router-link>
-          <a href="/home#form" @click="toggleMenu">Más Info</a>
+          <a href="/home#form" @click="toggleMenu">Contacto</a>
           <router-link :to="userLink" @click="toggleMenu">Login</router-link>
         </div>
       </div>
@@ -346,6 +346,7 @@ h6 {
     &-ubi {
       width: auto !important;
     }
+
   }
 }
 
@@ -382,6 +383,10 @@ h6 {
 
 .logo {
   height: 120px;
+}
+
+.header__top-right-ubi{
+  padding-left: 15px;
 }
 </style>
 
