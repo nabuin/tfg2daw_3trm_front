@@ -1,39 +1,40 @@
 <template>
-  <div v-if="reservaActual" class="container">
-    <h1>Detalles de la Reserva</h1>
+  <div v-if="reservaActual" class="reserva-detalle">
+    <h1 class="reserva-detalle__titulo">Detalles de la Reserva</h1>
 
-    <div>
-      <p><strong>Precio Total:</strong> {{ reservaActual.precioTotal }} €</p>
-      <p><strong>Rango Horario:</strong> {{ reservaActual.rangoHorarioReserva }}</p>
-      <p><strong>Total Horas Reservadas:</strong> {{ reservaActual.cantidadHorasReservadas }} horas</p>
+    <div class="reserva-detalle__bloque">
+      <p class="reserva-detalle__texto"><strong>Precio Total:</strong> {{ reservaActual.precioTotal }} €</p>
+      <p class="reserva-detalle__texto"><strong>Rango Horario:</strong> {{ reservaActual.rangoHorarioReserva }}</p>
+      <p class="reserva-detalle__texto"><strong>Total Horas Reservadas:</strong> {{ reservaActual.cantidadHorasReservadas }} horas</p>
     </div>
 
-    <div>
-      <h2>Ubicación</h2>
-      <p><strong>Nombre de la sala:</strong> {{ reservaActual.nombreSalaPrincipal }}</p>
-      <p><strong>Ciudad:</strong> {{ reservaActual.ciudadSedePrincipal }}</p>
-      <p><strong>Dirección:</strong> {{ reservaActual.direccionSedePrincipal }}</p>
+    <div class="reserva-detalle__bloque">
+      <h2 class="reserva-detalle__subtitulo">Ubicación</h2>
+      <p class="reserva-detalle__texto"><strong>Nombre de la sala:</strong> {{ reservaActual.nombreSalaPrincipal }}</p>
+      <p class="reserva-detalle__texto"><strong>Ciudad:</strong> {{ reservaActual.ciudadSedePrincipal }}</p>
+      <p class="reserva-detalle__texto"><strong>Dirección:</strong> {{ reservaActual.direccionSedePrincipal }}</p>
     </div>
 
-    <div v-if="reservaActual.asientosReservados">
-      <h2>Asientos Reservados</h2>
-      <p>{{ reservaActual.asientosReservados }}</p>
+    <div v-if="reservaActual.asientosReservados" class="reserva-detalle__bloque">
+      <h2 class="reserva-detalle__subtitulo">Asientos Reservados</h2>
+      <p class="reserva-detalle__texto">{{ reservaActual.asientosReservados }}</p>
     </div>
   </div>
 
   <div v-else-if="loading">
-    <p>Cargando detalles de la reserva...</p>
+    <p class="reserva-detalle__texto">Cargando detalles de la reserva...</p>
   </div>
 
   <div v-else-if="error">
-    <p class="error-message">Error: {{ error }}</p>
-    <p>No se pudieron cargar los detalles de la reserva. Por favor, inténtalo de nuevo.</p>
+    <p class="reserva-detalle__error">Error: {{ error }}</p>
+    <p class="reserva-detalle__texto">No se pudieron cargar los detalles de la reserva. Por favor, inténtalo de nuevo.</p>
   </div>
 
   <div v-else>
-    <p>No hay detalles de reserva disponibles.</p>
+    <p class="reserva-detalle__texto">No hay detalles de reserva disponibles.</p>
   </div>
 </template>
+
 
 <script>
 import { useInfoPedidosStore } from '../store/InfoPedidosStore';
@@ -63,8 +64,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.container {
+<style scoped lang="scss">
+.reserva-detalle {
   background-color: white;
   display: flex;
   flex-direction: column;
@@ -73,64 +74,66 @@ export default {
   height: calc(100vh - 365px);
   padding: 20px;
   text-align: center;
-}
 
-h1 {
-  color: #2c3e50;
-  font-size: 24px;
-  margin-bottom: 15px;
-}
-
-h2 {
-  color: #34495e;
-  font-size: 20px;
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
-
-p {
-  font-size: 18px;
-  color: #2c3e50;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-
-strong {
-  font-weight: bold;
-}
-
-
-.error-message {
-  color: #e74c3c;
-  font-weight: bold;
-}
-
-/* Responsive adjustments */
-@media (min-width: 600px) {
-  h1 {
-    font-size: 32px;
-  }
-
-  h2 {
+  &__titulo {
+    color: #2c3e50;
     font-size: 24px;
+    margin-bottom: 15px;
   }
 
-  p {
-    font-size: 19px;
+  &__subtitulo {
+    color: #34495e;
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  &__texto {
+    font-size: 18px;
+    color: #2c3e50;
+    margin: 5px 0;
+  }
+
+  &__error {
+    color: #e74c3c;
+    font-weight: bold;
+  }
+
+  &__bloque {
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 600px) {
+  .reserva-detalle {
+    &__titulo {
+      font-size: 32px;
+    }
+
+    &__subtitulo {
+      font-size: 24px;
+    }
+
+    &__texto {
+      font-size: 19px;
+    }
   }
 }
 
 @media (min-width: 900px) {
-  h1 {
-    font-size: 40px;
-  }
+  .reserva-detalle {
+    &__titulo {
+      font-size: 40px;
+    }
 
-  h2 {
-    font-size: 28px;
-  }
+    &__subtitulo {
+      font-size: 28px;
+    }
 
-  p {
-    font-size: 20px;
+    &__texto {
+      font-size: 20px;
+    }
   }
 }
 </style>
+

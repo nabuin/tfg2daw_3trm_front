@@ -7,11 +7,9 @@ export const useSedeSeleccionadaStore = defineStore('sedeSeleccionada', {
   }),
   actions: {
     setId(id: number) {
-      console.log('[Pinia] Guardando sede seleccionada:', id);
       this.id = id;
     },
     reset() {
-      console.log('[Pinia] Reseteando sede seleccionada');
       this.id = null;
     }
   }

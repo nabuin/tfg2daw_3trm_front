@@ -9,7 +9,6 @@ import RegisterView from '../views/RegisterView.vue';
 import  UserInfoView from '../views/UserInfoView.vue';
 import  PagoView from '../views/PagoView.vue';
 import PreciosView from '../views/PreciosView.vue'
-import ServiciosView from '../views/ServiciosView.vue'
 import InfoPedidoView from '@/views/InfoPedidoView.vue';
 import AdminSedesView from '../views/AdminViews/AdminSedesView.vue';
 import AdminUsersView from '@/views/AdminViews/AdminUsersView.vue';
@@ -92,11 +91,6 @@ const router = createRouter({
       path: '/precios',
       name: 'Precios',
       component: PreciosView,
-    },
-    {
-      path: '/servicios',
-      name: 'Servicios',
-      component: ServiciosView,
     },
     {
       path: '/grafico',

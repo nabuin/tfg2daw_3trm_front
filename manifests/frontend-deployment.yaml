@@ -16,8 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: jblas7/front-3-trimestre-2-daw:v11  # ya que se van subiendo en el orden v[numerodecommit], asi garantiza que siempre será la version final que se haya subido
-        imagePullPolicy: Always
+        image: jblas7/front-3-trimestre-2-daw:vfinal  # estatico
         ports:
         - containerPort: 80
   strategy:

@@ -30,9 +30,7 @@ export const useUserStore = defineStore("user", {
         const userData: User = await res.json();
         this.user = userData;
 
-        console.log("Datos del usuario obtenidos:", this.user);
       } else {
-        console.error("Error al obtener los datos del usuario");
         this.user = null;
       }
     },
@@ -78,9 +76,9 @@ export const useUserStore = defineStore("user", {
           this.user.nombre = nombre;
           this.user.apellidos = apellidos;
         }
-        console.log("Info del usuario actualizada:", this.user); // debug
+        console.log("Info del usuario actualizada:", this.user); 
       } catch (error) {
-        console.error("Error actualizando info del usuario:", error); // debug
+        console.error("Error actualizando info del usuario:", error); 
         throw error;
       }
     }

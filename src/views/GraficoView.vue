@@ -63,6 +63,7 @@ const irLogin = () => {
 .grafico-view {
   padding: 2rem;
   background-color: #f9fafb;
+  margin-bottom: 40px;
 
   .page-title {
     font-size: 2rem;

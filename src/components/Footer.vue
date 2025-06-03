@@ -1,83 +1,75 @@
 <template>
-
   <div class="footer">
-    <div class="footer-child-1">
-      <img class="logo" src="../imgs/logo.png" alt="">
+    <div class="footer__logo-container">
+      <img class="footer__logo" src="../imgs/logo.png" alt="">
     </div>
-    <div class="footer-child-2">
-      <div class="footer-child-2_social">
-        <div class="footer-child-2_social-icons">
-          <div class="icon-fb">
-            <a href="https://www.facebook.com/profile.php?id=61575937731949" target="_blank" rel="noopener noreferrer"
-              class="icon-ig">
+    <div class="footer__content">
+      <div class="footer__social">
+        <div class="footer__social-icons">
+          <div class="footer__icon footer__icon--fb">
+            <a href="https://www.facebook.com/profile.php?id=61575937731949" target="_blank" rel="noopener noreferrer">
               <img src="../imgs/social/fb.svg" alt="">
             </a>
           </div>
-          <div class="icon-ig">
-            <a href="https://www.instagram.com/coworkingzaragozaoficial/" target="_blank" rel="noopener noreferrer"
-              class="icon-ig">
+          <div class="footer__icon footer__icon--ig">
+            <a href="https://www.instagram.com/coworkingzaragozaoficial/" target="_blank" rel="noopener noreferrer">
               <img src="../imgs/social/ig.svg" alt="">
             </a>
           </div>
-          <div class="icon-in">
-            <a href="https://www.linkedin.com/in/nicolas-undefined-207812362/" target="_blank" rel="noopener noreferrer"
-              class="icon-ig">
+          <div class="footer__icon footer__icon--in">
+            <a href="https://www.linkedin.com/in/nicolas-undefined-207812362/" target="_blank" rel="noopener noreferrer">
               <img src="../imgs/social/in.svg" alt="">
             </a>
           </div>
-          <div class="icon-tw">
-            <a href="https://x.com/CoworkingZgzOf" target="_blank" rel="noopener noreferrer"
-              class="icon-ig">
+          <div class="footer__icon footer__icon--tw">
+            <a href="https://x.com/CoworkingZgzOf" target="_blank" rel="noopener noreferrer">
               <img src="../imgs/social/tw.svg" alt="">
             </a>
           </div>
-          <div class="icon-x">
-            <a href="https://x.com/CoworkingZgzOf" target="_blank" rel="noopener noreferrer"
-              class="icon-ig">
+          <div class="footer__icon footer__icon--x">
+            <a href="https://x.com/CoworkingZgzOf" target="_blank" rel="noopener noreferrer">
               <img src="../imgs/social/x.svg" alt="">
             </a>
           </div>
-          <div class="icon-yt">
-            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer"
-              class="icon-ig">
+          <div class="footer__icon footer__icon--yt">
+            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer">
               <img src="../imgs/social/yt.svg" alt="">
             </a>
           </div>
         </div>
       </div>
-      <div class="footer-child-2_info">
-        <div class="footer-child-2_info-block_1">
-          <div class="footer-child-1_phone">
+      <div class="footer__info">
+        <div class="footer__info-block footer__info-block--contact">
+          <div class="footer__info-item footer__info-item--phone">
             <h6>691236425</h6>
           </div>
-          <div class="footer-child-1_email">
+          <div class="footer__info-item footer__info-item--email">
             <h6>Cooworking Las Fuentes</h6>
           </div>
         </div>
-        <div class="footer-child-2_info-block_2">
-          <div class="footer-child-1_ubi">
+        <div class="footer__info-block footer__info-block--location">
+          <div class="footer__info-item footer__info-item--address">
             <h6>C/ Rodrigo Rebolledo 67</h6>
           </div>
-          <div class="footer-child-1_hour">
+          <div class="footer__info-item footer__info-item--hours">
             <h6>De 8:00 a 16:00</h6>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 </template>
+
 
 <style scoped lang="scss">
 .footer {
-
   height: 150px;
   width: 100%;
   display: flex;
   flex-direction: row;
   padding-top: 25px;
 
-  .footer-child-1 {
+  &__logo-container {
     width: 30%;
     height: 100%;
     display: flex;
@@ -85,22 +77,25 @@
     align-items: center;
   }
 
-  .footer-child-2 {
+  &__logo {
+    height: 120px;
+  }
+
+  &__content {
     width: 70%;
     height: 0 !important;
     position: relative;
 
-    .footer-child-2_social {
+    .footer__social {
       height: 50px;
       width: 100%;
-      background: rgba(255, 0, 0, 0);
       top: -25px;
       position: relative;
       display: flex;
       justify-content: flex-end;
       z-index: 1;
 
-      .footer-child-2_social-icons {
+      &-icons {
         height: 100%;
         width: 400px;
         background: white;
@@ -114,7 +109,7 @@
       }
     }
 
-    .footer-child-2_info {
+    .footer__info {
       position: relative;
       height: 150px;
       bottom: 50px;
@@ -124,132 +119,90 @@
       display: flex;
       flex-direction: row;
 
-      .footer-child-2_info-block_1 {
+      &-block {
         height: 100%;
         width: 50%;
         display: flex;
         flex-direction: column;
         justify-content: center;
 
-        .footer-child-1_phone,
-        .footer-child-1_email {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: white;
-          display: flex;
-          justify-content: center;
-          align-items: center;
+        &--contact,
+        &--location {
+          .footer__info-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            gap: 10px;
 
-          &::before {
-            content: "";
-            display: inline-block;
-            width: 17px;
-            height: 17px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-bottom: 2px;
+            &::before {
+              content: "";
+              display: inline-block;
+              width: 17px;
+              height: 17px;
+              background-size: contain;
+              background-repeat: no-repeat;
+              background-position: center;
+              margin-bottom: 2px;
+            }
+
+            &--phone::before {
+              background-image: url('../imgs/icons/phone.svg');
+            }
+
+            &--email::before {
+              background-image: url('../imgs/icons/email.svg');
+            }
+
+            &--address::before {
+              background-image: url('../imgs/icons/ubi.svg');
+            }
+
+            &--hours::before {
+              background-image: url('../imgs/icons/clock.svg');
+              filter: invert(1);
+            }
           }
-        }
-
-        .footer-child-1_phone::before {
-          background-image: url('../imgs/icons/phone.svg');
-        }
-
-        .footer-child-1_email::before {
-          background-image: url('../imgs/icons/email.svg');
-        }
-      }
-
-      .footer-child-2_info-block_2 {
-        height: 100%;
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        .footer-child-1_ubi,
-        .footer-child-1_hour {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: white;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-
-          &::before {
-            content: "";
-            display: inline-block;
-            width: 17px;
-            height: 17px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-bottom: 2px;
-          }
-        }
-
-        .footer-child-1_ubi::before {
-          background-image: url('../imgs/icons/ubi.svg');
-        }
-
-        .footer-child-1_hour::before {
-          background-image: url('../imgs/icons/clock.svg');
-          filter: invert(1);
         }
       }
     }
   }
 
-
-  @media (max-width:900px) {
-
-
-    display: flex;
+  @media (max-width: 900px) {
     flex-direction: column;
     height: auto;
     padding-top: 0;
 
-    .footer-child-1 {
+    &__logo-container {
       width: 100%;
       height: 50%;
-
       padding: 40px;
     }
 
-    .footer-child-2 {
+    &__content {
       width: 100%;
       height: 50%;
 
-      .footer-child-2_info {
+      .footer__info {
         border-radius: 0;
       }
     }
-
   }
 
-  @media (max-width:500px) {
-    .footer-child-2_info {
-      display: flex !important;
+  @media (max-width: 500px) {
+    .footer__info {
       flex-direction: column !important;
 
-      .footer-child-2_info-block_1 {
+      .footer__info-block {
         width: 100% !important;
         height: 50% !important;
 
-        padding-top: 40px !important;
-      }
-
-      .footer-child-2_info-block_2 {
-        width: 100% !important;
-        height: 50% !important;
+        &--contact {
+          padding-top: 40px !important;
+        }
       }
     }
   }
 }
-.logo{
-  height: 120px;
-}
 </style>
+

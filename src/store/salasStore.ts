@@ -49,7 +49,6 @@ export const useSalasStore = defineStore('salas', () => {
       const resp = await fetch(url);
       if (!resp.ok) throw new Error('Error en la solicitud');
       const data = await resp.json();
-      console.log('Respuesta API salas:', data);
       salasDisponibles.value = data;
     } catch (e) {
       error.value = (e as Error).message;

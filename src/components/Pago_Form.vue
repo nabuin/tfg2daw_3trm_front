@@ -140,9 +140,11 @@ import { useFiltrosStore } from '../store/filtrosStore'
 import { usePuestosStore } from '../store/asientosStore'
 import { useSalaAsientoStore } from '../store/salaAsientoStore'
 import { useAsientosPreciosStore } from '../store/asientosPreciosStore'
+// todos los stores usados en esta pagina
 
 const router = useRouter()
 
+// stores y variables que se usan
 const reservasStore = useReservasStore()
 const { selectedPuestos, isReserving, reservationError, reservationSuccess, currentPuestoDisponibilidades } = storeToRefs(reservasStore)
 
@@ -162,17 +164,21 @@ const form = ref(null)
 const formValid = ref(false)
 const showSuccessDialog = ref(false)
 
+// datos de tarjeta y dirección
 const payment = reactive({ cardName: '', cardNumber: '', expiry: '', cvv: '' })
 const billing = reactive({ addressLine1: '', addressLine2: '', city: '', state: '', zip: '', country: null })
 
+// paises para mostrar en el select
 const countries = ['España', 'México', 'Argentina', 'Estados Unidos', 'Canadá', 'Chile', 'Colombia']
 const acceptTerms = ref(false)
 
+// reglas pa validar los campos de la tarjeta
 const rules = {
   cardNumberDigits: (v: string) => (v && v.replace(/\s/g, '').length === 16) || 'la tarjeta debe tener 16 dígitos',
   cvvDigits: (v: string) => (v && /^\d{3,4}$/.test(v)) || 'el cvv debe tener 3 – 4 dígitos',
 }
 
+// funcion pa calcular las horas entre dos strings tipo hh:mm
 function calcularHoras(): number {
   const [h1, m1] = horaInicio.value.split(':').map(Number)
   const [h2, m2] = horaFin.value.split(':').map(Number)
@@ -180,30 +186,47 @@ function calcularHoras(): number {
   return minutos > 0 ? minutos / 60 : 0
 }
 
+// recalcula el precio total en base a los puestos y las horas
 async function recalcPrice() {
   const ids = selectedPuestos.value.map(p => p.idPuestoTrabajo)
   const horas = calcularHoras()
   await precioStore.calcularPrecio(ids, horas)
 }
 
-onMounted(() => {
-  puestosStore.obtenerPuestosDisponibles()
+// cuando se monta la vista se cargan los puestos
+onMounted(async () => {
+  await puestosStore.obtenerPuestosDisponibles()
+
+  // si no hay ningun puesto, se va al home
+  if (puestosDisponibles.value.length === 0) {
+    router.push('/home')
+    return
+  }
+
   recalcPrice()
 })
 
+// si cambian los puestos, se actualiza la disponibilidad
 watch(puestosDisponibles, nuevos => reservasStore.setPuestoDisponibilidades(nuevos), { immediate: true })
+
+// si cambian los puestos seleccionados o las horas, se recalcula el precio
 watch([selectedPuestos, horaInicio, horaFin], recalcPrice)
 
-const totalFormatted = computed(() => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioTotal.value))
+// esto transforma el total en euros
+const totalFormatted = computed(() =>
+  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioTotal.value)
+)
 
+// esta parte es un poco liosa, agarra los puestos seleccionados y busca la info completa de ese puesto, como su numero
 const selectedSeatDetails = computed(() => selectedPuestos.value.map(sel => {
   const info = currentPuestoDisponibilidades.value.find(p => p.idPuestoTrabajo === sel.idPuestoTrabajo)
   return {
     id: sel.idPuestoTrabajo,
-    numeroAsiento: info?.numeroAsiento || `Puesto ${sel.idPuestoTrabajo}`
+    numeroAsiento: info?.numeroAsiento || `Puesto ${sel.idPuestoTrabajo}` // si no hay numero, pone algo generico
   }
 }))
 
+// esta parte busca el nombre de la sala pa cada asiento seleccionado
 const salaNombres = reactive<Record<number, string>>({})
 watch(selectedSeatDetails, list => {
   list.forEach(seat => {
@@ -213,6 +236,7 @@ watch(selectedSeatDetails, list => {
   })
 }, { immediate: true })
 
+// al enviar el formulario, se valida todo y se guarda la reserva
 async function submit() {
   termsError.value = null
   if (!acceptTerms.value) {
@@ -230,6 +254,7 @@ async function submit() {
   }
 }
 </script>
+
 
 
 <style scoped lang="scss">

@@ -5,7 +5,7 @@
       <div class="header-controls">
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control ps-0" placeholder="Buscar reserva..." v-model="searchQuery">
+          <input type="text" class="form-control ps-0" placeholder=" Buscar reserva..." v-model="searchQuery">
         </div>
         </div>
     </div>
@@ -202,6 +202,8 @@ const deleteReservaConfirmed = async (): Promise<void> => {
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+    padding: 0 25px;
 }
 
 .table {

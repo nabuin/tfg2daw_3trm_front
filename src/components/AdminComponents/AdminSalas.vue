@@ -19,7 +19,7 @@
         </div>
         <div class="input-group input-group-sm input-group-inline me-3">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control ps-0" placeholder="Buscar sala..." v-model="searchQuery">
+          <input type="text" class="form-control ps-0" placeholder=" Buscar sala..." v-model="searchQuery">
         </div>
         <button @click="openAddSalaModal" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#salaModal">
           <i class="bi bi-plus me-2"></i>Añadir Sala
@@ -711,6 +711,8 @@ const clearGenerarDisponibilidadesMessage = () => {
 }
 
 .table-responsive {
+
+    padding: 0 25px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }

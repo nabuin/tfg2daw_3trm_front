@@ -63,10 +63,10 @@ export const useReservationStore = defineStore("reservation", {
 
                 const data: Reservation[] = await res.json();
                 this.reservations = data;
-                console.log("Reservas obtenidas:", this.reservations); // debug
+                console.log("Reservas obtenidas:", this.reservations); 
             } catch (err: any) {
                 this.error = err.message || "Fallo al cargar las reservas.";
-                console.error("Error fetching user reservations:", err); // debug
+                console.error("Error fetching user reservations:", err);
             } finally {
                 this.loading = false;
             }
@@ -108,7 +108,7 @@ export const useReservationStore = defineStore("reservation", {
                 console.log(`Reserva ${reservationId} eliminada con éxito.`);
             } catch (err: any) { // si da algun error se guarda
                 this.error = err.message || "Fallo al cancelar la reserva.";
-                console.error("Error deleting reservation:", err); // debug
+                console.error("Error deleting reservation:", err); 
                 throw err;
             } finally {
                 this.loading = false; // desactiva el loading

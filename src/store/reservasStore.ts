@@ -107,7 +107,7 @@ export const useReservasStore = defineStore('reservas', () => {
                     tramosDisponiblesParaPuesto.forEach((slot: any) => {
                         reservationLines.push({
                             idPuestoTrabajo: puestoCompleto.idPuestoTrabajo,
-                            idDisponibilidad: slot.idDisponibilidad, // ¡CAMBIO CLAVE AQUÍ!
+                            idDisponibilidad: slot.idDisponibilidad,
                         });
                     });
                 }
@@ -129,8 +129,6 @@ export const useReservasStore = defineStore('reservas', () => {
             fechaReserva: fechaReservaISO,
             lineas: reservationLines,
         };
-
-        console.log("Sending reservation data:", JSON.stringify(reservationData, null, 2));
 
         try {
             const response = await fetch('https://coworkingapi.jblas.me/api/Reservas/reservacompleta', {
