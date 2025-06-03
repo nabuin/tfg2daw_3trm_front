@@ -3,7 +3,8 @@
     <div class="tarjetas__item tarjetas__item--izquierda">
       <img src="../imgs/others/sillaplus.png" alt="Imagen 1" class="tarjetas__imagen" @click="irASedes">
       <h3 class="tarjetas__titulo">Caracteristicas Especiales</h3>
-      <p class="tarjetas__texto">En La Oficina ofrecemos asientos especiales con mayor comodidad, ergonomía mejorada,
+      <p class="tarjetas__texto">
+        En La Oficina ofrecemos asientos especiales con mayor comodidad, ergonomía mejorada,
         luz personalizada y ubicación preferente.
 
         Solo el 10 % de nuestros puestos cuentan con estas ventajas.
@@ -14,7 +15,8 @@
     <div class="tarjetas__item tarjetas__item--centro" @click="irASedes">
       <img src="../imgs/others/silla-de-escritorio.png" alt="Imagen 2" class="tarjetas__imagen" />
       <h3 class="tarjetas__titulo">Salas Privadas</h3>
-      <p class="tarjetas__texto">En La Oficina te ofrecemos salas privadas ideales para reuniones, sesiones de equipo o
+      <p class="tarjetas__texto">
+        En La Oficina te ofrecemos salas privadas ideales para reuniones, sesiones de equipo o
         simplemente para trabajar sin interrupciones. El alquiler es de 0,50 € por hora por asiento. Cada sala incluye
         16 puestos individuales, totalmente equipados,
         con wifi de alta velocidad, enchufes, iluminación óptima y ambiente silencioso.
@@ -33,6 +35,7 @@
     </div>
   </div>
 </template>
+
 
 
 <script setup>
@@ -67,21 +70,15 @@ const irASedes = () => {
     justify-content: flex-start;
     padding-bottom: 1rem;
 
-        &:hover {
+    &:hover {
       transform: scale(1.02);
     }
-  }
 
-  &__item--izquierda {
-    height: auto;
-  }
-
-  &__item--centro {
-    height: auto;
-  }
-
-  &__item--derecha {
-    height: auto;
+    &--izquierda,
+    &--centro,
+    &--derecha {
+      height: auto;
+    }
   }
 
   &__imagen {

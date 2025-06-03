@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="slider-custom pa-0">
+  <v-container fluid class="slider">
     <v-carousel
       hide-delimiter-background
       height="100%"
@@ -8,10 +8,10 @@
       interval="5000"
     >
       <v-carousel-item>
-        <div class="slider-custom__img"></div>
+        <div class="slider__image slider__image--1"></div>
       </v-carousel-item>
       <v-carousel-item>
-        <div class="slider-custom__img-2"></div>
+        <div class="slider__image slider__image--2"></div>
       </v-carousel-item>
     </v-carousel>
   </v-container>
@@ -19,40 +19,34 @@
 
 
 
+
 <style lang="scss" scoped>
-.slider-custom {
+.slider {
   width: 100%;
 
-  &__img {
-    background-image: url('../imgs/slider/slider-img-1.avif');
+  &__image {
     background-size: cover;
     background-position: center;
     width: 100%;
     height: 700px;
-  }
 
-  &__img-2 {
-    background-image: url('../imgs/slider/slider-img-2.webp');
-    background-size: cover;
-    background-position: center;
-    width: 100%;
-    height: 700px;
+    &--1 {
+      background-image: url('../imgs/slider/slider-img-1.avif');
+    }
+
+    &--2 {
+      background-image: url('../imgs/slider/slider-img-2.webp');
+    }
   }
 
   @media (max-width: 1199px) {
-    &__img {
-      height: 500px;
-    }
-    &__img-2 {
+    &__image {
       height: 500px;
     }
   }
 
   @media (max-width: 599px) {
-    &__img {
-      height: 300px;
-    }
-    &__img-2 {
+    &__image {
       height: 300px;
     }
   }

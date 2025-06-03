@@ -29,51 +29,53 @@ const enviarFormulario = async () => {
     }
 };
 </script>
+
+
 <template>
-    <div id="form" class="form">
+    <div id="form" class="form form--container">
         <h2 class="form__title">Formulario de Contacto</h2>
 
         <div class="form__info">
-            <div class="form__ubicacion">
+            <div class="form__ubicacion form__info-item">
                 C/ Rodrigo Rebolledo 67
             </div>
-            <div class="form__email">
+            <div class="form__email form__info-item">
                 Cooworking Las Fuentes
             </div>
         </div>
 
         <form class="form__formulario" @submit.prevent="enviarFormulario">
-            <div class="form__fila">
-                <div class="form__grupo">
-                    <label class="form__label" for="nombre">Nombre*</label>
-                    <input type="text" id="nombre" class="form__input" v-model="formData.nombre" required />
+            <div class="form__fila form__row">
+                <div class="form__grupo form__group">
+                    <label class="form__label form__group-label" for="nombre">Nombre*</label>
+                    <input type="text" id="nombre" class="form__input form__group-input" v-model="formData.nombre" required />
                 </div>
-                <div class="form__grupo">
-                    <label class="form__label" for="apellidos">Apellidos*</label>
-                    <input type="text" id="apellidos" class="form__input" v-model="formData.apellidos" required />
+                <div class="form__grupo form__group">
+                    <label class="form__label form__group-label" for="apellidos">Apellidos*</label>
+                    <input type="text" id="apellidos" class="form__input form__group-input" v-model="formData.apellidos" required />
                 </div>
-                <div class="form__grupo">
-                    <label class="form__label" for="correo">Correo*</label>
-                    <input type="email" id="correo" class="form__input" v-model="formData.correo" required />
+                <div class="form__grupo form__group">
+                    <label class="form__label form__group-label" for="correo">Correo*</label>
+                    <input type="email" id="correo" class="form__input form__group-input" v-model="formData.correo" required />
                 </div>
             </div>
 
-            <div class="form__grupo form__grupo--textarea">
-                <label class="form__label" for="consulta">Escriba su Consulta*</label>
-                <textarea id="consulta" class="form__textarea" v-model="formData.consulta" required></textarea>
+            <div class="form__grupo form__grupo--textarea form__group form__group--textarea">
+                <label class="form__label form__group-label" for="consulta">Escriba su Consulta*</label>
+                <textarea id="consulta" class="form__textarea form__group-textarea" v-model="formData.consulta" required></textarea>
             </div>
             
-            <div class="form__boton">
-                <button type="submit" class="form__enviar" :disabled="formStore.loading">
+            <div class="form__boton form__actions">
+                <button type="submit" class="form__enviar form__submit" :disabled="formStore.loading">
                     {{ formStore.loading ? 'Enviando...' : 'Enviar' }}
                 </button>
             </div>
         </form>
 
-        <div v-if="formStore.successMessage" class="message success">
+        <div v-if="formStore.successMessage" class="message message--success">
             <p>{{ formStore.successMessage }}</p>
         </div>
-        <div v-if="formStore.errorMessage" class="message error">
+        <div v-if="formStore.errorMessage" class="message message--error">
             <p>{{ formStore.errorMessage }}</p>
         </div>
     </div>
@@ -82,56 +84,33 @@ const enviarFormulario = async () => {
 
 <style scoped lang="scss">
 .form {
-    background-color: #000;
-    color: #fff;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    &--container {
+        background-color: #000;
+        color: #fff;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-    .form__title {
+    &__title {
         text-align: center;
         font-size: 40px;
         margin-bottom: 2rem;
         font-weight: 700;
     }
 
-    .form__info {
+    &__info {
         display: flex;
         justify-content: space-around;
         margin-bottom: 2rem;
         gap: 11rem;
 
-
-        @media(max-width:800px){
-                gap: 10% !important;
-            }
-
-        .form__ubicacion {
-            display: flex;
-            height: 100%;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 8px;
-            margin-top: 0.5rem;
-            font-size: 1.2rem;
-            flex-direction: column;
-            text-align: center;
-
-
-            &::before {
-                content: "";
-                display: inline-block;
-                width: 35px;
-                height: 35px;
-                background-size: contain;
-                background-repeat: no-repeat;
-                background-position: center;
-                background-image: url('../imgs/icons/ubi.svg');
-            }
+        @media(max-width: 800px) {
+            gap: 10% !important;
         }
 
-        .form__email {
+        &-item {
             display: flex;
             height: 100%;
             justify-content: flex-start;
@@ -141,64 +120,75 @@ const enviarFormulario = async () => {
             font-size: 1.2rem;
             flex-direction: column;
             text-align: center;
-
-            &::before {
-                content: "";
-                display: inline-block;
-                width: 35px;
-                height: 35px;
-                background-size: contain;
-                background-repeat: no-repeat;
-                background-position: center;
-                background-image: url('../imgs/icons/email.svg');
-            }
         }
     }
 
-    .form__formulario {
+    &__ubicacion::before,
+    &__email::before {
+        content: "";
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+
+    &__ubicacion::before {
+        background-image: url('../imgs/icons/ubi.svg');
+    }
+
+    &__email::before {
+        background-image: url('../imgs/icons/email.svg');
+    }
+
+    &__formulario {
         display: flex;
         flex-direction: column;
         gap: 1rem;
         max-width: 1100px;
     }
 
-    .form__fila {
+    &__fila,
+    &__row {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
     }
 
-    .form__grupo {
+    &__grupo,
+    &__group {
         display: flex;
         flex-direction: column;
         flex: 1;
         min-width: 200px;
+
+        &--textarea {
+            width: 100%;
+        }
+
+        &-label {
+            margin-bottom: 0.3rem;
+            font-size: 22px;
+            color: white;
+        }
+
+        &-input,
+        &-textarea {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid white;
+            background-color: white;
+        }
+
+        &-textarea {
+            height: 200px;
+            resize: vertical;
+        }
     }
 
-    .form__grupo--textarea {
-        width: 100%;
-    }
-
-    .form__label {
-        margin-bottom: 0.3rem;
-        font-size: 22px;
-        color: white;
-    }
-
-    .form__input,
-    .form__textarea {
-        padding: 0.5rem;
-        border-radius: 5px;
-        border: 1px solid white;
-        background-color: white;
-    }
-
-    .form__textarea {
-        height: 200px;
-        resize: vertical;
-    }
-
-    .form__boton {
+    &__boton,
+    &__actions {
         margin-top: 1rem;
         text-align: left;
 
@@ -207,17 +197,27 @@ const enviarFormulario = async () => {
         }
     }
 
-    .form__enviar {
+    &__enviar,
+    &__submit {
         background: lightgray;
         color: black;
         border: none;
         padding: 0.5rem 1rem;
         border-radius: 4px;
         cursor: pointer;
-    }
 
-    .form__enviar:hover {
-        background: gray;
+        &:hover {
+            background: gray;
+        }
     }
 }
+
+.message--success {
+    color: #0f0;
+}
+
+.message--error {
+    color: #f00;
+}
+
 </style>

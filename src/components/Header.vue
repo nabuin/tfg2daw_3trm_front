@@ -1,37 +1,37 @@
 <template>
   <div class="header">
-    <div class="header-child-1">
-      <div class="header-child-1_left">
-        <div class="header-child-1_left_info">
+    <div class="header__top">
+      <div class="header__top-left">
+        <div class="header__top-left-info">
           <h6>Espacio de Cooworking en Zaragoza</h6>
         </div>
       </div>
-      <div class="header-child-1_right">
-        <div class="header-child-1_right_phone">
+      <div class="header__top-right">
+        <div class="header__top-right-phone">
           <h6>691236425</h6>
         </div>
-        <div class="header-child-1_right_email">
+        <div class="header__top-right-email">
           <h6>Cooworking Las Fuentes</h6>
         </div>
-        <div class="header-child-1_right_ubi">
+        <div class="header__top-right-ubi">
           <h6>C/ Rodrigo Rebolledo 67</h6>
         </div>
       </div>
     </div>
 
-    <div class="header-child-2">
-      <div class="header-child-2_left">
+    <div class="header__bottom">
+      <div class="header__bottom-left">
         <router-link to="/home">
-          <img class="logo"src="../imgs/logo.png" alt="logo" />
+          <img class="logo" src="../imgs/logo.png" alt="logo" />
         </router-link>
       </div>
 
-      <div class="header-child-2_mid">
-        <div class="header-child-2_mid_heigt">
-          <router-link to="/home" class="header-child-2_mid_bienvenido">Bienvenido</router-link>
-          <router-link to="/sedes" class="header-child-2_mid_espacios">Sedes</router-link>
-          <router-link to="/precios" class="header-child-2_mid_precios">Precios</router-link>
-          <a href="/home#form" class="header-child-2_mid_masInfo">Contacto</a>
+      <div class="header__bottom-mid">
+        <div class="header__bottom-mid-nav">
+          <router-link to="/home" class="header__nav-item">Bienvenido</router-link>
+          <router-link to="/sedes" class="header__nav-item">Sedes</router-link>
+          <router-link to="/precios" class="header__nav-item">Precios</router-link>
+          <a href="/home#form" class="header__nav-item">Contacto</a>
         </div>
 
         <div class="hamburger" @click="toggleMenu">
@@ -49,8 +49,7 @@
         </div>
       </div>
 
-      <!-- ICONO LOGIN SOLO EN >1250px -->
-      <div class="header-child-2_right">
+      <div class="header__bottom-right">
         <router-link :to="userLink">
           <img src="../imgs/icons/User_Logo.svg" alt="User logo" />
         </router-link>
@@ -58,6 +57,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
@@ -96,7 +96,8 @@ watch(() => userStore.user, () => {
 }, { immediate: true })
 
 </script>
-<style lang="scss" scoped>
+
+<style scoped lang="scss">
 h6 {
   color: white;
   margin-bottom: 0;
@@ -105,17 +106,17 @@ h6 {
 .header {
   height: 150px;
 
-  .header-child-1 {
+  &__top {
     background-color: #234b59;
     height: 50px;
     display: flex;
     flex-direction: row;
 
-    .header-child-1_left {
+    &-left {
       width: 50%;
       height: 100%;
 
-      .header-child-1_left_info {
+      &-info {
         display: flex;
         height: 100%;
         justify-content: center;
@@ -123,7 +124,7 @@ h6 {
       }
     }
 
-    .header-child-1_right {
+    &-right {
       width: 50%;
       height: 100%;
       display: flex;
@@ -133,18 +134,14 @@ h6 {
         width: 65%;
       }
 
-      .header-child-1_right_phone,
-      .header-child-1_right_email,
-      .header-child-1_right_ubi {
+      &-phone,
+      &-email,
+      &-ubi {
         width: 33%;
         display: flex;
         height: 100%;
         align-items: center;
         gap: 8px;
-
-        h6 {
-          margin: 0;
-        }
 
         &::before {
           content: "";
@@ -157,28 +154,28 @@ h6 {
         }
       }
 
-      .header-child-1_right_phone::before {
+      &-phone::before {
         background-image: url('../imgs/icons/phone.svg');
       }
 
-      .header-child-1_right_email::before {
+      &-email::before {
         background-image: url('../imgs/icons/email.svg');
       }
 
-      .header-child-1_right_ubi::before {
+      &-ubi::before {
         background-image: url('../imgs/icons/ubi.svg');
       }
     }
   }
 
-  .header-child-2 {
+  &__bottom {
     height: 100px;
     display: flex;
     flex-direction: row;
     background: white;
     position: relative;
 
-    .header-child-2_left {
+    &-left {
       height: 100%;
       width: 25%;
       display: flex;
@@ -186,7 +183,7 @@ h6 {
       align-items: center;
     }
 
-    .header-child-2_mid {
+    &-mid {
       height: 100%;
       width: 50%;
       display: flex;
@@ -198,17 +195,13 @@ h6 {
         width: 60%;
       }
 
-      .header-child-2_mid_heigt {
+      &-nav {
         display: flex;
         flex-direction: row;
         height: 65px;
         align-items: center;
 
-        .header-child-2_mid_bienvenido,
-        .header-child-2_mid_espacios,
-        .header-child-2_mid_precios,
-        .header-child-2_mid_servicios,
-        .header-child-2_mid_masInfo {
+        .header__nav-item {
           display: flex;
           align-items: center;
           padding: 0 25px;
@@ -218,22 +211,16 @@ h6 {
           flex-direction: row;
           border-right: 2px solid #234b59;
           color: #234b59;
+          text-decoration: none;
         }
 
-        .header-child-2_mid_masInfo{
+        .header__nav-item:last-child {
           border-right: none;
         }
-
-
-      }
-
-      a {
-        text-decoration: none;
-        color: inherit;
       }
     }
 
-    .header-child-2_right {
+    &-right {
       height: 100%;
       width: 25%;
       display: flex;
@@ -242,9 +229,6 @@ h6 {
 
       @media (max-width: 800px) {
         width: 15%;
-      }
-
-      @media (max-width: 800px) {
         display: none;
       }
 
@@ -256,34 +240,33 @@ h6 {
   }
 }
 
-
 @media (max-width: 800px) {
-  .header-child-2 {
+  .header__bottom {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
-  }
 
-  .header-child-2_left {
-    width: auto !important;
-    justify-content: flex-start !important;
-    padding-left: 0 !important;
+    &-left {
+      width: auto !important;
+      justify-content: flex-start !important;
+      padding-left: 0 !important;
 
-    img {
-      height: 120px;
-      width: auto;
-      max-width: 100%;
+      img {
+        height: 120px;
+        width: auto;
+        max-width: 100%;
+      }
     }
-  }
 
-  .header-child-2_mid {
-    width: auto !important;
-    flex: unset !important;
-    justify-content: flex-end !important;
-  }
+    &-mid {
+      width: auto !important;
+      flex: unset !important;
+      justify-content: flex-end !important;
 
-  .header-child-2_mid_heigt {
-    display: none !important;
+      &-nav {
+        display: none !important;
+      }
+    }
   }
 
   .hamburger {
@@ -303,47 +286,46 @@ h6 {
     }
   }
 
-.hamburger-menu {
-  right: -20px !important;
-  width: 100vw;
-  position: absolute;
-  top: 100%;
-  right: 20px;
-  background: #e5e5e5;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  z-index: 999;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  animation: fadeInDown 0.3s ease-out;
+  .hamburger-menu {
+    right: -20px !important;
+    width: 100vw;
+    position: absolute;
+    top: 100%;
+    right: 20px;
+    background: #e5e5e5;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: fadeInDown 0.3s ease-out;
 
-  a {
-    color: #333;
-    text-decoration: none;
-    font-size: 20px;
-    font-weight: 600;
-    padding: 10px 5px;
-    transition: all 0.2s ease;
+    a {
+      color: #333;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 600;
+      padding: 10px 5px;
+      transition: all 0.2s ease;
 
-    &:hover {
-      color: #FF5500;
-      transform: translateX(5px);
+      &:hover {
+        color: #FF5500;
+        transform: translateX(5px);
+      }
     }
   }
-}
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10%);
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 }
 
 @media(max-width: 1300px) {
@@ -351,66 +333,55 @@ h6 {
     height: auto;
   }
 
-  .header-child-1_left {
+  .header__top-left {
     width: 40% !important;
   }
 
-  .header-child-1_right {
+  .header__top-right {
     gap: 20px;
     width: 65%;
 
-    .header-child-1_right_phone {
-      width: auto !important;
-    }
-
-    .header-child-1_right_email {
-      width: auto !important;
-    }
-
-    .header-child-1_right_ubi {
+    &-phone,
+    &-email,
+    &-ubi {
       width: auto !important;
     }
   }
 }
 
 @media(max-width: 950px) {
-  .header-child-1 {
+  .header__top {
     height: auto !important;
     flex-direction: column !important;
 
-    .header-child-1_left {
+    &-left {
       width: 100% !important;
       padding: 5px 0;
     }
 
-    .header-child-1_right {
+    &-right {
       width: 100% !important;
       flex-direction: column !important;
       align-items: center !important;
       gap: 0 5px;
 
-      .header-child-1_right_phone {
-        padding: 5px 0;
-      }
-
-      .header-child-1_right_email {
-        padding: 5px 0;
-      }
-
-      .header-child-1_right_ubi {
+      &-phone,
+      &-email,
+      &-ubi {
         padding: 5px 0;
       }
     }
   }
 }
 
-@media(min-width:1250px){
-  .hamburger-menu{
+@media(min-width: 1250px) {
+  .hamburger-menu {
     display: none !important;
   }
 }
 
-.logo{
+.logo {
   height: 120px;
 }
 </style>
+
