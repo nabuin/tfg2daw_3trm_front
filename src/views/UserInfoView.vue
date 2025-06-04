@@ -683,12 +683,13 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
       border-radius: 25px;
     margin-top: 40px;
     box-shadow: 9px 10px 27px -1px rgba(0, 88, 179, 0.75);
+          max-width: 93% !important;
 }
 
 h1 {
   text-align: center;
   color: #333;
-  margin-bottom: 25px;
+  margin: 25px 0;
   font-size: 28px;
 }
 
@@ -1130,6 +1131,7 @@ button {
   margin: 0;
   
 }
+
 
 
 </style>
