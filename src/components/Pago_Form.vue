@@ -140,8 +140,8 @@ import { useFiltrosStore } from '../store/filtrosStore'
 import { usePuestosStore } from '../store/asientosStore'
 import { useSalaAsientoStore } from '../store/salaAsientoStore'
 import { useAsientosPreciosStore } from '../store/asientosPreciosStore'
-// todos los stores usados en esta pagina
 
+// todos los stores usados en esta pagina
 const router = useRouter()
 
 // stores y variables que se usan
@@ -193,6 +193,27 @@ async function recalcPrice() {
   await precioStore.calcularPrecio(ids, horas)
 }
 
+// Función para contar los días laborales (excluyendo sábados y domingos)
+function contarDiasLaborales(): number {
+  const startDate = new Date(fechaInicio.value);  // Fecha de inicio
+  const endDate = new Date(fechaFin.value);  // Fecha de fin
+
+  let diasLaborales = 0;
+
+  // Iteramos a través de todas las fechas en el rango
+  for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+    const dayOfWeek = date.getDay();  // 0 = Domingo, 6 = Sábado
+    
+    // Si el día no es sábado (6) ni domingo (0), lo contamos como día laboral
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      diasLaborales++;  // Aumentamos el contador de días laborales
+    }
+  }
+
+  console.log('Días laborales:', diasLaborales);  // Mostrar en consola el número de días laborales
+  return diasLaborales;
+}
+
 // cuando se monta la vista se cargan los puestos
 onMounted(async () => {
   await puestosStore.obtenerPuestosDisponibles()
@@ -203,6 +224,10 @@ onMounted(async () => {
     return
   }
 
+  // Calcular los días laborales y mostrarlo en la consola
+  contarDiasLaborales();
+
+  // Recalcular el precio
   recalcPrice()
 })
 
@@ -254,6 +279,7 @@ async function submit() {
   }
 }
 </script>
+
 
 
 
