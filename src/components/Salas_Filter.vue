@@ -175,6 +175,12 @@ export default defineComponent({
         return;
       }
 
+      // Guardar los filtros en localStorage
+      localStorage.setItem('filtroFechaInicio', fechaInicio.value);
+      localStorage.setItem('filtroFechaFin', fechaFin.value);
+      localStorage.setItem('filtroHoraInicio', horaInicio.value);
+      localStorage.setItem('filtroHoraFin', horaFin.value);
+
       filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
         fechaFin:    fechaFin.value,
@@ -198,6 +204,17 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      // Cargar los valores desde localStorage
+      const storedFechaInicio = localStorage.getItem('filtroFechaInicio');
+      const storedFechaFin = localStorage.getItem('filtroFechaFin');
+      const storedHoraInicio = localStorage.getItem('filtroHoraInicio');
+      const storedHoraFin = localStorage.getItem('filtroHoraFin');
+
+      if (storedFechaInicio) fechaInicio.value = storedFechaInicio;
+      if (storedFechaFin) fechaFin.value = storedFechaFin;
+      if (storedHoraInicio) horaInicio.value = storedHoraInicio;
+      if (storedHoraFin) horaFin.value = storedHoraFin;
+
       filtrar(false);
     });
 
@@ -217,6 +234,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 <style scoped lang="scss">
 .filtro__contenedor {
