@@ -217,7 +217,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .filtro__contenedor {
   display: flex;
-  background-color: black;
+  background-color: #234b59;
   padding-bottom: 15px;
 }
 
