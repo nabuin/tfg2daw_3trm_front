@@ -81,10 +81,7 @@ export default defineComponent({
 
     // Cargar salas con los filtros correctos
     const buscarSalas = async () => {
-      // Si los filtros aún no están cargados, no realizamos la búsqueda
-      if (!filtrosStore.fechaInicio.value || !filtrosStore.fechaFin.value) {
-        filtrosStore.cargarFiltros();  // Aseguramos que los filtros se cargan correctamente
-      }
+
 
       await obtenerSalasDisponibles({
         fechaInicio: filtrosStore.fechaInicio.value,

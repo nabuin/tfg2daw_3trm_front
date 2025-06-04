@@ -1,4 +1,3 @@
-
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useSalaSeleccionadaStore } from './salaSeleccionadaStore';
@@ -9,6 +8,9 @@ export const usePuestosStore = defineStore('puestos', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  // Para almacenar el controlador de la solicitud activa
+  let currentController = null;
+
   const salaStore = useSalaSeleccionadaStore();
   const filtrosStore = useFiltrosStore();
 
@@ -18,7 +20,7 @@ export const usePuestosStore = defineStore('puestos', () => {
   const horaInicio  = computed(() => filtrosStore.horaInicio);
   const horaFin     = computed(() => filtrosStore.horaFin);
 
-  // Computed endpoint URL with all query params
+  // Computed endpoint URL con todos los parámetros de consulta
   const endpoint = computed(() => {
     if (idSala.value === null) return '';
     const params = new URLSearchParams({
@@ -31,6 +33,7 @@ export const usePuestosStore = defineStore('puestos', () => {
     return `https://coworkingapi.jblas.me/api/puestostrabajo/disponibles?${params.toString()}`;
   });
 
+  // Función para obtener los puestos disponibles
   async function obtenerPuestosDisponibles() {
     if (!endpoint.value) {
       error.value = 'No se ha seleccionado ninguna sala.';
@@ -38,19 +41,30 @@ export const usePuestosStore = defineStore('puestos', () => {
       return;
     }
 
+    // Si ya hay una solicitud en curso, cancelarla
+    if (currentController) {
+      currentController.abort();
+    }
+
+    // Crear un nuevo controlador para la nueva solicitud
+    const controller = new AbortController();
+    currentController = controller;
+
     loading.value = true;
     error.value = null;
 
     try {
-      const res = await fetch(endpoint.value);
+      const res = await fetch(endpoint.value, { signal: controller.signal });
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
       const data = await res.json();
-
       puestosDisponibles.value = data;
     } catch (err: any) {
-      error.value = err.message;
-      puestosDisponibles.value = [];
+      // Si el error es debido a la cancelación, no se muestra
+      if (err.name !== 'AbortError') {
+        error.value = err.message;
+        puestosDisponibles.value = [];
+      }
     } finally {
       loading.value = false;
     }
