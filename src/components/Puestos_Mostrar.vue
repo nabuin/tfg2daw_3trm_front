@@ -119,43 +119,38 @@ export default defineComponent({
     const isLoggingIn = ref(false); // evita doble login
 
     // al montar el componente
-    onMounted(() => {
-      // si no hay sala seleccionada válida, se redirige al home
-      if (salaStore.id === null || salaStore.id < 1) {
-        console.log('[redirección] no hay sala seleccionada, volviendo al home');
-        router.push('/home');
-        return;
-      }
+onMounted(() => {
+  // Verifica si ya se han cargado los puestos antes de hacer el fetch
+  if (puestosDisponibles.value.length === 0) {
+    if (salaStore.id === null || salaStore.id < 1) {
+      console.log('[redirección] no hay sala seleccionada, volviendo al home');
+      router.push('/home');
+      return;
+    }
 
-      // si hay una sala seleccionada, se piden los puestos disponibles
-      puestosStore.obtenerPuestosDisponibles().then(() => {
-        const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
-        reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
-        reservasStore.resetSelection();
-        puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
-      });
-    });
+  }
+});
 
-    // cuando cambian filtros o sala, se vuelven a cargar los puestos
-    watch(
-      () => [
-        salaStore.id,
-        filtrosStore.fechaInicio,
-        filtrosStore.fechaFin,
-        filtrosStore.horaInicio,
-        filtrosStore.horaFin,
-      ],
-      async () => {
-        if (salaStore.id !== null && salaStore.id > 0) {
-          await puestosStore.obtenerPuestosDisponibles();
-          const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
-          reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
-          reservasStore.resetSelection();
-          puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
-        }
-      },
-      { immediate: true } // también se ejecuta al principio
-    );
+watch(
+  () => [
+    salaStore.id,
+    filtrosStore.fechaInicio,
+    filtrosStore.fechaFin,
+    filtrosStore.horaInicio,
+    filtrosStore.horaFin,
+  ],
+  async () => {
+    if (salaStore.id !== null && salaStore.id > 0) {
+      // Solo se hace el fetch si la sala o los filtros han cambiado
+      await puestosStore.obtenerPuestosDisponibles();
+      const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
+      reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
+      reservasStore.resetSelection();
+      puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
+    }
+  },
+  { immediate: true } // También se ejecuta al principio
+);
 
     // cuando se hace clic en un puesto
     function handlePuestoClick(puesto: any) {

@@ -74,7 +74,6 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import { defineComponent, ref, computed, watch, onMounted } from 'vue';
 import { useSalasStore } from '../store/salasStore';
@@ -82,7 +81,7 @@ import { useFiltrosStore } from '../store/filtrosStore';
 
 export default defineComponent({
   setup() {
-    const salasStore   = useSalasStore();
+    const salasStore = useSalasStore();
     const filtrosStore = useFiltrosStore();
 
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -109,7 +108,7 @@ export default defineComponent({
 
     const fechaMinima = primerDiaDisponible;
     const fechaInicio = ref(primerDiaDisponible);
-    const fechaFin    = ref(primerDiaDisponible);
+    const fechaFin = ref(primerDiaDisponible);
     const mensajeError = ref('');
 
     const horas = ref<string[]>([]);
@@ -123,7 +122,7 @@ export default defineComponent({
     generarHoras();
 
     const horaInicio = ref('08:00');
-    const horaFin    = ref('19:00');
+    const horaFin = ref('19:00');
 
     const horasFin = computed(() => {
       if (fechaInicio.value === fechaFin.value) {
@@ -134,61 +133,47 @@ export default defineComponent({
 
     const showUpdated = ref(false);
 
-    watch(fechaInicio, (nv) => {
-      if (esFinDeSemana(nv)) {
-        mensajeError.value = 'No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.';
-        setTimeout(() => (mensajeError.value = ''), 4000);
-        fechaInicio.value = getSiguienteHabil(nv);
-      }
-      if (fechaFin.value < fechaInicio.value) {
-        fechaFin.value = fechaInicio.value;
-      }
+    // Al cambiar cualquier filtro, actualizamos localStorage
+    const actualizarLocalStorage = () => {
+      localStorage.setItem('filtroFechaInicio', fechaInicio.value);
+      localStorage.setItem('filtroFechaFin', fechaFin.value);
+      localStorage.setItem('filtroHoraInicio', horaInicio.value);
+      localStorage.setItem('filtroHoraFin', horaFin.value);
+    };
+
+    // Manejo de los cambios en los filtros
+    watch([fechaInicio, fechaFin, horaInicio, horaFin], () => {
+      actualizarLocalStorage(); // Actualizamos localStorage cada vez que cambian los filtros
     });
 
-    watch(fechaFin, (nv) => {
-      if (esFinDeSemana(nv)) {
-        mensajeError.value = 'No se puede elegir sábados ni domingos. Se ajustará al siguiente día hábil.';
-        setTimeout(() => (mensajeError.value = ''), 4000);
-        fechaFin.value = getSiguienteHabil(nv);
-      }
-    });
-
-    watch([fechaInicio, fechaFin, horaInicio], () => {
-      if (
-        fechaInicio.value === fechaFin.value &&
-        horaFin.value <= horaInicio.value
-      ) {
-        horaFin.value = horasFin.value[horasFin.value.length - 1] || '';
-      }
-    });
-
+    // Función para el filtrado
     const filtrar = async (showMsg = true) => {
+      // Aseguramos que la fecha fin no sea anterior a la fecha inicio
       if (fechaFin.value < fechaInicio.value) {
         mensajeError.value = 'La fecha fin no puede ser anterior a la fecha inicio.';
         return;
       }
-      if (
-        fechaInicio.value === fechaFin.value &&
-        horaFin.value <= horaInicio.value
-      ) {
-        mensajeError.value = 'Si fecha inicio y fin son iguales, la hora fin debe ser mayor.';
-        return;
-      }
 
+      // Guardamos los filtros en localStorage
+      actualizarLocalStorage();
+
+      // Actualizamos los filtros en el store
       filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
-        fechaFin:    fechaFin.value,
-        horaInicio:  horaInicio.value,
-        horaFin:     horaFin.value,
+        fechaFin: fechaFin.value,
+        horaInicio: horaInicio.value,
+        horaFin: horaFin.value,
       });
 
+      // Realizamos el fetch para obtener las salas con los filtros correctos
       await salasStore.obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
-        fechaFin:    fechaFin.value,
-        horaInicio:  horaInicio.value,
-        horaFin:     horaFin.value,
+        fechaFin: fechaFin.value,
+        horaInicio: horaInicio.value,
+        horaFin: horaFin.value,
       });
 
+      // Mostrar mensaje de éxito si es necesario
       if (showMsg) {
         showUpdated.value = true;
         setTimeout(() => {
@@ -198,6 +183,17 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      // Cargar los valores desde localStorage
+      const storedFechaInicio = localStorage.getItem('filtroFechaInicio');
+      const storedFechaFin = localStorage.getItem('filtroFechaFin');
+      const storedHoraInicio = localStorage.getItem('filtroHoraInicio');
+      const storedHoraFin = localStorage.getItem('filtroHoraFin');
+
+      if (storedFechaInicio) fechaInicio.value = storedFechaInicio;
+      if (storedFechaFin) fechaFin.value = storedFechaFin;
+      if (storedHoraInicio) horaInicio.value = storedHoraInicio;
+      if (storedHoraFin) horaFin.value = storedHoraFin;
+
       filtrar(false);
     });
 
@@ -372,5 +368,4 @@ export default defineComponent({
     }
   }
 }
-
 </style>

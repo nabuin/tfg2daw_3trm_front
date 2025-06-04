@@ -73,18 +73,25 @@ export default defineComponent({
 
     // Computed que devuelve las salas ordenadas sin mutar el store
     const sortedSalas = computed(() => {
-      // crea una copia del array para no trabajar sobre los datos en
       return [...salasDisponibles.value].sort((a, b) => {
-        //hace el calculo para saber cual de los datos es mayor
         const diff = b.puestosDisponibles - a.puestosDisponibles;
-        //sirve para indicar el orden diff es de mayor  a menos y -diff alreves
         return ordenarDesc.value ? diff : -diff;
       });
     });
 
-    // Cargar salas
+    // Cargar salas con los filtros correctos
     const buscarSalas = async () => {
-      await obtenerSalasDisponibles(filtrosStore.filtros);
+      // Si los filtros aún no están cargados, no realizamos la búsqueda
+      if (!filtrosStore.fechaInicio.value || !filtrosStore.fechaFin.value) {
+        filtrosStore.cargarFiltros();  // Aseguramos que los filtros se cargan correctamente
+      }
+
+      await obtenerSalasDisponibles({
+        fechaInicio: filtrosStore.fechaInicio.value,
+        fechaFin: filtrosStore.fechaFin.value,
+        horaInicio: filtrosStore.horaInicio.value,
+        horaFin: filtrosStore.horaFin.value,
+      });
     };
 
     const seleccionarSala = (sala: { idSala: number }) => {
@@ -96,14 +103,22 @@ export default defineComponent({
       if (sedeSeleccionadaStore.id === null || sedeSeleccionadaStore.id < 1) {
         router.push('/home');
       } else {
-        buscarSalas();
+        // Solo realizamos el fetch si no se hizo antes por los filtros
+        if (!salasDisponibles.value.length) {
+          buscarSalas();  // Llamamos a buscar las salas al montar el componente solo si no hay salas disponibles
+        }
       }
     });
 
     // Volver a cargar salas si cambian los filtros
     watch(
       () => filtrosStore.filtros,
-      buscarSalas,
+      (newFiltros, oldFiltros) => {
+        // Solo realiza el fetch si los filtros realmente cambian
+        if (JSON.stringify(newFiltros) !== JSON.stringify(oldFiltros)) {
+          buscarSalas();
+        }
+      },
       { deep: true }
     );
 
@@ -125,6 +140,7 @@ export default defineComponent({
     };
   },
 });
+
 </script>
 
 <style scoped lang="scss">
