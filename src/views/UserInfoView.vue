@@ -496,26 +496,19 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
               :key="reservation.idReserva"
               class="reservation-card"
             >
-              <div class="reservation-card__image-wrapper">
-                <img
-                  :src="reservation.imagenSalaPrincipal"
-                  :alt="`Imagen de la sala ${reservation.nombreSalaPrincipal}`"
-                  class="reservation-card__image"
-                  loading="lazy"
-                />
-              </div>
+
               <div class="reservation-card__details">
-                <h3 class="reservation-card__title">
+                <p><strong>Sala:</strong> 
                   {{ reservation.nombreSalaPrincipal }}
-                </h3>
+                </p>
                 <p><strong>Ubicación:</strong> {{ reservation.direccionSedePrincipal }}, {{ reservation.ciudadSedePrincipal }}</p>
                 <p><strong>Periodo:</strong> {{ tramoHorarioFormateado(reservation.rangoHorarioReserva) }}</p>
                 <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
-              <div class="button-container">
+              <div class="button-container buttons-qr">
                   <div
-                      class="button-container"
+                      class="button-container button-qr"
                       v-if="puedeSerCancelada(reservation.rangoHorarioReserva)"
                   >
                       <button
@@ -525,7 +518,7 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                           Cancelar
                       </button>
                   </div>
-                  <div class="button-container">
+                  <div class="button-container button-qr">
                       <button
                           @click="obtenerQRReservaFetch(reservation.idReserva)"
                           class="view-qr-button"
@@ -690,12 +683,13 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
       border-radius: 25px;
     margin-top: 40px;
     box-shadow: 9px 10px 27px -1px rgba(0, 88, 179, 0.75);
+          max-width: 93% !important;
 }
 
 h1 {
   text-align: center;
   color: #333;
-  margin-bottom: 25px;
+  margin: 25px 0;
   font-size: 28px;
 }
 
@@ -1005,7 +999,6 @@ button {
   margin-top: 10px;
   border-top: 1px dashed #eee;
   padding-top: 8px;
-  text-align: right;
 }
 
 @media (min-width: 768px) {
@@ -1133,6 +1126,12 @@ button {
     background-color: #5a6268;
   }
 }
+
+.buttons-qr{
+  margin: 0;
+  
+}
+
 
 
 </style>
