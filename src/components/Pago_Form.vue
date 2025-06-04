@@ -132,128 +132,159 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useReservasStore } from '../store/reservasStore'
-import { useFiltrosStore } from '../store/filtrosStore'
-import { usePuestosStore } from '../store/asientosStore'
-import { useSalaAsientoStore } from '../store/salaAsientoStore'
-import { useAsientosPreciosStore } from '../store/asientosPreciosStore'
-// todos los stores usados en esta pagina
+import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useReservasStore } from '../store/reservasStore';
+import { useFiltrosStore } from '../store/filtrosStore';
+import { usePuestosStore } from '../store/asientosStore';
+import { useSalaAsientoStore } from '../store/salaAsientoStore';
+import { useAsientosPreciosStore } from '../store/asientosPreciosStore';
 
-const router = useRouter()
+// todos los stores usados en esta pagina
+const router = useRouter();
 
 // stores y variables que se usan
-const reservasStore = useReservasStore()
-const { selectedPuestos, isReserving, reservationError, reservationSuccess, currentPuestoDisponibilidades } = storeToRefs(reservasStore)
+const reservasStore = useReservasStore();
+const { selectedPuestos, isReserving, reservationError, reservationSuccess, currentPuestoDisponibilidades } = storeToRefs(reservasStore);
 
-const filtrosStore = useFiltrosStore()
-const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore)
+const filtrosStore = useFiltrosStore();
+const { fechaInicio, fechaFin, horaInicio, horaFin } = storeToRefs(filtrosStore);
 
-const puestosStore = usePuestosStore()
-const { puestosDisponibles } = storeToRefs(puestosStore)
+const puestosStore = usePuestosStore();
+const { puestosDisponibles } = storeToRefs(puestosStore);
 
-const salaAsientoStore = useSalaAsientoStore()
+const salaAsientoStore = useSalaAsientoStore();
 
-const precioStore = useAsientosPreciosStore()
-const { precioTotal } = storeToRefs(precioStore)
+const precioStore = useAsientosPreciosStore();
+const { precioTotal } = storeToRefs(precioStore);
 
-const termsError = ref<string | null>(null)
-const form = ref(null)
-const formValid = ref(false)
-const showSuccessDialog = ref(false)
+const termsError = ref<string | null>(null);
+const form = ref(null);
+const formValid = ref(false);
+const showSuccessDialog = ref(false);
 
 // datos de tarjeta y dirección
-const payment = reactive({ cardName: '', cardNumber: '', expiry: '', cvv: '' })
-const billing = reactive({ addressLine1: '', addressLine2: '', city: '', state: '', zip: '', country: null })
+const payment = reactive({ cardName: '', cardNumber: '', expiry: '', cvv: '' });
+const billing = reactive({ addressLine1: '', addressLine2: '', city: '', state: '', zip: '', country: null });
 
 // paises para mostrar en el select
-const countries = ['España', 'México', 'Argentina', 'Estados Unidos', 'Canadá', 'Chile', 'Colombia']
-const acceptTerms = ref(false)
+const countries = ['España', 'México', 'Argentina', 'Estados Unidos', 'Canadá', 'Chile', 'Colombia'];
+const acceptTerms = ref(false);
 
-// reglas pa validar los campos de la tarjeta
+// reglas para validar los campos de la tarjeta
 const rules = {
   cardNumberDigits: (v: string) => (v && v.replace(/\s/g, '').length === 16) || 'la tarjeta debe tener 16 dígitos',
   cvvDigits: (v: string) => (v && /^\d{3,4}$/.test(v)) || 'el cvv debe tener 3 – 4 dígitos',
-}
+};
 
-// funcion pa calcular las horas entre dos strings tipo hh:mm
+// funcion para calcular las horas entre dos strings tipo hh:mm
 function calcularHoras(): number {
-  const [h1, m1] = horaInicio.value.split(':').map(Number)
-  const [h2, m2] = horaFin.value.split(':').map(Number)
-  const minutos = (h2 * 60 + m2) - (h1 * 60 + m1)
-  return minutos > 0 ? minutos / 60 : 0
+  const [h1, m1] = horaInicio.value.split(':').map(Number);
+  const [h2, m2] = horaFin.value.split(':').map(Number);
+  const minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+  return minutos > 0 ? minutos / 60 : 0;
 }
 
 // recalcula el precio total en base a los puestos y las horas
 async function recalcPrice() {
-  const ids = selectedPuestos.value.map(p => p.idPuestoTrabajo)
-  const horas = calcularHoras()
-  await precioStore.calcularPrecio(ids, horas)
+  const ids = selectedPuestos.value.map(p => p.idPuestoTrabajo);
+  const horas = calcularHoras();
+  await precioStore.calcularPrecio(ids, horas);
 }
+
+// Computed para contar los días laborales (excluyendo sábados y domingos)
+const diasLaborales = computed(() => {
+  const startDate = new Date(fechaInicio.value);  // Fecha de inicio
+  const endDate = new Date(fechaFin.value);  // Fecha de fin
+
+  let diasLaborales = 0;
+
+  // Iteramos a través de todas las fechas en el rango
+  for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+    const dayOfWeek = date.getDay();  // 0 = Domingo, 6 = Sábado
+
+    // Si el día no es sábado (6) ni domingo (0), lo contamos como día laboral
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      diasLaborales++;  // Aumentamos el contador de días laborales
+    }
+  }
+
+  console.log('Días laborales:', diasLaborales);  // Mostrar en consola el número de días laborales
+  return diasLaborales;
+});
+
+// Computed para multiplicar los días laborales por el precio total
+const precioTotalDias = computed(() => precioTotal.value * diasLaborales.value);
+
+
+
+// Esto transforma el precio en formato de moneda (EUR)
+const totalFormatted = computed(() =>
+  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioTotalDias.value)
+);
 
 // cuando se monta la vista se cargan los puestos
 onMounted(async () => {
-  await puestosStore.obtenerPuestosDisponibles()
+  await puestosStore.obtenerPuestosDisponibles();
 
   // si no hay ningun puesto, se va al home
   if (puestosDisponibles.value.length === 0) {
-    router.push('/home')
-    return
+    router.push('/home');
+    return;
   }
 
-  recalcPrice()
-})
+  // Calcular los días laborales y mostrarlo en la consola
+  console.log(diasLaborales.value);
+
+  // Recalcular el precio
+  recalcPrice();
+});
 
 // si cambian los puestos, se actualiza la disponibilidad
-watch(puestosDisponibles, nuevos => reservasStore.setPuestoDisponibilidades(nuevos), { immediate: true })
+watch(puestosDisponibles, nuevos => reservasStore.setPuestoDisponibilidades(nuevos), { immediate: true });
 
 // si cambian los puestos seleccionados o las horas, se recalcula el precio
-watch([selectedPuestos, horaInicio, horaFin], recalcPrice)
-
-// esto transforma el total en euros
-const totalFormatted = computed(() =>
-  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(precioTotal.value)
-)
+watch([selectedPuestos, horaInicio, horaFin], recalcPrice);
 
 // esta parte es un poco liosa, agarra los puestos seleccionados y busca la info completa de ese puesto, como su numero
 const selectedSeatDetails = computed(() => selectedPuestos.value.map(sel => {
-  const info = currentPuestoDisponibilidades.value.find(p => p.idPuestoTrabajo === sel.idPuestoTrabajo)
+  const info = currentPuestoDisponibilidades.value.find(p => p.idPuestoTrabajo === sel.idPuestoTrabajo);
   return {
     id: sel.idPuestoTrabajo,
     numeroAsiento: info?.numeroAsiento || `Puesto ${sel.idPuestoTrabajo}` // si no hay numero, pone algo generico
-  }
-}))
+  };
+}));
 
-// esta parte busca el nombre de la sala pa cada asiento seleccionado
-const salaNombres = reactive<Record<number, string>>({})
+// esta parte busca el nombre de la sala para cada asiento seleccionado
+const salaNombres = reactive<Record<number, string>>({});
 watch(selectedSeatDetails, list => {
   list.forEach(seat => {
     if (!(seat.id in salaNombres)) {
-      salaAsientoStore.obtenerSalaNombre(seat.id).then(name => salaNombres[seat.id] = name).catch(() => salaNombres[seat.id] = 'Desconocida')
+      salaAsientoStore.obtenerSalaNombre(seat.id).then(name => salaNombres[seat.id] = name).catch(() => salaNombres[seat.id] = 'Desconocida');
     }
-  })
-}, { immediate: true })
+  });
+}, { immediate: true });
 
 // al enviar el formulario, se valida todo y se guarda la reserva
 async function submit() {
-  termsError.value = null
+  termsError.value = null;
   if (!acceptTerms.value) {
-    termsError.value = 'Debes aceptar los términos y condiciones'
-    return
+    termsError.value = 'Debes aceptar los términos y condiciones';
+    return;
   }
-  if (!formValid.value) return
+  if (!formValid.value) return;
   try {
-    await reservasStore.createReservation('reserva desde zona de pago')
-    showSuccessDialog.value = true
-    form.value.reset()
+    await reservasStore.createReservation('reserva desde zona de pago');
+    showSuccessDialog.value = true;
+    form.value.reset();
   } catch (error) {
-    console.error('error al hacer la reserva:', error)
-    alert('ocurrió un error al procesar la reserva.')
+    console.error('error al hacer la reserva:', error);
+    alert('ocurrió un error al procesar la reserva.');
   }
 }
 </script>
+
 
 
 
