@@ -40,9 +40,6 @@
               <button @click="editSede(sede)" class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#sedeModal">
                 EDITAR
               </button>
-              <button @click="confirmDelete(sede.idSede)" type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
-                ELIMINAR
-              </button>
             </td>
             <td>{{ sede.idSede }}</td>
             <td>
@@ -75,23 +72,7 @@
     </div>
   </div>
 
-  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que quieres eliminar la sede con ID: <strong>{{ sedeToDeleteId }}</strong>? Esta acción no se puede deshacer.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" @click="deleteSedeConfirmed">ELIMINAR</button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </template>
 
 <script setup>
@@ -105,17 +86,14 @@ const sedesStore = useSedesStore();
 const searchQuery = ref('');
 
 const currentSede = ref(null);
-const sedeToDeleteId = ref(null);
 
 let sedeModalInstance = null;
-let deleteConfirmModalInstance = null;
 
 onMounted(() => {
   // CORRECCIÓN: Llamar método del sedesStore
   sedesStore.obtenerTodasLasSedes();
 
   sedeModalInstance = new Modal(document.getElementById('sedeModal'));
-  deleteConfirmModalInstance = new Modal(document.getElementById('deleteConfirmModal'));
 });
 
 const filteredSedes = computed(() => {
@@ -143,9 +121,7 @@ const editSede = (sede) => {
   currentSede.value = { ...sede };
 };
 
-const confirmDelete = (id) => {
-  sedeToDeleteId.value = id;
-};
+
 
 const closeSedeModal = () => {
   if (sedeModalInstance) {
@@ -153,11 +129,7 @@ const closeSedeModal = () => {
   }
 };
 
-const closeDeleteConfirmModal = () => {
-  if (deleteConfirmModalInstance) {
-    deleteConfirmModalInstance.hide();
-  }
-};
+
 
 const handleSedeSubmit = async (formData) => {
   let success = false;
@@ -182,20 +154,6 @@ const handleSedeSubmit = async (formData) => {
   }
 };
 
-const deleteSedeConfirmed = async () => {
-  if (sedeToDeleteId.value) {
-    try {
-      // delete del store
-      await sedesStore.eliminarSede(sedeToDeleteId.value);
-      closeDeleteConfirmModal();
-      sedeToDeleteId.value = null;
-      // recargar cuando algo se borra, ya que no estara esa sede
-      await sedesStore.obtenerTodasLasSedes();
-    } catch (error) {
-      console.error('Error al eliminar sede:', error); // debug
-    }
-  }
-};
 </script>
 
 <style lang="scss" scoped>

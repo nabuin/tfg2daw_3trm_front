@@ -177,17 +177,7 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
-    // eliminar una característica de una sala
-    async eliminarCaracteristicaDeSala(idSala: number, idCaracteristica: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `salas/${idSala}/caracteristicas/${idCaracteristica}`);
-        await this.obtenerCaracteristicasPorSala(idSala);
-        console.log(`Característica ${idCaracteristica} eliminada de la sala ${idSala}`);
-      } catch (error) {
-        console.error(`Error al eliminar característica ${idCaracteristica} de la sala ${idSala}:`, error);
-        throw error;
-      }
-    },
+ 
 
     async obtenerCaracteristicasPorSala(idSala: number) {
       try {
@@ -242,19 +232,7 @@ async actualizarSala(idSala: number, datosSala: Partial<Sala>) {
     throw error
   }
 },
-    // eliminar sala por id
-    async eliminarSala(idSala: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `salas/${idSala}`)
-        this.salas = this.salas.filter(s => s.idSala !== idSala)
-        // También eliminarla de salasConCaracteristicas si existe
-        this.salasConCaracteristicas = this.salasConCaracteristicas.filter(s => s.idSala !== idSala);
-      } catch (error) {
-        console.error('error al eliminar sala', error)
-        throw error
-      }
-    },
-
+ 
     // obtener todos los tipos de salas
     async obtenerTodosLosTiposSalas() {
       try {
@@ -314,16 +292,7 @@ async actualizarSala(idSala: number, datosSala: Partial<Sala>) {
       }
     },
 
-    // eliminar caracteristica por id
-    async eliminarCaracteristica(idCaracteristica: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `CaracteristicasSala/${idCaracteristica}`)
-        this.caracteristicasSalas = this.caracteristicasSalas.filter(c => c.idCaracteristica !== idCaracteristica)
-      } catch (error) {
-        console.error('error al eliminar caracteristica', error)
-        throw error
-      }
-    },
+   
 
     async generarAsientosDeSalas() {
       try {
