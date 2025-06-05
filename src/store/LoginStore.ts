@@ -14,7 +14,7 @@ export const LoginStore = defineStore("login", {
 
   actions: {
     async loginUsuario(loginData: LoginData) {
-      const endpointLoginPOST = "https://coworkingapi.jblas.me/Auth/Login";
+      const endpointLoginPOST = "https://localhost:7179/Auth/Login";
 
       const res = await fetch(endpointLoginPOST, {
         method: "POST",

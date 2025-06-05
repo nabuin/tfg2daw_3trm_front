@@ -159,7 +159,7 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       // url base del dominio
-      const DOMAIN_BASE_URL = 'https://coworkingapi.jblas.me/'; 
+      const DOMAIN_BASE_URL = 'https://localhost:7179/'; 
       // prefijo de api , en algunos casos como auth no se usa
       const API_PREFIX = 'api/';
 
@@ -232,7 +232,7 @@ export const useAdminStore = defineStore('admin', {
      */
     async obtenerTodosLosUsuarios() {
       try {
-        // esto apuntara correctamente a https://coworkingapi.jblas.me/api/usuarios
+        // esto apuntara correctamente a https://localhost:7179/api/usuarios
         const datos = await this._llamadaApiFetch('GET', 'usuarios');
         this.usuarios = datos.map((usuario: any) => ({
           idUsuario: usuario.idUsuario,
@@ -268,7 +268,7 @@ export const useAdminStore = defineStore('admin', {
 
         // hace la peticion post al endpoint de registro.
         // _llamadaapifetch sabra que es un endpoint de 'auth'
-        // y creara la url como https://coworkingapi.jblas.me/auth/register
+        // y creara la url como https://localhost:7179/auth/register
         const respuestaRegistro = await this._llamadaApiFetch('POST', 'Auth/Register', payload);
         
         // despues de un registro, recarga la lista completa de usuarios
@@ -290,7 +290,7 @@ export const useAdminStore = defineStore('admin', {
      */
     async actualizarUsuario(idUsuario: number, datosUsuario: Partial<Usuario>) {
       try {
-        // esto apuntara correctamente a https://coworkingapi.jblas.me/api/usuarios/{idUsuario}
+        // esto apuntara correctamente a https://localhost:7179/api/usuarios/{idUsuario}
         const usuarioActualizado = await this._llamadaApiFetch('PUT', `usuarios/${idUsuario}`, datosUsuario);
         const indice = this.usuarios.findIndex(u => u.idUsuario === idUsuario);
         if (indice !== -1) {
@@ -309,7 +309,7 @@ export const useAdminStore = defineStore('admin', {
      */
     async eliminarUsuario(idUsuario: number) {
       try {
-        // esto apuntara correctamente a https://coworkingapi.jblas.me/api/usuarios/{idUsuario}
+        // esto apuntara correctamente a https://localhost:7179/api/usuarios/{idUsuario}
         await this._llamadaApiFetch('DELETE', `usuarios/${idUsuario}`);
         this.usuarios = this.usuarios.filter(u => u.idUsuario !== idUsuario);
       } catch (error) {
@@ -321,7 +321,7 @@ export const useAdminStore = defineStore('admin', {
     // --- metodos para roles (necesarios para el formulario de usuario) ---
     async obtenerTodosLosRoles() {
       try {
-        //  https://coworkingapi.jblas.me/api/roles
+        //  https://localhost:7179/api/roles
         const datos = await this._llamadaApiFetch('GET', 'roles');
         this.roles = datos.map((rol: any) => ({
           idRol: rol.idRol,

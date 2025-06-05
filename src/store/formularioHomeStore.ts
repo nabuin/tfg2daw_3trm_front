@@ -16,7 +16,7 @@ interface FormularioHomeState {
 }
 
 // url base
-const API_BASE_URL = 'https://coworkingapi.jblas.me/api/Email'
+const API_BASE_URL = 'https://localhost:7179/api/Email'
 
 // definimos el store usando pinia
 export const useFormularioHomeStore = defineStore('formularioHome', {

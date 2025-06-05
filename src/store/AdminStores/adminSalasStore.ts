@@ -89,7 +89,7 @@ export const useSalasStore = defineStore('salas', {
     async _llamadaApiFetch(metodo: string, endpoint: string, datos: any = null, cabeceras: HeadersInit = {}) {
       this.cargando = true
       this.error = null
-      const DOMAIN_BASE_URL = 'https://coworkingapi.jblas.me/'
+      const DOMAIN_BASE_URL = 'https://localhost:7179/'
       const API_PREFIX = 'api/'
       const finalUrl = `${DOMAIN_BASE_URL}${API_PREFIX}${endpoint}`
 

@@ -34,7 +34,7 @@ export const useInfoPedidosStore = defineStore('infoPedidos', () => {
         reservaActual.value = null;
 
         const token = localStorage.getItem("authToken");
-        const url = `https://coworkingapi.jblas.me/api/Reservas/resumencompra/${idReservaPrueba}`; // id fijo para prueba
+        const url = `https://localhost:7179/api/Reservas/resumencompra/${idReservaPrueba}`; // id fijo para prueba
 
         try {
             const response = await fetch(url, {
