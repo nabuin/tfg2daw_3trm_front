@@ -198,7 +198,7 @@ const totalFormatted = computed(() =>
 );
 
 onMounted(async () => {
-  if (!fechaInicio.value) {
+  if (selectedPuestos.value.length === 0) {
     router.push('/');
     return;
   }
