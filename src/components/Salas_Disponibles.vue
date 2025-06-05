@@ -93,10 +93,6 @@ export default defineComponent({
     onMounted(() => {
       if (sedeSeleccionadaStore.id === null || sedeSeleccionadaStore.id < 1) {
         router.push('/home');
-      } else {
-        if (!salasDisponibles.value.length) {
-          buscarSalas();
-        }
       }
     });
 
