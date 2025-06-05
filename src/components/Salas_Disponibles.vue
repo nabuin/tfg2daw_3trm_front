@@ -14,19 +14,20 @@
         </select>
       </div>
 
-      <router-link
-        v-for="sala in sortedSalas"
-        :key="sala.idSala"
-        class="salas__item"
-        to="/sedes/salas/puestos"
-        @click="seleccionarSala(sala)"
-      >
+      <router-link v-for="sala in sortedSalas" :key="sala.idSala" class="salas__item" to="/sedes/salas/puestos"
+        @click="seleccionarSala(sala)">
         <div class="salas__info">
           <div class="salas__info-izq">
-            <h3 class="salas__nombre">{{ sala.nombre }} – España</h3>
+            <h3 class="salas__nombre">
+              {{ sala.nombre }} – España
+              <span v-if="sala.idTipoSala === 4" class="salas__icono-privado"
+                title="Para poder usar esta sala, debe reservarse en su totalidad">🔒</span>
+            </h3>
+
             <p class="salas__detalle">{{ sala.sedeCiudad }}</p>
             <p class="salas__detalle">{{ sala.sedeDireccion }} – {{ sala.sedePlanta }}</p>
             <p class="salas__detalle">Capacidad: {{ sala.capacidad }}</p>
+
           </div>
           <div class="salas__info-der">
             <div class="salas__tarjetas">
@@ -46,9 +47,8 @@
   </div>
 </template>
 
-
-<<script lang="ts">
-import { defineComponent, ref, computed, onMounted, watch } from 'vue';
+<script lang="ts">
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useSalasStore } from '../store/salasStore';
@@ -90,7 +90,6 @@ export default defineComponent({
       salaSeleccionadaStore.setId(sala.idSala);
     };
 
-    // SOLO desde onMounted hacemos el fetch
     onMounted(() => {
       if (sedeSeleccionadaStore.id === null || sedeSeleccionadaStore.id < 1) {
         router.push('/home');
@@ -100,8 +99,6 @@ export default defineComponent({
         }
       }
     });
-
-
 
     return {
       salasDisponibles,
@@ -207,7 +204,15 @@ export default defineComponent({
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.3;
+
   }
+
+  .salas__icono-privado {
+  margin-left: 8px;
+  font-size: 1.1rem;
+  vertical-align: middle;
+}
+
 
   &__tarjetas {
     display: flex;
@@ -252,5 +257,4 @@ export default defineComponent({
     }
   }
 }
-
 </style>
