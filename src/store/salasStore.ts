@@ -56,7 +56,7 @@ export const useSalasStore = defineStore('salas', () => {
       horaFin,
     });
 
-    const url = `https://localhost:7179/api/salas/getsalasdisponibles?${params}`;
+    const url = `https://coworking.jblas.me/api/salas/getsalasdisponibles?${params}`;
     console.log('Llamando al endpoint:', url);
 
     try {
