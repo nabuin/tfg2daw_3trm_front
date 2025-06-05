@@ -21,7 +21,7 @@ export const useAsientosPreciosStore = defineStore('asientosPrecios', () => {
     }
 
     const id  = idsPuestos[0]
-    const url = `https://localhost:7179/api/Salas/puesto/${id}/asiento-precio`
+    const url = `https://coworking.jblas.me/api/Salas/puesto/${id}/asiento-precio`
 
     try {
       const res = await fetch(url)
