@@ -47,7 +47,7 @@
 </template>
 
 
-<script lang="ts">
+<<script lang="ts">
 import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -68,10 +68,8 @@ export default defineComponent({
     const salaSeleccionadaStore = useSalaSeleccionadaStore();
     const filtrosStore = useFiltrosStore();
 
-    // Dirección de orden: true = Mayor a Menor, false = Menor a Mayor
     const ordenarDesc = ref(true);
 
-    // Computed que devuelve las salas ordenadas sin mutar el store
     const sortedSalas = computed(() => {
       return [...salasDisponibles.value].sort((a, b) => {
         const diff = b.puestosDisponibles - a.puestosDisponibles;
@@ -79,10 +77,7 @@ export default defineComponent({
       });
     });
 
-    // Cargar salas con los filtros correctos
     const buscarSalas = async () => {
-
-
       await obtenerSalasDisponibles({
         fechaInicio: filtrosStore.fechaInicio.value,
         fechaFin: filtrosStore.fechaFin.value,
@@ -95,37 +90,18 @@ export default defineComponent({
       salaSeleccionadaStore.setId(sala.idSala);
     };
 
-    // Redireccionar si no hay sede seleccionada válida
+    // SOLO desde onMounted hacemos el fetch
     onMounted(() => {
       if (sedeSeleccionadaStore.id === null || sedeSeleccionadaStore.id < 1) {
         router.push('/home');
       } else {
-        // Solo realizamos el fetch si no se hizo antes por los filtros
         if (!salasDisponibles.value.length) {
-          buscarSalas();  // Llamamos a buscar las salas al montar el componente solo si no hay salas disponibles
+          buscarSalas();
         }
       }
     });
 
-    // Volver a cargar salas si cambian los filtros
-    watch(
-      () => filtrosStore.filtros,
-      (newFiltros, oldFiltros) => {
-        // Solo realiza el fetch si los filtros realmente cambian
-        if (JSON.stringify(newFiltros) !== JSON.stringify(oldFiltros)) {
-          buscarSalas();
-        }
-      },
-      { deep: true }
-    );
 
-    // Volver a cargar salas si cambia la sede seleccionada
-    watch(
-      () => sedeSeleccionadaStore.id,
-      (newId, oldId) => {
-        if (newId !== oldId) buscarSalas();
-      }
-    );
 
     return {
       salasDisponibles,
@@ -137,7 +113,6 @@ export default defineComponent({
     };
   },
 });
-
 </script>
 
 <style scoped lang="scss">

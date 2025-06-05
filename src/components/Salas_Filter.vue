@@ -4,19 +4,36 @@
       <form @submit.prevent="filtrar" class="filtro__formulario">
         <div class="filtro__grupo">
           <label for="fechaInicio" class="filtro__label">Fecha Inicio:</label>
-          <input type="date" id="fechaInicio" v-model="fechaInicio" required :min="fechaMinima"
-            class="filtro__input filtro__input--date" />
+          <input
+            type="date"
+            id="fechaInicio"
+            v-model="fechaInicio"
+            required
+            :min="fechaMinima"
+            class="filtro__input filtro__input--date"
+          />
         </div>
 
         <div class="filtro__grupo">
           <label for="fechaFin" class="filtro__label">Fecha Fin:</label>
-          <input type="date" id="fechaFin" v-model="fechaFin" required :min="fechaInicio"
-            class="filtro__input filtro__input--date" />
+          <input
+            type="date"
+            id="fechaFin"
+            v-model="fechaFin"
+            required
+            :min="fechaInicio"
+            class="filtro__input filtro__input--date"
+          />
         </div>
 
         <div class="filtro__grupo">
           <label for="horaInicio" class="filtro__label">Hora Inicio:</label>
-          <select id="horaInicio" v-model="horaInicio" required class="filtro__select">
+          <select
+            id="horaInicio"
+            v-model="horaInicio"
+            required
+            class="filtro__select"
+          >
             <option disabled value="">Selecciona hora</option>
             <option v-for="hora in horas" :key="hora" :value="hora">
               {{ hora }}
@@ -26,7 +43,12 @@
 
         <div class="filtro__grupo">
           <label for="horaFin" class="filtro__label">Hora Fin:</label>
-          <select id="horaFin" v-model="horaFin" required class="filtro__select">
+          <select
+            id="horaFin"
+            v-model="horaFin"
+            required
+            class="filtro__select"
+          >
             <option disabled value="">Selecciona hora</option>
             <option v-for="hora in horasFin" :key="hora" :value="hora">
               {{ hora }}
@@ -120,20 +142,9 @@ export default defineComponent({
     };
 
     // Manejo de los cambios en los filtros
-    watch([fechaInicio, fechaFin], ([nuevaInicio, nuevaFin]) => {
-      if (esFinDeSemana(nuevaInicio)) {
-        fechaInicio.value = getSiguienteHabil(nuevaInicio);
-      }
-      if (esFinDeSemana(nuevaFin)) {
-        fechaFin.value = getSiguienteHabil(nuevaFin);
-      }
-      actualizarLocalStorage();
+    watch([fechaInicio, fechaFin, horaInicio, horaFin], () => {
+      actualizarLocalStorage(); // Actualizamos localStorage cada vez que cambian los filtros
     });
-
-    watch([horaInicio, horaFin], () => {
-      actualizarLocalStorage();
-    });
-
 
     // Función para el filtrado
     const filtrar = async (showMsg = true) => {
@@ -172,29 +183,19 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      // Cargar los valores desde localStorage
       const storedFechaInicio = localStorage.getItem('filtroFechaInicio');
       const storedFechaFin = localStorage.getItem('filtroFechaFin');
       const storedHoraInicio = localStorage.getItem('filtroHoraInicio');
       const storedHoraFin = localStorage.getItem('filtroHoraFin');
 
-      if (storedFechaInicio) {
-        fechaInicio.value = esFinDeSemana(storedFechaInicio)
-          ? getSiguienteHabil(storedFechaInicio)
-          : storedFechaInicio;
-      }
-
-      if (storedFechaFin) {
-        fechaFin.value = esFinDeSemana(storedFechaFin)
-          ? getSiguienteHabil(storedFechaFin)
-          : storedFechaFin;
-      }
-
+      if (storedFechaInicio) fechaInicio.value = storedFechaInicio;
+      if (storedFechaFin) fechaFin.value = storedFechaFin;
       if (storedHoraInicio) horaInicio.value = storedHoraInicio;
       if (storedHoraFin) horaFin.value = storedHoraFin;
 
       filtrar(false);
     });
-
 
     return {
       fechaMinima,
@@ -267,7 +268,6 @@ export default defineComponent({
       filter: brightness(0) invert(1);
       transition: filter 0.3s ease;
     }
-
     &:hover::-webkit-calendar-picker-indicator {
       filter: brightness(0) invert(1) opacity(0.8);
     }
