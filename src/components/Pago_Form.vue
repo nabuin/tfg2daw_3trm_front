@@ -198,8 +198,13 @@ const totalFormatted = computed(() =>
 );
 
 onMounted(async () => {
+  if (!fechaInicio.value) {
+    router.push('/');
+    return;
+  }
   recalcPrice();
 });
+
 
 watch([selectedPuestos, horaInicio, horaFin], recalcPrice);
 
@@ -400,5 +405,6 @@ async function submit() {
   font-size: 0.95rem;
   padding: 0;
   transition: background-color 0.3s ease;
+    width: 180px;
 }
 </style>
