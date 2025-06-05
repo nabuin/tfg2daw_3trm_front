@@ -33,7 +33,6 @@ export const LoginStore = defineStore("login", {
 
         this.errorMessage = null;
 
-        console.log("Datos del usuario tras login:", userStore.user);
         return true;
       } else {
         const errorLoginJWT = await res.text();

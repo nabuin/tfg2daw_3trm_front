@@ -346,7 +346,6 @@ const confirmLogout = () => {
 // Función para verificar si se puede cancelar la reserva
 const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
   try {
-    console.log("Verificando reserva:", rangoHorarioReserva);
 
     let fechaFin: Date; // fecha y hora de fin que se usará para comparar
 

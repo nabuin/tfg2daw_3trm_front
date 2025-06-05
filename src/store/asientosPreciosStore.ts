@@ -16,7 +16,6 @@ export const useAsientosPreciosStore = defineStore('asientosPrecios', () => {
     precioTotal.value = 0
 
     if (idsPuestos.length === 0 || horas <= 0) {
-      console.error('no hay asientos o las horas no son válidas')
       loading.value = false
       return 0
     }

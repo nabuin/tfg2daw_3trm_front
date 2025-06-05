@@ -63,7 +63,6 @@ export const useReservationStore = defineStore("reservation", {
 
                 const data: Reservation[] = await res.json();
                 this.reservations = data;
-                console.log("Reservas obtenidas:", this.reservations); 
             } catch (err: any) {
                 this.error = err.message || "Fallo al cargar las reservas.";
                 console.error("Error fetching user reservations:", err);
