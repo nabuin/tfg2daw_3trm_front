@@ -1,4 +1,3 @@
-
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useSalaSeleccionadaStore } from './salaSeleccionadaStore';
@@ -18,7 +17,6 @@ export const usePuestosStore = defineStore('puestos', () => {
   const horaInicio  = computed(() => filtrosStore.horaInicio);
   const horaFin     = computed(() => filtrosStore.horaFin);
 
-  // Computed endpoint URL with all query params
   const endpoint = computed(() => {
     if (idSala.value === null) return '';
     const params = new URLSearchParams({
@@ -31,6 +29,8 @@ export const usePuestosStore = defineStore('puestos', () => {
     return `https://localhost:7179/api/puestostrabajo/disponibles?${params.toString()}`;
   });
 
+  let abortController: AbortController | null = null;
+
   async function obtenerPuestosDisponibles() {
     if (!endpoint.value) {
       error.value = 'No se ha seleccionado ninguna sala.';
@@ -38,19 +38,29 @@ export const usePuestosStore = defineStore('puestos', () => {
       return;
     }
 
+    // Cancelar la petición anterior si existe
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Crear nuevo controlador para esta petición
+    abortController = new AbortController();
+    const signal = abortController.signal;
+
     loading.value = true;
     error.value = null;
 
     try {
-      const res = await fetch(endpoint.value);
+      const res = await fetch(endpoint.value, { signal });
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
       const data = await res.json();
-
       puestosDisponibles.value = data;
     } catch (err: any) {
-      error.value = err.message;
-      puestosDisponibles.value = [];
+      if (err.name !== 'AbortError') {
+        error.value = err.message;
+        puestosDisponibles.value = [];
+      }
     } finally {
       loading.value = false;
     }
