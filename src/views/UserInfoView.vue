@@ -503,7 +503,6 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 </p>
                 <p><strong>Ubicación:</strong> {{ reservation.direccionSedePrincipal }}, {{ reservation.ciudadSedePrincipal }}</p>
                 <p><strong>Periodo:</strong> {{ tramoHorarioFormateado(reservation.rangoHorarioReserva) }}</p>
-                <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
               <div class="button-container buttons-qr">
