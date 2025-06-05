@@ -9,31 +9,29 @@ export const usePuestosStore = defineStore('puestos', () => {
   const error = ref<string | null>(null);
 
   // Para almacenar el controlador de la solicitud activa
-  let currentController = null;
+  let abortController: AbortController | null = null;
 
   const salaStore = useSalaSeleccionadaStore();
   const filtrosStore = useFiltrosStore();
 
   const idSala = computed(() => salaStore.id);
   const fechaInicio = computed(() => filtrosStore.fechaInicio);
-  const fechaFin    = computed(() => filtrosStore.fechaFin);
-  const horaInicio  = computed(() => filtrosStore.horaInicio);
-  const horaFin     = computed(() => filtrosStore.horaFin);
+  const fechaFin = computed(() => filtrosStore.fechaFin);
+  const horaInicio = computed(() => filtrosStore.horaInicio);
+  const horaFin = computed(() => filtrosStore.horaFin);
 
   // Computed endpoint URL con todos los parámetros de consulta
   const endpoint = computed(() => {
     if (idSala.value === null) return '';
     const params = new URLSearchParams({
-      idSala:      idSala.value.toString(),
+      idSala: idSala.value.toString(),
       fechaInicio: fechaInicio.value,
-      fechaFin:    fechaFin.value,
-      horaInicio:  horaInicio.value,
-      horaFin:     horaFin.value,
+      fechaFin: fechaFin.value,
+      horaInicio: horaInicio.value,
+      horaFin: horaFin.value,
     });
     return `https://coworkingapi.jblas.me/api/puestostrabajo/disponibles?${params.toString()}`;
   });
-
-  let abortController: AbortController | null = null;
 
   // Función para obtener los puestos disponibles
   async function obtenerPuestosDisponibles() {
@@ -52,31 +50,16 @@ export const usePuestosStore = defineStore('puestos', () => {
     abortController = new AbortController();
     const signal = abortController.signal;
 
-    // Si ya hay una solicitud en curso, cancelarla
-    if (currentController) {
-      currentController.abort();
-    }
-
-    // Crear un nuevo controlador para la nueva solicitud
-    const controller = new AbortController();
-    currentController = controller;
-
     loading.value = true;
     error.value = null;
 
     try {
       const res = await fetch(endpoint.value, { signal });
-      const res = await fetch(endpoint.value, { signal: controller.signal });
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
       const data = await res.json();
       puestosDisponibles.value = data;
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        error.value = err.message;
-        puestosDisponibles.value = [];
-      }
-      // Si el error es debido a la cancelación, no se muestra
       if (err.name !== 'AbortError') {
         error.value = err.message;
         puestosDisponibles.value = [];
