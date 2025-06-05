@@ -33,6 +33,8 @@ export const usePuestosStore = defineStore('puestos', () => {
     return `https://coworkingapi.jblas.me/api/puestostrabajo/disponibles?${params.toString()}`;
   });
 
+  let abortController: AbortController | null = null;
+
   // Función para obtener los puestos disponibles
   async function obtenerPuestosDisponibles() {
     if (!endpoint.value) {
@@ -40,6 +42,15 @@ export const usePuestosStore = defineStore('puestos', () => {
       puestosDisponibles.value = [];
       return;
     }
+
+    // Cancelar la petición anterior si existe
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Crear nuevo controlador para esta petición
+    abortController = new AbortController();
+    const signal = abortController.signal;
 
     // Si ya hay una solicitud en curso, cancelarla
     if (currentController) {
@@ -54,12 +65,17 @@ export const usePuestosStore = defineStore('puestos', () => {
     error.value = null;
 
     try {
+      const res = await fetch(endpoint.value, { signal });
       const res = await fetch(endpoint.value, { signal: controller.signal });
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
       const data = await res.json();
       puestosDisponibles.value = data;
     } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        error.value = err.message;
+        puestosDisponibles.value = [];
+      }
       // Si el error es debido a la cancelación, no se muestra
       if (err.name !== 'AbortError') {
         error.value = err.message;

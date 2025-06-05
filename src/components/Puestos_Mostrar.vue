@@ -1,16 +1,25 @@
 <template>
   <div>
-    <!-- 1. cargando… -->
-    <p v-if="loading" class="loading-message">
-      cargando puestos disponibles…
+    <!-- 0. cargando sala -->
+    <p v-if="salaInvalida" class="loading-message">
+      cargando sala…
     </p>
+
+<!-- 1. cargando puestos -->
+<p v-else-if="loading" class="loading-message">
+  cargando sala…
+</p>
+
+<!-- 1.1 sin asientos disponibles -->
+<p v-else-if="seatGroups.length === 0" class="loading-message">
+  cargando sala…
+</p>
+
 
     <!-- 2. cuando ya cargó, pintamos las mesas en filas de 3 -->
     <div v-else>
       <div class="tables-grid">
-        <!-- para cada grupo de 4 puestos hacemos un bloque -->
         <div v-for="(group, gi) in seatGroups" :key="gi" class="table-layout">
-          <!-- 2.1 cada puesto: botón con SVG inline de silla -->
           <button v-for="(puesto, idx) in group" :key="puesto.idPuestoTrabajo" class="square" :class="[
             positionClass(idx),
             {
@@ -32,28 +41,23 @@
             </svg>
           </button>
 
-          <!-- 2.2 la mesa en medio: SVG inline de mesa -->
           <div class="table">
             <svg class="mesa-icon" width="120" height="130" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-              <!-- Ajusta el alto de la mesa modificando el atributo height -->
               <rect x="20" y="20" width="80" height="100" rx="6" ry="6" />
             </svg>
           </div>
         </div>
       </div>
 
-
       <div v-if="errorSeleccionPuestos" class="error-message">
         {{ errorSeleccionPuestos }}
       </div>
 
-      <!-- 4. botón continuar -->
-      <button class="continue-button" @click="continuarCompra">
+      <button class="continue-button" @click="continuarCompra" v-if="seatGroups.length > 0 && !loading">
         continuar
       </button>
     </div>
 
-    <!-- 5. popup -->
     <div v-if="showPopup" class="popup-overlay" @click.self="showPopup = false">
       <div class="popup-rect">
         <div class="login">
@@ -62,7 +66,6 @@
             <input type="password" v-model="password" class="login__input" placeholder="Contraseña" required>
 
             <div v-if="mensajeError" class="login__error">{{ mensajeError }}</div>
-            <!-- v-if quiere decir que si la constante mensajeError tiene datos (es decir algo ha fallado), se mostrará, sino no, es decir que todo habrá funcionado-->
 
             <button type="submit" class="login__button" :disabled="isLoggingIn">
               {{ isLoggingIn ? '...' : '→' }}
@@ -86,7 +89,6 @@ import { useReservasStore } from '../store/reservasStore';
 import { LoginStore } from '../store/LoginStore';
 import { storeToRefs } from 'pinia';
 
-// función que divide un array en partes más pequeñas
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -98,50 +100,45 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 export default defineComponent({
   name: 'PuestoSelectionAroundTable',
   setup() {
-    const router = useRouter(); // acceso al router para navegar entre páginas
-    const puestosStore = usePuestosStore(); // store de los puestos
-    const salaStore = useSalaSeleccionadaStore(); // store de la sala actual
-    const filtrosStore = useFiltrosStore(); // store de filtros aplicados
-    const reservasStore = useReservasStore(); // store de las reservas
-    const loginStore = LoginStore(); // store para el login
+    const router = useRouter();
+    const puestosStore = usePuestosStore();
+    const salaStore = useSalaSeleccionadaStore();
+    const filtrosStore = useFiltrosStore();
+    const reservasStore = useReservasStore();
+    const loginStore = LoginStore();
 
-    // referencias a datos del store (reactivos)
     const { puestosDisponibles, loading } = storeToRefs(puestosStore);
     const { selectedPuestos, isReserving } = storeToRefs(reservasStore);
 
-    // control de login y errores
-    const showPopup = ref(false); // muestra el popup de login
-    const errorSeleccionPuestos = ref<string | null>(null); // mensaje de error al no seleccionar puestos
+    const showPopup = ref(false);
+    const errorSeleccionPuestos = ref<string | null>(null);
 
-    const usuario = ref(''); // campo email login
-    const password = ref(''); // campo contraseña login
-    const mensajeError = ref<string | null>(null); // mensaje de error del login
-    const isLoggingIn = ref(false); // evita doble login
+    const usuario = ref('');
+    const password = ref('');
+    const mensajeError = ref<string | null>(null);
+    const isLoggingIn = ref(false);
 
-    // al montar el componente
-onMounted(() => {
-  // Verifica si ya se han cargado los puestos antes de hacer el fetch
-  if (puestosDisponibles.value.length === 0) {
-    if (salaStore.id === null || salaStore.id < 1) {
-      console.log('[redirección] no hay sala seleccionada, volviendo al home');
-      router.push('/home');
-      return;
-    }
+    const salaInvalida = computed(() => salaStore.id === null || salaStore.id < 1);
 
-  }
-});
+    onMounted(() => {
+      if (puestosDisponibles.value.length === 0 && salaInvalida.value) {
+        console.log('[redirección] no hay sala seleccionada, volviendo al home');
+        router.push('/home');
+        return;
+      }
+    });
 
-watch(
-  () => [
-    salaStore.id,
-    filtrosStore.fechaInicio,
-    filtrosStore.fechaFin,
-    filtrosStore.horaInicio,
-    filtrosStore.horaFin,
-  ],
+    watch(
+      () => [
+        salaStore.id,
+        filtrosStore.fechaInicio,
+        filtrosStore.fechaFin,
+        filtrosStore.horaInicio,
+        filtrosStore.horaFin,
+      ],
   async () => {
-    if (salaStore.id !== null && salaStore.id > 0) {
-      // Solo se hace el fetch si la sala o los filtros han cambiado
+    if (!salaInvalida.value) {
+      puestosStore.$patch({ puestosDisponibles: [] }); // 👈 limpia antes de cargar
       await puestosStore.obtenerPuestosDisponibles();
       const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
       reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
@@ -149,23 +146,18 @@ watch(
       puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
     }
   },
-  { immediate: true } // También se ejecuta al principio
-);
+      { immediate: true }
+    );
 
-    // cuando se hace clic en un puesto
     function handlePuestoClick(puesto: any) {
-      // si el puesto es tipo privado, no hace nada
       if (puesto.idTipoPuestoTrabajo === 2) return;
-      // si no, alterna su selección
       reservasStore.togglePuestoSelection(puesto);
     }
 
-    // función para enviar la reserva (compra)
     function submitCompra() {
       reservasStore.createReservation('compra de puestos');
     }
 
-    // asigna una clase css según la posición del asiento (para estilos en la mesa)
     function positionClass(index: number): string {
       return [
         'seat-left-top',
@@ -175,7 +167,6 @@ watch(
       ][index] || '';
     }
 
-    // proceso de login del popup
     async function login() {
       if (isLoggingIn.value) return;
 
@@ -183,23 +174,16 @@ watch(
       mensajeError.value = null;
 
       try {
-        const loginData = {
-          email: usuario.value,
-          contrasenia: password.value
-        };
-
-        // intenta logearse
+        const loginData = { email: usuario.value, contrasenia: password.value };
         const exito = await loginStore.loginUsuario(loginData);
 
         if (exito) {
-          // si fue bien, cierra el popup y limpia los campos
           showPopup.value = false;
           usuario.value = '';
           password.value = '';
           mensajeError.value = null;
-          router.push('/sedes/salas/puestos/pago'); // va a la pantalla de pago
+          router.push('/sedes/salas/puestos/pago');
         } else {
-          // si falla, muestra el mensaje del backend o uno genérico
           let mensajeErrorAPI = loginStore.errorMessage || 'la contraseña y/o el correo son erróneos';
           if (mensajeErrorAPI.includes('Error generating the token: ')) {
             mensajeErrorAPI = mensajeErrorAPI.split('Error generating the token: ')[1];
@@ -214,35 +198,25 @@ watch(
       }
     }
 
-    // función que se ejecuta al hacer clic en “continuar”
     function continuarCompra() {
-      // si no hay puestos seleccionados, muestra error
       if (selectedPuestos.value.length === 0) {
         errorSeleccionPuestos.value = "por favor, selecciona al menos un puesto para continuar.";
-        setTimeout(() => {
-          errorSeleccionPuestos.value = null;
-        }, 6000);
+        setTimeout(() => errorSeleccionPuestos.value = null, 6000);
         return;
       }
 
       errorSeleccionPuestos.value = null;
 
-      // revisa si el usuario está logeado
       const authToken = localStorage.getItem("authToken");
-
       if (!authToken) {
-        // si no, muestra el popup de login
         showPopup.value = true;
       } else {
-        // si sí, va directo al pago
         router.push('/sedes/salas/puestos/pago');
       }
     }
 
-    // agrupa los asientos de 4 en 4 para mostrarlos alrededor de una mesa
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
-    // se devuelven todas las variables y funciones necesarias para la plantilla
     return {
       loading,
       seatGroups,
@@ -259,6 +233,7 @@ watch(
       mensajeError,
       isLoggingIn,
       login,
+      salaInvalida,
     };
   },
 });

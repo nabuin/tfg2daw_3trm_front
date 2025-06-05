@@ -346,7 +346,6 @@ const confirmLogout = () => {
 // Función para verificar si se puede cancelar la reserva
 const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
   try {
-    console.log("Verificando reserva:", rangoHorarioReserva);
 
     let fechaFin: Date; // fecha y hora de fin que se usará para comparar
 
@@ -503,7 +502,6 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 </p>
                 <p><strong>Ubicación:</strong> {{ reservation.direccionSedePrincipal }}, {{ reservation.ciudadSedePrincipal }}</p>
                 <p><strong>Periodo:</strong> {{ tramoHorarioFormateado(reservation.rangoHorarioReserva) }}</p>
-                <p><strong>Horas Reservadas:</strong> {{ reservation.cantidadHorasReservadas }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
               <div class="button-container buttons-qr">
@@ -569,7 +567,6 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
 </template>
 
 <style scoped lang="scss">
-/* Estilos generales para el contenedor de botones */
 .admin-zone {
   background-color: white;
   border-radius: 8px;
@@ -1132,6 +1129,9 @@ button {
   
 }
 
+.user-reservations{
+  max-height: 675px;
+}
 
 
 </style>
