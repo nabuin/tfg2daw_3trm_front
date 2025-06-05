@@ -14,20 +14,30 @@
         </select>
       </div>
 
-      <router-link v-for="sala in sortedSalas" :key="sala.idSala" class="salas__item" to="/sedes/salas/puestos"
-        @click="seleccionarSala(sala)">
+      <router-link
+        v-for="sala in sortedSalas"
+        :key="sala.idSala"
+        class="salas__item"
+        to="/sedes/salas/puestos"
+        @click="seleccionarSala(sala)"
+      >
         <div class="salas__info">
           <div class="salas__info-izq">
             <h3 class="salas__nombre">
               {{ sala.nombre }} – España
-              <span v-if="sala.idTipoSala === 4" class="salas__icono-privado"
-                title="Para poder usar esta sala, debe reservarse en su totalidad">🔒</span>
+              <span
+                v-if="sala.idTipoSala === 4"
+                class="salas__icono-privado"
+                title="Para poder usar esta sala, debe reservarse en su totalidad"
+                >🔒</span
+              >
             </h3>
 
             <p class="salas__detalle">{{ sala.sedeCiudad }}</p>
-            <p class="salas__detalle">{{ sala.sedeDireccion }} – {{ sala.sedePlanta }}</p>
+            <p class="salas__detalle">
+              {{ sala.sedeDireccion }} – {{ sala.sedePlanta }}
+            </p>
             <p class="salas__detalle">Capacidad: {{ sala.capacidad }}</p>
-
           </div>
           <div class="salas__info-der">
             <div class="salas__tarjetas">
@@ -42,12 +52,38 @@
             </div>
           </div>
         </div>
+
+        <div
+          v-if="sala.caracteristicas && sala.caracteristicas.length"
+          class="salas__caracteristicas"
+        >
+<span
+  v-for="car in sala.caracteristicas"
+  :key="car.idCaracteristica"
+  class="salas__icono-contenedor"
+  :title="car.nombre"
+>
+  <img
+    class="salas__icono-imagen"
+    :src="iconMap[car.idCaracteristica]"
+    :alt="car.nombre"
+  />
+</span>
+
+        </div>
       </router-link>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+
+    import icon1 from '../imgs/caracteriticasSalas/pc.png';
+    import icon2 from '../imgs/caracteriticasSalas/cocina.png';
+    import icon3 from '../imgs/caracteriticasSalas/sala.png';
+    import icon4 from '../imgs/caracteriticasSalas/tarjeta-llave.png';
+    import icon5 from '../imgs/caracteriticasSalas/taquillas.png';
+
 import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -62,7 +98,6 @@ export default defineComponent({
 
     const salasStore = useSalasStore();
     const { salasDisponibles, loading, error } = storeToRefs(salasStore);
-    const { obtenerSalasDisponibles } = salasStore;
 
     const sedeSeleccionadaStore = useSedeSeleccionadaStore();
     const salaSeleccionadaStore = useSalaSeleccionadaStore();
@@ -77,15 +112,6 @@ export default defineComponent({
       });
     });
 
-    const buscarSalas = async () => {
-      await obtenerSalasDisponibles({
-        fechaInicio: filtrosStore.fechaInicio.value,
-        fechaFin: filtrosStore.fechaFin.value,
-        horaInicio: filtrosStore.horaInicio.value,
-        horaFin: filtrosStore.horaFin.value,
-      });
-    };
-
     const seleccionarSala = (sala: { idSala: number }) => {
       salaSeleccionadaStore.setId(sala.idSala);
     };
@@ -96,13 +122,24 @@ export default defineComponent({
       }
     });
 
+
+
+    const iconMap: Record<number, string> = {
+      1: icon1,
+      2: icon2,
+      3: icon3,
+      4: icon5,
+      5: icon4,
+    };
+
     return {
       salasDisponibles,
       loading,
       error,
       seleccionarSala,
       sortedSalas,
-      ordenarDesc
+      ordenarDesc,
+      iconMap,
     };
   },
 });
@@ -152,6 +189,7 @@ export default defineComponent({
   }
 
   &__item {
+    position: relative;
     display: block;
     width: 100%;
     max-width: 890px;
@@ -162,7 +200,8 @@ export default defineComponent({
     background: #fff;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0 2px 6px rgba(0, 0, 0, 0.1);
-    min-height: 180px;
+    min-height: 200px;
+    overflow: hidden;
 
     &:hover {
       transform: scale(1.03);
@@ -173,8 +212,8 @@ export default defineComponent({
   &__info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
+    align-items: flex-start;
+    padding: 1rem 1rem 4rem;
     height: 100%;
 
     &-izq {
@@ -200,15 +239,13 @@ export default defineComponent({
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.3;
-
   }
 
   .salas__icono-privado {
-  margin-left: 8px;
-  font-size: 1.1rem;
-  vertical-align: middle;
-}
-
+    margin-left: 8px;
+    font-size: 1.1rem;
+    vertical-align: middle;
+  }
 
   &__tarjetas {
     display: flex;
@@ -245,12 +282,42 @@ export default defineComponent({
     font-weight: 600;
   }
 
+  &__caracteristicas {
+    position: absolute;
+    bottom: 12px;
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  &__icono-contenedor {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__icono-imagen {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
   @media (max-width: 700px) {
+    &__item {
+    max-height: 285px;
+    }
+
     &__info {
       flex-direction: column;
       align-items: stretch;
-      gap: 20px;
+      gap: 0.5rem;
+      padding-bottom: 6rem;
     }
   }
 }
+
 </style>
