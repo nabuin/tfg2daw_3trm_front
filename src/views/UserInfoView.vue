@@ -233,7 +233,7 @@ const changePassword = async () => {
   }
 
   try {
-    const response = await fetch("https://coworking.jblas.me/Auth/ChangePassword", {
+    const response = await fetch("https://coworkingapi.jblas.me/Auth/ChangePassword", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

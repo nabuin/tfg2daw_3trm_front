@@ -37,7 +37,7 @@ export const useDashboardStore = defineStore('dashboard', {
 
       try {
         // peticion al backend
-        const res = await fetch('https://coworking.jblas.me/api/Estadisticas/general', {
+        const res = await fetch('https://coworkingapi.jblas.me/api/Estadisticas/general', {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

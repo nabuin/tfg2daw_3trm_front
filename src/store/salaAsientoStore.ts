@@ -11,7 +11,7 @@ export const useSalaAsientoStore = defineStore('salaAsiento', () => {
       return salaNombreCache.value[idPuesto];
     }
 
-    const url = `https://coworking.jblas.me/api/Salas/puesto/${idPuesto}/sala-nombre`;
+    const url = `https://coworkingapi.jblas.me/api/Salas/puesto/${idPuesto}/sala-nombre`;
     try {
       const response = await fetch(url);
       if (!response.ok) {

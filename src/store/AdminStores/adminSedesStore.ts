@@ -30,7 +30,7 @@ export const useSedesStore = defineStore('sedes', {
       this.cargando = true;
       this.error = null;
       
-      const DOMAIN_BASE_URL = 'https://coworking.jblas.me/'; 
+      const DOMAIN_BASE_URL = 'https://coworkingapi.jblas.me/'; 
       const API_PREFIX = 'api/';
 
       const finalUrl = `${DOMAIN_BASE_URL}${API_PREFIX}${endpoint}`;

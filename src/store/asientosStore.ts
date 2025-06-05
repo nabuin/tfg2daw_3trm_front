@@ -30,7 +30,7 @@ export const usePuestosStore = defineStore('puestos', () => {
       horaInicio: horaInicio.value,
       horaFin: horaFin.value,
     });
-    return `https://coworking.jblas.me/api/puestostrabajo/disponibles?${params.toString()}`;
+    return `https://coworkingapi.jblas.me/api/puestostrabajo/disponibles?${params.toString()}`;
   });
 
   // Función para obtener los puestos disponibles

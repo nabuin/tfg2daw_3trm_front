@@ -131,7 +131,7 @@ export const useReservasStore = defineStore('reservas', () => {
         };
 
         try {
-            const response = await fetch('https://coworking.jblas.me/api/Reservas/reservacompleta', {
+            const response = await fetch('https://coworkingapi.jblas.me/api/Reservas/reservacompleta', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

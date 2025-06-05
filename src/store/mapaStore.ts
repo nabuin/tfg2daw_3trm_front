@@ -19,7 +19,7 @@ export function useMapaStore() {
 
   const obtenerCoordenadas = async () => {
     try {
-      const response = await fetch('https://coworking.jblas.me/api/Sedes');
+      const response = await fetch('https://coworkingapi.jblas.me/api/Sedes');
       if (!response.ok) {
         throw new Error('Error en la solicitud');
       }

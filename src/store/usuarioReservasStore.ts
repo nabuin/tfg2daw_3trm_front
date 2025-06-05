@@ -44,7 +44,7 @@ export const useReservationStore = defineStore("reservation", {
             this.reservations = null; // borrar reservas previas para evitar conflictos
 
             try {
-                const endpoint = `https://coworking.jblas.me/api/Reservas/reservasdeusuario/${userId}`;
+                const endpoint = `https://coworkingapi.jblas.me/api/Reservas/reservasdeusuario/${userId}`;
 
                 const res = await fetch(endpoint, {
                     method: "GET",
@@ -82,7 +82,7 @@ export const useReservationStore = defineStore("reservation", {
             this.error = null;
 
             try {
-                const endpoint = `https://coworking.jblas.me/api/Reservas/${reservationId}`;
+                const endpoint = `https://coworkingapi.jblas.me/api/Reservas/${reservationId}`;
 
                 const res = await fetch(endpoint, {
                     method: "DELETE",
@@ -118,7 +118,7 @@ export const useReservationStore = defineStore("reservation", {
         async fetchQrCode(reservationId: number, token: string): Promise<Blob | null> {
             this.error = null; // Limpia errores previos relacionados con QR
             try {
-                const endpoint = `https://coworking.jblas.me/api/Reservas/generarqr/${reservationId}`;
+                const endpoint = `https://coworkingapi.jblas.me/api/Reservas/generarqr/${reservationId}`;
                 const response = await fetch(endpoint, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
