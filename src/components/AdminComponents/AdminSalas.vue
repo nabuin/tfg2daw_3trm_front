@@ -54,9 +54,6 @@
               <button @click="editSala(sala)" class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#salaModal">
                 EDITAR
               </button>
-              <button @click="confirmDelete(sala.idSala)" type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
-                ELIMINAR
-              </button>
             </td>
             <td>{{ sala.idSala }}</td>
             <td>
@@ -129,9 +126,6 @@
                   <td>
                     <button @click="editCaracteristica(caracteristica)" class="btn btn-sm btn-warning me-1" data-bs-toggle="modal" data-bs-target="#caracteristicaModal">
                       <i class="bi bi-pencil me-1"></i>EDITAR
-                    </button>
-                    <button @click="confirmDeleteCaracteristica(caracteristica.idCaracteristica)" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCaracteristicaModal">
-                      <i class="bi bi-trash me-1"></i>ELIMINAR
                     </button>
                   </td>
                   <td>{{ caracteristica.idCaracteristica }}</td>
@@ -235,41 +229,6 @@
     </div>
   </div>
 
-  <div class="modal fade" id="deleteCaracteristicaModal" tabindex="-1" aria-labelledby="deleteCaracteristicaModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteCaracteristicaModalLabel">Confirmar Eliminación de Característica</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que quieres eliminar la característica con ID: <strong>{{ caracteristicaToDeleteId }}</strong>? Esta acción no se puede deshacer.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" @click="deleteCaracteristicaConfirmed">ELIMINAR</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar Eliminación</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¿Estás seguro de que quieres eliminar la sala con ID: <strong>{{ salaToDeleteId }}</strong>? Esta acción no se puede deshacer.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" @click="deleteSalaConfirmed">ELIMINAR</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="modal fade" id="generarPuestosModal" tabindex="-1" aria-labelledby="generarPuestosModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -343,11 +302,9 @@ type Nullable<T> = T | null
 // estado reactivo para busqueda y sala actual
 const searchQuery: Ref<string> = ref('')
 const currentSala: Ref<Nullable<Sala>> = ref(null)
-const salaToDeleteId: Ref<Nullable<number>> = ref(null)
 
 // estado reactivo para características
 const currentCaracteristica: Ref<Nullable<CaracteristicaSala>> = ref(null)
-const caracteristicaToDeleteId: Ref<Nullable<number>> = ref(null)
 const caracteristicaForm = ref({
   nombre: '',
   descripcion: '',
@@ -373,10 +330,8 @@ const currentYear = new Date().getFullYear();
 
 // instancias de modales
 let salaModalInstance: Nullable<Modal> = null
-let deleteConfirmModalInstance: Nullable<Modal> = null
 let gestionCaracteristicasModalInstance: Nullable<Modal> = null
 let caracteristicaModalInstance: Nullable<Modal> = null
-let deleteCaracteristicaModalInstance: Nullable<Modal> = null
 let gestionCaracteristicasSalaModalInstance: Nullable<Modal> = null
 let generarPuestosModalInstance: Nullable<Modal> = null
 // NUEVA INSTANCIA DE MODAL
@@ -393,10 +348,8 @@ onMounted(async () => {
 
   // Inicializar instancias de modales después de que el DOM esté montado
   salaModalInstance = new Modal(document.getElementById('salaModal')!)
-  deleteConfirmModalInstance = new Modal(document.getElementById('deleteConfirmModal')!)
   gestionCaracteristicasModalInstance = new Modal(document.getElementById('gestionCaracteristicasModal')!)
   caracteristicaModalInstance = new Modal(document.getElementById('caracteristicaModal')!)
-  deleteCaracteristicaModalInstance = new Modal(document.getElementById('deleteCaracteristicaModal')!)
   gestionCaracteristicasSalaModalInstance = new Modal(document.getElementById('gestionCaracteristicasSalaModal')!)
   generarPuestosModalInstance = new Modal(document.getElementById('generarPuestosModal')!)
   generarDisponibilidadesModalInstance = new Modal(document.getElementById('generarDisponibilidadesModal')!)
@@ -453,24 +406,9 @@ const handleSalaSubmit = async (salaData: Partial<Sala>) => {
   }
 }
 
-const confirmDelete = (id: number) => {
-  salaToDeleteId.value = id
-  deleteConfirmModalInstance?.show()
-}
 
-const deleteSalaConfirmed = async () => {
-  if (salaToDeleteId.value !== null) {
-    try {
-      await salasStore.eliminarSala(salaToDeleteId.value)
-      deleteConfirmModalInstance?.hide()
-      salaToDeleteId.value = null
-      await salasStore.obtenerTodasLasSalas() // Refrescar la lista de salas
-      await salasStore.obtenerTodasLasSalasConCaracteristicas(); // Actualizar el estado de salas con características
-    } catch (error) {
-      console.error('Error al eliminar la sala:', error)
-    }
-  }
-}
+
+
 
 const closeSalaModal = () => {
   salaModalInstance?.hide()
@@ -509,24 +447,8 @@ const handleCaracteristicaSubmit = async () => {
   }
 }
 
-const confirmDeleteCaracteristica = (id: number) => {
-  caracteristicaToDeleteId.value = id
-  deleteCaracteristicaModalInstance?.show()
-}
 
-const deleteCaracteristicaConfirmed = async () => {
-  if (caracteristicaToDeleteId.value !== null) {
-    try {
-      await salasStore.eliminarCaracteristica(caracteristicaToDeleteId.value)
-      deleteCaracteristicaModalInstance?.hide()
-      caracteristicaToDeleteId.value = null
-      await salasStore.obtenerTodasLasCaracteristicasSalas() // Refrescar la lista
-      await salasStore.obtenerTodasLasSalasConCaracteristicas(); // Actualizar el estado de salas con características
-    } catch (error) {
-      console.error('Error al eliminar la característica:', error)
-    }
-  }
-}
+
 
 const closeCaracteristicaModal = () => {
   caracteristicaModalInstance?.hide()
