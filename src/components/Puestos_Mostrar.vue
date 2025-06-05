@@ -56,8 +56,8 @@
   class="continue-button"
   @click="continuarCompra"
   v-if="seatGroups.length > 0 && !loading"
-  :class="{ 'boton-lleno': isOnlyPrivateOccupied }"
-  :disabled="isOnlyPrivateOccupied"
+  :class="{ 'boton-lleno': isAllSeatsOccupied }"
+  :disabled="isAllSeatsOccupied"
 >
   continuar
 </button>
@@ -225,15 +225,23 @@ export default defineComponent({
       }
     }
 
-const isOnlyPrivateOccupied = computed(() => {
-  // Filtra los puestos privados ocupados
-  const puestosPrivadosOcupados = puestosDisponibles.value.filter(puesto =>
-    puesto.idTipoPuestoTrabajo === 2 && puesto.disponibilidadesEnRango?.some(s => !s.estado)
-  );
-
+    const isOnlyPrivateOccupied = computed(() => {
+      // Filtra los puestos privados ocupados
+      const puestosPrivadosOcupados = puestosDisponibles.value.filter(puesto =>
+      puesto.idTipoPuestoTrabajo === 2 && puesto.disponibilidadesEnRango?.some(s => !s.estado)
+    );
   // Si hay algún puesto privado ocupado, devuelve true
   return puestosPrivadosOcupados.length > 0;
 });
+
+const isAllSeatsOccupied = computed(() => {
+  // Verifica si todos los puestos están ocupados
+  const allOccupied = puestosDisponibles.value.every(puesto =>
+    puesto.disponibilidadesEnRango?.every(s => !s.estado) // Si todos los estados de disponibilidad son false
+  );
+  return allOccupied;
+});
+
 
 
 
@@ -257,7 +265,8 @@ const isOnlyPrivateOccupied = computed(() => {
       isLoggingIn,
       login,
       salaInvalida,
-      isOnlyPrivateOccupied
+      isOnlyPrivateOccupied,
+      isAllSeatsOccupied
     };
   },
 });
