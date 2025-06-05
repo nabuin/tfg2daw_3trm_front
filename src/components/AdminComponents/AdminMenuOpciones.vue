@@ -28,6 +28,14 @@
           <p class="image-text">Reservas</p>
         </div>
       </router-link>
+      
+
+       <router-link to="/grafico" class="image-link">
+        <div class="image-item">
+          <img src="../../imgs/icons/admin-estadisticas.svg" alt="Estadisticas de ventas" class="gallery-image" />
+          <p class="image-text">Estadisticas</p>
+        </div>
+      </router-link>
     </section>
   </div>
 </template>
