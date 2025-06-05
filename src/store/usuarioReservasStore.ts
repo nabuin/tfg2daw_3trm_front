@@ -10,8 +10,8 @@ interface Reservation {
     ciudadSedePrincipal: string;
     direccionSedePrincipal: string;
     imagenSalaPrincipal: string;
-    rangoHorarioReserva: string; // "MM/DD/YYYY HH:mm - MM/DD/YYYY HH:mm"
-    cantidadHorasReservadas: number;
+    rangoHorarioReserva: string; // "MM/DD/YYYY HH:mm - MM/DD/YYYY HH:mm" o "MM/DD/YYYY HH:mm"
+    asientosSeleccionados: number[]; // array de números de asientos
 }
 
 interface ReservationState {

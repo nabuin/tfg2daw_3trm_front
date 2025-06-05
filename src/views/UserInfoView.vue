@@ -76,13 +76,52 @@ const closeQrModal = () => {
     qrErrorMessage.value = null
 }
 
+// formatear lista de asientos para mostrar
+const formatearAsientos = (asientos: number[]): string => {
+    if (!asientos || asientos.length === 0) {
+        return "Sin asientos asignados";
+    }
 
+    // ordenar y mostrar todos los asientos
+    const asientosOrdenados = [...asientos].sort((a, b) => a - b);
+    return asientosOrdenados.join(", ");
+};
 
 // seccion de reservas del usuario
 
-// formatear la fecha, la api devuelve: 04/06/2025 08:00 - 18/06/2025 19:00
+// formatear la fecha, la api devuelve: 04/06/2025 08:00 - 18/06/2025 19:00 o 05/06/2025 00:00
 const tramoHorarioFormateado = (range: string): string => {
   try {
+    // si no contiene " - " es formato simple (solo fecha y hora)
+    if (!range.includes(" - ")) {
+      const [datePart, timePart] = range.split(" ");
+      const [day, month, year] = datePart.split("/").map(Number);
+      
+      if (timePart) {
+        const [hour, minute] = timePart.split(":").map(Number);
+        const date = new Date(year, month - 1, day, hour, minute);
+        
+        if (!isNaN(date.getTime())) {
+          const outputFormato: Intl.DateTimeFormatOptions = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          };
+          return date.toLocaleString("es-ES", outputFormato);
+        }
+      } else {
+        // solo fecha sin hora
+        const date = new Date(year, month - 1, day);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString("es-ES");
+        }
+      }
+    }
+    
+    // formato con rango
     const [startStr, endStr] = range.split(" - ");
 
     // parsear la info recibida
@@ -346,35 +385,46 @@ const confirmLogout = () => {
 // Función para verificar si se puede cancelar la reserva
 const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
   try {
+    let fechaComparar: Date; // fecha y hora que se usará para comparar
 
-    let fechaFin: Date; // fecha y hora de fin que se usará para comparar
-
-    // Verificar si el formato es "DD/MM/YYYY HH:mm - HH:mm" (mismo día)
-    if (rangoHorarioReserva.includes(" - ") && !rangoHorarioReserva.split(" - ")[1].includes("/")) {
-      // comprobar si es solo un dia y no varios en la reserva, tipo: 24/05/2025 08:00 - 09:00
-      const [fechaHoraInicio, horaFin] = rangoHorarioReserva.split(" - "); // se separa el dia y fecha de inicio, y la hora de fin, fechaHoraInicio = 24/05/2025 08:00 y horaFin = 09:00
-      const [datePart] = fechaHoraInicio.split(" "); // parte de la fecha (antes del espacio) = 24/05/2025
+    // si no contiene " - " es formato simple (solo fecha y hora)
+    if (!rangoHorarioReserva.includes(" - ")) {
+      const [datePart, timePart] = rangoHorarioReserva.split(" ");
       const [day, month, year] = datePart.split("/").map(Number);
-      const [hour, minute] = horaFin.split(":").map(Number);
-
-
-      fechaFin = new Date(year, month - 1, day, hour, minute);
+      
+      if (timePart) {
+        const [hour, minute] = timePart.split(":").map(Number);
+        fechaComparar = new Date(year, month - 1, day, hour, minute);
+      } else {
+        // solo fecha, usar medianoche
+        fechaComparar = new Date(year, month - 1, day);
+      }
     } else {
-      // Formato original: "04/06/2025 08:00 - 18/06/2025 19:00"
-      const [, endStr] = rangoHorarioReserva.split(" - ");
-      const [datePart, timePart] = endStr.split(" ");
-      const [day, month, year] = datePart.split("/").map(Number);
-      const [hour, minute] = timePart.split(":").map(Number);
+      // Verificar si el formato es "DD/MM/YYYY HH:mm - HH:mm" (mismo día)
+      if (!rangoHorarioReserva.split(" - ")[1].includes("/")) {
+        // comprobar si es solo un dia y no varios en la reserva, tipo: 24/05/2025 08:00 - 09:00
+        const [fechaHoraInicio, horaFin] = rangoHorarioReserva.split(" - ");
+        const [datePart] = fechaHoraInicio.split(" ");
+        const [day, month, year] = datePart.split("/").map(Number);
+        const [hour, minute] = horaFin.split(":").map(Number);
 
-      fechaFin = new Date(year, month - 1, day, hour, minute);
+        fechaComparar = new Date(year, month - 1, day, hour, minute);
+      } else {
+        // Formato original: "04/06/2025 08:00 - 18/06/2025 19:00"
+        const [, endStr] = rangoHorarioReserva.split(" - ");
+        const [datePart, timePart] = endStr.split(" ");
+        const [day, month, year] = datePart.split("/").map(Number);
+        const [hour, minute] = timePart.split(":").map(Number);
+
+        fechaComparar = new Date(year, month - 1, day, hour, minute);
+      }
     }
 
     // Crear la fecha/hora actual
     const ahora = new Date();
 
-
-    // Verificar si la fecha de fin es mayor a la fecha actual
-    return fechaFin > ahora;
+    // Verificar si la fecha de comparacion es mayor a la fecha actual
+    return fechaComparar > ahora;
   } catch (error) {
     console.error("Error al verificar si se puede cancelar la reserva:", error);
     return false; // En caso de error, no permitir cancelación por seguridad
@@ -502,6 +552,7 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
                 </p>
                 <p><strong>Ubicación:</strong> {{ reservation.direccionSedePrincipal }}, {{ reservation.ciudadSedePrincipal }}</p>
                 <p><strong>Periodo:</strong> {{ tramoHorarioFormateado(reservation.rangoHorarioReserva) }}</p>
+                <p><strong>Asientos:</strong> {{ formatearAsientos(reservation.asientosSeleccionados) }}</p>
                 <p class="reservation-card__price"><strong>Precio Total:</strong> {{ reservation.precioTotal.toFixed(2) }} €</p>
                           <div class="button-container">
               <div class="button-container buttons-qr">
