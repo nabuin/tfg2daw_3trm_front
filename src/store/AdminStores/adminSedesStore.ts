@@ -144,16 +144,6 @@ export const useSedesStore = defineStore('sedes', {
       }
     },
 
-     // Elimina una sede
-    async eliminarSede(idSede: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `sedes/${idSede}`);
-        this.sedes = this.sedes.filter(s => s.idSede !== idSede);
-      } catch (error) {
-        console.error('Error al eliminar sede:', error);
-        throw error;
-      }
-    },
 
     
      // Prepara los datos para enviar al backend según el formato esperado

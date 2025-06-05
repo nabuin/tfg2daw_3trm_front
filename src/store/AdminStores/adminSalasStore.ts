@@ -177,17 +177,7 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
-    // eliminar una característica de una sala
-    async eliminarCaracteristicaDeSala(idSala: number, idCaracteristica: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `salas/${idSala}/caracteristicas/${idCaracteristica}`);
-        await this.obtenerCaracteristicasPorSala(idSala);
-        console.log(`Característica ${idCaracteristica} eliminada de la sala ${idSala}`);
-      } catch (error) {
-        console.error(`Error al eliminar característica ${idCaracteristica} de la sala ${idSala}:`, error);
-        throw error;
-      }
-    },
+ 
 
     async obtenerCaracteristicasPorSala(idSala: number) {
       try {
@@ -222,36 +212,27 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
-    // actualizar sala existente
-    async actualizarSala(idSala: number, datosSala: Partial<Sala>) {
-      try {
-        const salaParaEnviar = this._prepararDatosParaBackend(datosSala, true)
-        salaParaEnviar.idSala = idSala
-        const salaActualizada = await this._llamadaApiFetch('PUT', `salas/${idSala}`, salaParaEnviar)
-        const indice = this.salas.findIndex(s => s.idSala === idSala)
-        if (indice !== -1) {
-          this.salas[indice] = { ...this.salas[indice], ...salaActualizada }
-        }
-        return salaActualizada
-      } catch (error) {
-        console.error('error al actualizar sala', error)
-        throw error
-      }
-    },
 
-    // eliminar sala por id
-    async eliminarSala(idSala: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `salas/${idSala}`)
-        this.salas = this.salas.filter(s => s.idSala !== idSala)
-        // También eliminarla de salasConCaracteristicas si existe
-        this.salasConCaracteristicas = this.salasConCaracteristicas.filter(s => s.idSala !== idSala);
-      } catch (error) {
-        console.error('error al eliminar sala', error)
-        throw error
-      }
-    },
-
+// actualizar sala existente
+async actualizarSala(idSala: number, datosSala: Partial<Sala>) {
+  try {
+    // aplicar ajustes automáticos basados en el tipo de sala si se está cambiando
+    const datosConAjustes = this._aplicarAjustesAutomaticos(datosSala);
+    
+    const salaParaEnviar = this._prepararDatosParaBackend(datosConAjustes, true)
+    salaParaEnviar.idSala = idSala
+    const salaActualizada = await this._llamadaApiFetch('PUT', `salas/${idSala}`, salaParaEnviar)
+    const indice = this.salas.findIndex(s => s.idSala === idSala)
+    if (indice !== -1) {
+      this.salas[indice] = { ...this.salas[indice], ...salaActualizada }
+    }
+    return salaActualizada
+  } catch (error) {
+    console.error('error al actualizar sala', error)
+    throw error
+  }
+},
+ 
     // obtener todos los tipos de salas
     async obtenerTodosLosTiposSalas() {
       try {
@@ -311,16 +292,7 @@ export const useSalasStore = defineStore('salas', {
       }
     },
 
-    // eliminar caracteristica por id
-    async eliminarCaracteristica(idCaracteristica: number) {
-      try {
-        await this._llamadaApiFetch('DELETE', `CaracteristicasSala/${idCaracteristica}`)
-        this.caracteristicasSalas = this.caracteristicasSalas.filter(c => c.idCaracteristica !== idCaracteristica)
-      } catch (error) {
-        console.error('error al eliminar caracteristica', error)
-        throw error
-      }
-    },
+   
 
     async generarAsientosDeSalas() {
       try {
@@ -407,6 +379,41 @@ export const useSalasStore = defineStore('salas', {
 
       return salaParaEnviar
     }
+
+   , _aplicarAjustesAutomaticos(datos: any) {
+  const datosConAjustes = { ...datos };
+  
+  // Solo aplicar ajustes si se proporciona idTipoSala
+  if (datos.idTipoSala) {
+    const idTipoSala = parseInt(datos.idTipoSala);
+    
+    switch (idTipoSala) {
+      case 1:
+        datosConAjustes.capacidad = 40;
+        datosConAjustes.idTipoPuestoTrabajo = 1;
+        break;
+      case 2:
+        datosConAjustes.capacidad = 32;
+        datosConAjustes.idTipoPuestoTrabajo = 1;
+        break;
+      case 3:
+        datosConAjustes.capacidad = 12;
+        datosConAjustes.idTipoPuestoTrabajo = 1;
+        break;
+      case 4:
+        datosConAjustes.capacidad = 20;
+        datosConAjustes.idTipoPuestoTrabajo = 2;
+        break;
+      default:
+        // para otros tipos de sala, mantener los valores existentes o usar 0
+        if (!datos.capacidad) datosConAjustes.capacidad = 0;
+        if (!datos.idTipoPuestoTrabajo) datosConAjustes.idTipoPuestoTrabajo = 0;
+        break;
+    }
+  }
+  
+  return datosConAjustes;
+},
   }
 })
 

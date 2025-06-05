@@ -4,6 +4,7 @@
       <label for="nombre" class="form-label">Nombre</label>
       <input type="text" class="form-control" id="nombre" v-model="formData.nombre" required>
     </div>
+
     <div class="mb-3">
       <label for="url_Imagen" class="form-label">URL Imagen</label>
       <input type="text" class="form-control" id="url_Imagen" v-model="formData.url_Imagen">
@@ -11,7 +12,8 @@
     
     <div class="mb-3" v-if="formData.idSala !== 0">
       <label for="capacidad" class="form-label">Capacidad</label>
-      <input type="number" class="form-control" id="capacidad" v-model.number="formData.capacidad" required min="1">
+      <input type="number" class="form-control" id="capacidad" v-model.number="formData.capacidad" disabled>
+      <small class="form-text text-muted">La capacidad se establece automáticamente según el tipo de sala.</small>
     </div>
     
     <div class="form-check mb-3">
@@ -23,7 +25,7 @@
 
     <div class="mb-3">
       <label for="idTipoSala" class="form-label">Tipo de Sala</label>
-      <select id="idTipoSala" class="form-select" v-model.number="formData.idTipoSala" required>
+      <select id="idTipoSala" class="form-select" v-model.number="formData.idTipoSala" required @change="handleTipoSalaChange">
         <option value="0" disabled>Selecciona un tipo de sala</option>
         <option v-for="tipo in tiposSalas" :key="tipo.idTipoSala" :value="tipo.idTipoSala">
           {{ tipo.nombre }}
@@ -67,9 +69,9 @@ import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
   sala: Object,
-  tiposSalas: Array, // de salas store
-  sedes: Array,     //de sedes store
-  tiposPuestoTrabajo: Array, // de tipos de puesto de trabajo store
+  tiposSalas: Array,
+  sedes: Array,
+  tiposPuestoTrabajo: Array,
 });
 
 const emit = defineEmits(['submit-form', 'cancel']);
@@ -86,21 +88,20 @@ const formData = ref({
   idTipoPuestoTrabajo: 0,
 });
 
-// observa cuando cambia la sala que viene por props
-watch(() => props.sala, (newSala) => {
-  if (newSala && newSala.idSala !== 0) { // Check if it's an existing sala (idSala is not 0)
-    // si hay una sala la copiamos al formulario
-    formData.value = { ...newSala }
+const isLoadingExistingSala = ref(false);
 
-    // si la sala trae tipoSala con idTipoPuestoTrabajo lo usamos
+watch(() => props.sala, (newSala) => {
+  isLoadingExistingSala.value = true;
+  
+  if (newSala && newSala.idSala !== 0) {
+    formData.value = { ...newSala };
+
     if (newSala.tipoSala && newSala.tipoSala.idTipoPuestoTrabajo) {
-        formData.value.idTipoPuestoTrabajo = newSala.tipoSala.idTipoPuestoTrabajo
+      formData.value.idTipoPuestoTrabajo = newSala.tipoSala.idTipoPuestoTrabajo;
     } else {
-        // si no trae lo dejamos en cero
-        formData.value.idTipoPuestoTrabajo = 0
+      formData.value.idTipoPuestoTrabajo = 0;
     }
   } else {
-    // si no hay sala reiniciamos el formulario para agregar una nueva
     formData.value = {
       idSala: 0,
       nombre: '',
@@ -110,40 +111,52 @@ watch(() => props.sala, (newSala) => {
       idSede: 0,
       bloqueado: false,
       zonasTrabajo: [],
-      idTipoPuestoTrabajo: 0
+      idTipoPuestoTrabajo: 0,
+    };
+  }
+  
+  // Pequeño delay para asegurar que el DOM se haya actualizado
+  setTimeout(() => {
+    isLoadingExistingSala.value = false;
+  }, 50);
+}, { immediate: true });
+
+const handleTipoSalaChange = () => {
+  // solo aplicar la lógica automática si no estamos cargando una sala existente
+  // y si es una sala nueva (idSala === 0)
+  if (!isLoadingExistingSala.value && formData.value.idSala === 0) {
+    const newIdTipoSala = formData.value.idTipoSala;
+    
+    if (newIdTipoSala === 1) {
+      formData.value.idTipoPuestoTrabajo = 1;
+      formData.value.capacidad = 40;
+    } else if (newIdTipoSala === 2) {
+      formData.value.idTipoPuestoTrabajo = 1;
+      formData.value.capacidad = 32;
+    } else if (newIdTipoSala === 3) {
+      formData.value.idTipoPuestoTrabajo = 1;
+      formData.value.capacidad = 12;
+    } else if (newIdTipoSala === 4) {
+      formData.value.idTipoPuestoTrabajo = 2;
+      formData.value.capacidad = 20;
+    } else {
+      formData.value.idTipoPuestoTrabajo = 0;
+      formData.value.capacidad = 0;
     }
   }
-}, { immediate: true })
+};
 
-// observa cuando cambia el tipo de sala para asignar tipo de puesto de trabajo
-watch(() => formData.value.idTipoSala, (newIdTipoSala) => {
-    if (newIdTipoSala === 1 || newIdTipoSala === 2 || newIdTipoSala === 3) {
-        // si es tipo 1 2 o 3 asignamos tipo de puesto 1
-        formData.value.idTipoPuestoTrabajo = 1
-    } else if (newIdTipoSala === 4) {
-        // si es tipo 4 asignamos tipo de puesto 2
-        formData.value.idTipoPuestoTrabajo = 2
-    } else {
-        // si no coincide con ninguno dejamos en cero
-        formData.value.idTipoPuestoTrabajo = 0
-    }
-}, { immediate: true })
-
-// calcula el tipo de sala seleccionado
 const selectedTipoSala = computed(() => {
-  return props.tiposSalas.find(ts => ts.idTipoSala === formData.value.idTipoSala)
-})
+  return props.tiposSalas.find(ts => ts.idTipoSala === formData.value.idTipoSala);
+});
 
-// funcion para enviar el formulario
 const handleSubmit = () => {
-  emit('submit-form', formData.value)
-}
+  emit('submit-form', formData.value);
+};
 
-// funcion para cancelar
 const handleCancel = () => {
-  emit('cancel')
-}
-
+  emit('cancel');
+};
 </script>
 
 <style scoped>

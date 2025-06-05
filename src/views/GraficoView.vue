@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/UserStore';
 
 import DashboardCharts from '@/components/GraficasCharts.vue';
+import AdminMenuOpciones from '@/components/AdminComponents/AdminMenuOpciones.vue';
+
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -32,6 +34,8 @@ const irLogin = () => {
 </script>
 
 <template>
+        <AdminMenuOpciones />
+
   <div class="grafico-view">
     <div v-if="isLoading" class="loading-message">
       Cargando información del usuario...
