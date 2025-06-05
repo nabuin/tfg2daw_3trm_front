@@ -568,7 +568,6 @@ const puedeSerCancelada = (rangoHorarioReserva: string): boolean => {
 </template>
 
 <style scoped lang="scss">
-/* Estilos generales para el contenedor de botones */
 .admin-zone {
   background-color: white;
   border-radius: 8px;
@@ -1131,6 +1130,9 @@ button {
   
 }
 
+.user-reservations{
+  max-height: 675px;
+}
 
 
 </style>
