@@ -113,7 +113,7 @@
       </div>
     </v-card>
 
-    <v-dialog v-model="showSuccessDialog" max-width="420">
+    <v-dialog v-model="showSuccessDialog" max-width="420" persistent>
       <v-card class="popup-card text-center">
         <v-card-title class="popup-title">
           ¡Reserva completada!
