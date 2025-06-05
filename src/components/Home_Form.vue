@@ -40,7 +40,7 @@ const enviarFormulario = async () => {
                 C/ Rodrigo Rebolledo 67
             </div>
             <div class="form__email form__info-item">
-                Cooworking Las Fuentes
+                Coworking Las Fuentes
             </div>
         </div>
 
@@ -64,7 +64,7 @@ const enviarFormulario = async () => {
                 <label class="form__label form__group-label" for="consulta">Escriba su Consulta*</label>
                 <textarea id="consulta" class="form__textarea form__group-textarea" v-model="formData.consulta" required></textarea>
             </div>
-            
+
             <div class="form__boton form__actions">
                 <button type="submit" class="form__enviar form__submit" :disabled="formStore.loading">
                     {{ formStore.loading ? 'Enviando...' : 'Enviar' }}

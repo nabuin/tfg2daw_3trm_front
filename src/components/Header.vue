@@ -3,7 +3,7 @@
     <div class="header__top">
       <div class="header__top-left">
         <div class="header__top-left-info">
-          <h6>Espacio de Cooworking en Zaragoza</h6>
+          <h6>Espacio de Coworking en Zaragoza</h6>
         </div>
       </div>
       <div class="header__top-right">
