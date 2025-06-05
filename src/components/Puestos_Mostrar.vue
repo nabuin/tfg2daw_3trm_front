@@ -1,22 +1,18 @@
 <template>
   <div>
-    <!-- 0. cargando sala -->
     <p v-if="salaInvalida" class="loading-message">
       cargando sala…
     </p>
 
-<!-- 1. cargando puestos -->
-<p v-else-if="loading" class="loading-message">
-  cargando sala…
-</p>
+    <p v-else-if="loading" class="loading-message">
+      cargando sala…
+    </p>
 
-<!-- 1.1 sin asientos disponibles -->
-<p v-else-if="seatGroups.length === 0" class="loading-message">
-  cargando sala…
-</p>
+    <p v-else-if="seatGroups.length === 0" class="loading-message">
+      cargando sala…
+    </p>
 
 
-    <!-- 2. cuando ya cargó, pintamos las mesas en filas de 3 -->
     <div v-else>
       <div class="tables-grid">
         <div v-for="(group, gi) in seatGroups" :key="gi" class="table-layout">
@@ -25,7 +21,8 @@
             {
               unavailable: puesto.disponibilidadesEnRango?.some(s => !s.estado),
               selected: selectedPuestos.some(sp => sp.idPuestoTrabajo === puesto.idPuestoTrabajo),
-              selectedPrivate: puesto.idTipoPuestoTrabajo === 2
+              selectedPrivate: puesto.idTipoPuestoTrabajo === 2 && puesto.disponibilidadesEnRango?.every(s => s.estado),
+              privateOcupado: puesto.idTipoPuestoTrabajo === 2 && puesto.disponibilidadesEnRango?.some(s => !s.estado)
             }
           ]" :disabled="puesto.disponibilidadesEnRango?.some(s => !s.estado)" @click="handlePuestoClick(puesto)">
             <svg class="silla-icon" width="50" height="50" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
@@ -41,6 +38,8 @@
             </svg>
           </button>
 
+
+
           <div class="table">
             <svg class="mesa-icon" width="120" height="130" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <rect x="20" y="20" width="80" height="100" rx="6" ry="6" />
@@ -53,9 +52,18 @@
         {{ errorSeleccionPuestos }}
       </div>
 
-      <button class="continue-button" @click="continuarCompra" v-if="seatGroups.length > 0 && !loading">
-        continuar
-      </button>
+<button
+  class="continue-button"
+  @click="continuarCompra"
+  v-if="seatGroups.length > 0 && !loading"
+  :class="{ 'boton-lleno': isOnlyPrivateOccupied }"
+  :disabled="isOnlyPrivateOccupied"
+>
+  continuar
+</button>
+
+
+
     </div>
 
     <div v-if="showPopup" class="popup-overlay" @click.self="showPopup = false">
@@ -136,16 +144,16 @@ export default defineComponent({
         filtrosStore.horaInicio,
         filtrosStore.horaFin,
       ],
-  async () => {
-    if (!salaInvalida.value) {
-      puestosStore.$patch({ puestosDisponibles: [] }); // 👈 limpia antes de cargar
-      await puestosStore.obtenerPuestosDisponibles();
-      const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
-      reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
-      reservasStore.resetSelection();
-      puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
-    }
-  },
+      async () => {
+        if (!salaInvalida.value) {
+          puestosStore.$patch({ puestosDisponibles: [] });
+          await puestosStore.obtenerPuestosDisponibles();
+          const puestosPrivados = puestosDisponibles.value.filter(p => p.idTipoPuestoTrabajo === 2);
+          reservasStore.setPuestoDisponibilidades(puestosDisponibles.value);
+          reservasStore.resetSelection();
+          puestosPrivados.forEach(p => reservasStore.togglePuestoSelection(p));
+        }
+      },
       { immediate: true }
     );
 
@@ -153,6 +161,8 @@ export default defineComponent({
       if (puesto.idTipoPuestoTrabajo === 2) return;
       reservasStore.togglePuestoSelection(puesto);
     }
+
+
 
     function submitCompra() {
       reservasStore.createReservation('compra de puestos');
@@ -215,6 +225,19 @@ export default defineComponent({
       }
     }
 
+const isOnlyPrivateOccupied = computed(() => {
+  // Filtra los puestos privados ocupados
+  const puestosPrivadosOcupados = puestosDisponibles.value.filter(puesto =>
+    puesto.idTipoPuestoTrabajo === 2 && puesto.disponibilidadesEnRango?.some(s => !s.estado)
+  );
+
+  // Si hay algún puesto privado ocupado, devuelve true
+  return puestosPrivadosOcupados.length > 0;
+});
+
+
+
+
     const seatGroups = computed(() => chunkArray(puestosDisponibles.value, 4));
 
     return {
@@ -234,6 +257,7 @@ export default defineComponent({
       isLoggingIn,
       login,
       salaInvalida,
+      isOnlyPrivateOccupied
     };
   },
 });
@@ -557,5 +581,28 @@ export default defineComponent({
     flex-direction: column;
     align-items: center;
   }
+}
+
+.privateOcupado .silla-icon .chair-seat,
+.privateOcupado .silla-icon .chair-back {
+  fill: #ff0000 !important;
+  /* Color rojo */
+}
+
+.privateOcupado {
+  cursor: not-allowed;
+}
+
+.boton-lleno {
+  background-color: #ff0000;
+  color: white;
+  border: 1px solid #cc0000;
+  cursor: not-allowed !important;
+   &:hover{
+      background-color: #ff0000;
+  color: white;
+  border: 1px solid #cc0000;
+  cursor: not-allowed !important;
+   }
 }
 </style>
