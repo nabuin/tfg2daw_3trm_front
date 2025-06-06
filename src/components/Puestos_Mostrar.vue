@@ -164,10 +164,16 @@ export default defineComponent({
 
 
 
-    function submitCompra() {
-      reservasStore.createReservation('compra de puestos');
+ async function submitCompra() {
+    const result = await reservasStore.createReservation('compra de puestos');
+    
+    // Si hay un error 4xx, redirigir a /sedes
+    if (result && result.shouldRedirect) {
+        setTimeout(() => {
+            router.push('/sedes');
+        }, 3000); // Esperar 3 segundos para que el usuario vea el mensaje
     }
-
+}
     function positionClass(index: number): string {
       return [
         'seat-left-top',

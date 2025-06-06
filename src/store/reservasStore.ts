@@ -72,74 +72,79 @@ export const useReservasStore = defineStore('reservas', () => {
         currentPuestoDisponibilidades.value = puestos;
     }
 
-    async function createReservation(description: string = "Reserva") {
-        if (selectedPuestos.value.length === 0) {
-            reservationError.value = "No hay puestos seleccionados para reservar.";
-            return;
-        }
+async function createReservation(description: string = "Reserva") {
+    if (selectedPuestos.value.length === 0) {
+        reservationError.value = "No hay puestos seleccionados para reservar.";
+        return;
+    }
 
-        const userId = userStore.user?.idUsuario;
-        if (!userId) {
-            reservationError.value = "No se pudo obtener la información del usuario. Por favor, inicie sesión.";
-            return;
-        }
+    const userId = userStore.user?.idUsuario;
+    if (!userId) {
+        reservationError.value = "No se pudo obtener la información del usuario. Por favor, inicie sesión.";
+        return;
+    }
 
-        isReserving.value = true;
-        reservationError.value = null;
-        reservationSuccess.value = null;
+    isReserving.value = true;
+    reservationError.value = null;
+    reservationSuccess.value = null;
 
         // Construir líneas de reserva con todos los tramos de todos los puestos seleccionados
         // Se cambió el tipo de idTramoHorario a idDisponibilidad para alinearse con el DTO del backend
         const reservationLines: { idPuestoTrabajo: number; idDisponibilidad: number; }[] = []; 
         let anyPuestoHasAvailableSlots = false;
 
-        for (const selectedPuestoRef of selectedPuestos.value) {
-            const puestoCompleto = currentPuestoDisponibilidades.value.find(
-                p => p.idPuestoTrabajo === selectedPuestoRef.idPuestoTrabajo
-            );
+    for (const selectedPuestoRef of selectedPuestos.value) {
+        const puestoCompleto = currentPuestoDisponibilidades.value.find(
+            p => p.idPuestoTrabajo === selectedPuestoRef.idPuestoTrabajo
+        );
 
-            if (puestoCompleto && puestoCompleto.disponibilidadesEnRango) {
-                const tramosDisponiblesParaPuesto = puestoCompleto.disponibilidadesEnRango
-                    .filter((slot: any) => slot.estado); // Solo tramos DISPONIBLES
+        if (puestoCompleto && puestoCompleto.disponibilidadesEnRango) {
+            const tramosDisponiblesParaPuesto = puestoCompleto.disponibilidadesEnRango
+                .filter((slot: any) => slot.estado); // Solo tramos DISPONIBLES
 
-                if (tramosDisponiblesParaPuesto.length > 0) {
-                    anyPuestoHasAvailableSlots = true;
-                    tramosDisponiblesParaPuesto.forEach((slot: any) => {
-                        reservationLines.push({
-                            idPuestoTrabajo: puestoCompleto.idPuestoTrabajo,
-                            idDisponibilidad: slot.idDisponibilidad,
-                        });
+            if (tramosDisponiblesParaPuesto.length > 0) {
+                anyPuestoHasAvailableSlots = true;
+                tramosDisponiblesParaPuesto.forEach((slot: any) => {
+                    reservationLines.push({
+                        idPuestoTrabajo: puestoCompleto.idPuestoTrabajo,
+                        idDisponibilidad: slot.idDisponibilidad,
                     });
-                }
+                });
             }
         }
+    }
 
-        if (!anyPuestoHasAvailableSlots || reservationLines.length === 0) {
-            reservationError.value = "Ninguno de los puestos seleccionados tiene tramos horarios disponibles para la fecha seleccionada.";
-            isReserving.value = false;
-            return;
-        }
+    if (!anyPuestoHasAvailableSlots || reservationLines.length === 0) {
+        reservationError.value = "Ninguno de los puestos seleccionados tiene tramos horarios disponibles para la fecha seleccionada.";
+        isReserving.value = false;
+        return;
+    }
 
-        // Obtener la fecha y darle formato para el endpoint
-        const fechaReservaISO = new Date(filtrosStore.fechaInicio).toISOString();
+    // Obtener la fecha y darle formato para el endpoint
+    const fechaReservaISO = new Date(filtrosStore.fechaInicio).toISOString();
 
-        const reservationData = {
-            idUsuario: userId,
-            descripcion: description,
-            fechaReserva: fechaReservaISO,
-            lineas: reservationLines,
-        };
+    const reservationData = {
+        idUsuario: userId,
+        descripcion: description,
+        fechaReserva: fechaReservaISO,
+        lineas: reservationLines,
+    };
 
-        try {
-            const response = await fetch('https://coworkingapi.jblas.me/api/Reservas/reservacompleta', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(reservationData),
-            });
+    try {
+        const response = await fetch('https://coworkingapi.jblas.me/api/Reservas/reservacompleta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reservationData),
+        });
 
-            if (!response.ok) {
+        if (!response.ok) {
+            // Verificar si es un error 4xx
+            if (response.status >= 400 && response.status < 500) {
+                reservationError.value = "Alguien ha realizado una reserva en este mismo momento que involucra un plazo del que usted ha escogido, por favor, intente de nuevo en unos minutos";
+                return { shouldRedirect: true };
+            } else {
                 let errorDetail = await response.text();
                 try {
                     const errorJson = JSON.parse(errorDetail);
@@ -149,16 +154,17 @@ export const useReservasStore = defineStore('reservas', () => {
                 }
                 throw new Error(`Error al crear la reserva: ${response.status} - ${response.statusText}. Detalles: ${errorDetail}`);
             }
-
-            reservationSuccess.value = "Reserva realizada con éxito";
-            resetSelection();
-        } catch (error: any) {
-            console.error("Reservation API error:", error);
-            reservationError.value = error.message || "Ocurrió un error al intentar reservar.";
-        } finally {
-            isReserving.value = false;
         }
+
+        reservationSuccess.value = "Reserva realizada con éxito";
+        resetSelection();
+    } catch (error: any) {
+        console.error("Reservation API error:", error);
+        reservationError.value = error.message || "Ocurrió un error al intentar reservar.";
+    } finally {
+        isReserving.value = false;
     }
+}
 
     return {
         // Estados
