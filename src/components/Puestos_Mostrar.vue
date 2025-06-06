@@ -171,7 +171,7 @@ async function submitCompra() {
     if (result && result.shouldRedirect) {
         setTimeout(() => {
             router.push('/sedes');
-        }, 3000); // Esperar 3 segundos para que el usuario vea el mensaje
+        }, 20000); // 20 segundos para dar tiempo a leer el mensaje
     }
 }
     function positionClass(index: number): string {
