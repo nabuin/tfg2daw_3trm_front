@@ -115,27 +115,36 @@ export default defineComponent({
     const horaFin = ref('19:00');  // Se establece horaFin a 19:00 por defecto
 
     // Función para validar y ajustar la hora de fin
-    const validarHoraFin = () => {
-      // Si la horaFin es anterior a la horaInicio, la actualizamos
-      if (horaFin.value < horaInicio.value) {
-        const horaInicioNumerica = parseInt(horaInicio.value.split(':')[0]); // Obtener solo la hora
-        const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
-        horaFin.value = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`; // Formato HH:00
-      }
-    };
+const validarHoraFin = () => {
+  // Si la horaFin es anterior a la horaInicio, la actualizamos
+  if (horaFin.value < horaInicio.value) {
+    const horaInicioNumerica = parseInt(horaInicio.value.split(':')[0]); // Obtener solo la hora
+    const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
 
-    // Función computada para obtener las horas disponibles para horaFin
-    const horasFin = computed(() => {
-      if (fechaInicio.value === fechaFin.value) {
-        const [horaInicioNumerica] = horaInicio.value.split(':').map(Number);  // Obtener solo la hora
-        const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
+    // Formateamos la nueva hora con dos dígitos y añadimos ':00' para que sea solo la hora
+    horaFin.value = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`; // Aseguramos que el formato sea HH:00
+  }
+};
 
-        const horaInicioMasUno = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`;
+const horasFin = computed(() => {
+  // Si las fechas son iguales, filtramos las horas de fin para que no sea menor que horaInicio + 1 hora
+  if (fechaInicio.value === fechaFin.value) {
+    const [horaInicioNumerica] = horaInicio.value.split(':').map(Number);  // Obtener solo la hora
+    const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
 
-        return generarHorasFin().filter(h => h >= horaInicioMasUno && h <= '19:00');
-      }
-      return generarHorasFin().filter(h => h <= '19:00');  // Si las fechas no son iguales, permitimos horaFin hasta 19:00
-    });
+    const horaInicioMasUno = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`;
+
+    return generarHorasFin().filter(h => h >= horaInicioMasUno && h <= '19:00');
+  }
+  // Si las fechas son diferentes, no permitimos que horaFin sea menor que horaInicio
+  const [horaInicioNumerica] = horaInicio.value.split(':').map(Number);  // Obtener solo la hora
+  const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
+
+  const horaInicioMasUno = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`;
+
+  return generarHorasFin().filter(h => h >= horaInicioMasUno && h <= '19:00');
+});
+
 
     // Al cambiar la horaInicio, validamos la horaFin
     watch(horaInicio, () => {
