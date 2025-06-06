@@ -233,9 +233,22 @@ async function submit() {
   }
   if (!formValid.value) return;
   try {
-    await reservasStore.createReservation('reserva desde zona de pago');
-    showSuccessDialog.value = true;
-    form.value.reset();
+    const result = await reservasStore.createReservation('reserva desde zona de pago');
+    
+    // Solo mostrar el popup de éxito si no hay error
+    if (!result || !result.isError) {
+      showSuccessDialog.value = true;
+      if (form.value) {
+        (form.value as any).reset();
+      }
+    }
+    
+    // Si hay error y debe redirigir, hacerlo después de mostrar el mensaje
+    if (result && result.shouldRedirect) {
+      setTimeout(() => {
+        router.push('/sedes');
+      }, 3000);
+    }
   } catch (error) {
     console.error('error al hacer la reserva:', error);
     alert('ocurrió un error al procesar la reserva.');

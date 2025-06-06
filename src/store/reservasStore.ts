@@ -140,10 +140,10 @@ async function createReservation(description: string = "Reserva") {
         });
 
         if (!response.ok) {
-            // Verificar si es un error 4xx
+            // Verificar si es un error 4xx o 429
             if (response.status >= 400 && response.status < 500) {
                 reservationError.value = "Alguien ha realizado una reserva en este mismo momento que involucra un plazo del que usted ha escogido, por favor, intente de nuevo en unos minutos";
-                return { shouldRedirect: true };
+                return { shouldRedirect: true, isError: true };
             } else {
                 let errorDetail = await response.text();
                 try {
@@ -158,6 +158,7 @@ async function createReservation(description: string = "Reserva") {
 
         reservationSuccess.value = "Reserva realizada con éxito";
         resetSelection();
+        return { shouldRedirect: false, isError: false };
     } catch (error: any) {
         console.error("Reservation API error:", error);
         reservationError.value = error.message || "Ocurrió un error al intentar reservar.";
@@ -165,7 +166,6 @@ async function createReservation(description: string = "Reserva") {
         isReserving.value = false;
     }
 }
-
     return {
         // Estados
         selectedPuestos,

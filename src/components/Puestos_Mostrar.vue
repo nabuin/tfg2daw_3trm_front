@@ -164,7 +164,7 @@ export default defineComponent({
 
 
 
- async function submitCompra() {
+async function submitCompra() {
     const result = await reservasStore.createReservation('compra de puestos');
     
     // Si hay un error 4xx, redirigir a /sedes
