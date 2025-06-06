@@ -4,36 +4,19 @@
       <form @submit.prevent="filtrar" class="filtro__formulario">
         <div class="filtro__grupo">
           <label for="fechaInicio" class="filtro__label">Fecha Inicio:</label>
-          <input
-            type="date"
-            id="fechaInicio"
-            v-model="fechaInicio"
-            required
-            :min="fechaMinima"
-            class="filtro__input filtro__input--date"
-          />
+          <input type="date" id="fechaInicio" v-model="fechaInicio" required :min="fechaMinima"
+            @change="fechaInicio = getSiguienteHabil(fechaInicio)" class="filtro__input filtro__input--date" />
         </div>
 
         <div class="filtro__grupo">
           <label for="fechaFin" class="filtro__label">Fecha Fin:</label>
-          <input
-            type="date"
-            id="fechaFin"
-            v-model="fechaFin"
-            required
-            :min="fechaInicio"
-            class="filtro__input filtro__input--date"
-          />
+          <input type="date" id="fechaFin" v-model="fechaFin" required :min="fechaInicio"
+            @change="fechaFin = getSiguienteHabil(fechaFin)" class="filtro__input filtro__input--date" />
         </div>
 
         <div class="filtro__grupo">
           <label for="horaInicio" class="filtro__label">Hora Inicio:</label>
-          <select
-            id="horaInicio"
-            v-model="horaInicio"
-            required
-            class="filtro__select"
-          >
+          <select id="horaInicio" v-model="horaInicio" required class="filtro__select">
             <option disabled value="">Selecciona hora</option>
             <option v-for="hora in horas" :key="hora" :value="hora">
               {{ hora }}
@@ -43,12 +26,7 @@
 
         <div class="filtro__grupo">
           <label for="horaFin" class="filtro__label">Hora Fin:</label>
-          <select
-            id="horaFin"
-            v-model="horaFin"
-            required
-            class="filtro__select"
-          >
+          <select id="horaFin" v-model="horaFin" required class="filtro__select">
             <option disabled value="">Selecciona hora</option>
             <option v-for="hora in horasFin" :key="hora" :value="hora">
               {{ hora }}
@@ -88,10 +66,8 @@ export default defineComponent({
     const toDateStr = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-    const esFinDeSemana = (dateStr: string) => {
-      const day = new Date(dateStr).getDay();
-      return day === 6 || day === 0;
-    };
+
+
 
     const getSiguienteHabil = (dateStr: string): string => {
       const d = new Date(dateStr);
@@ -198,6 +174,7 @@ export default defineComponent({
     });
 
     return {
+      getSiguienteHabil,
       fechaMinima,
       fechaInicio,
       fechaFin,
@@ -268,6 +245,7 @@ export default defineComponent({
       filter: brightness(0) invert(1);
       transition: filter 0.3s ease;
     }
+
     &:hover::-webkit-calendar-picker-indicator {
       filter: brightness(0) invert(1) opacity(0.8);
     }
