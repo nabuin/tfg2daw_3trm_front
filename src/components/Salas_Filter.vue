@@ -2,38 +2,24 @@
   <div>
     <div class="filtro__contenedor">
       <form @submit.prevent="filtrar" class="filtro__formulario">
+        <!-- Fecha Inicio -->
         <div class="filtro__grupo">
           <label for="fechaInicio" class="filtro__label">Fecha Inicio:</label>
-          <input
-            type="date"
-            id="fechaInicio"
-            v-model="fechaInicio"
-            required
-            :min="fechaMinima"
-            class="filtro__input filtro__input--date"
-          />
+          <input type="date" id="fechaInicio" v-model="fechaInicio" required :min="fechaMinima"
+            @change="fechaInicio = getSiguienteHabil(fechaInicio)" class="filtro__input filtro__input--date" />
         </div>
 
+        <!-- Fecha Fin -->
         <div class="filtro__grupo">
           <label for="fechaFin" class="filtro__label">Fecha Fin:</label>
-          <input
-            type="date"
-            id="fechaFin"
-            v-model="fechaFin"
-            required
-            :min="fechaInicio"
-            class="filtro__input filtro__input--date"
-          />
+          <input type="date" id="fechaFin" v-model="fechaFin" required :min="fechaInicio"
+            @change="fechaFin = getSiguienteHabil(fechaFin)" class="filtro__input filtro__input--date" />
         </div>
 
+        <!-- Hora Inicio -->
         <div class="filtro__grupo">
           <label for="horaInicio" class="filtro__label">Hora Inicio:</label>
-          <select
-            id="horaInicio"
-            v-model="horaInicio"
-            required
-            class="filtro__select"
-          >
+          <select id="horaInicio" v-model="horaInicio" required class="filtro__select" @change="validarHoraFin">
             <option disabled value="">Selecciona hora</option>
             <option v-for="hora in horas" :key="hora" :value="hora">
               {{ hora }}
@@ -41,14 +27,10 @@
           </select>
         </div>
 
+        <!-- Hora Fin -->
         <div class="filtro__grupo">
           <label for="horaFin" class="filtro__label">Hora Fin:</label>
-          <select
-            id="horaFin"
-            v-model="horaFin"
-            required
-            class="filtro__select"
-          >
+          <select id="horaFin" v-model="horaFin" required class="filtro__select">
             <option disabled value="">Selecciona hora</option>
             <option v-for="hora in horasFin" :key="hora" :value="hora">
               {{ hora }}
@@ -56,6 +38,7 @@
           </select>
         </div>
 
+        <!-- Botón Filtrar -->
         <div class="filtro__grupo filtro__grupo--boton">
           <button type="submit" class="filtro__boton filtro__boton--primario">
             Filtrar
@@ -64,6 +47,7 @@
       </form>
     </div>
 
+    <!-- Mensajes de error y éxito -->
     <div v-if="mensajeError" class="filtro__mensaje filtro__mensaje--error">
       {{ mensajeError }}
     </div>
@@ -73,6 +57,7 @@
     </div>
   </div>
 </template>
+
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch, onMounted } from 'vue';
@@ -87,11 +72,6 @@ export default defineComponent({
     const pad = (n: number) => String(n).padStart(2, '0');
     const toDateStr = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-    const esFinDeSemana = (dateStr: string) => {
-      const day = new Date(dateStr).getDay();
-      return day === 6 || day === 0;
-    };
 
     const getSiguienteHabil = (dateStr: string): string => {
       const d = new Date(dateStr);
@@ -112,23 +92,54 @@ export default defineComponent({
     const mensajeError = ref('');
 
     const horas = ref<string[]>([]);
-    const generarHoras = () => {
+    const generarHorasInicio = () => {
       const arr: string[] = [];
-      for (let h = 8; h <= 19; h++) {
+      for (let h = 8; h <= 18; h++) {  // Generamos horas para horaInicio hasta 18:00
         arr.push(`${pad(h)}:00`);
       }
       horas.value = arr;
     };
-    generarHoras();
+
+    const generarHorasFin = () => {
+      const arr: string[] = [];
+      for (let h = 8; h <= 19; h++) {  // Generamos horas para horaFin hasta 19:00
+        arr.push(`${pad(h)}:00`);
+      }
+      return arr;
+    };
+
+    // Llamamos a la función para generar horas
+    generarHorasInicio();
 
     const horaInicio = ref('08:00');
-    const horaFin = ref('19:00');
+    const horaFin = ref('19:00');  // Se establece horaFin a 19:00 por defecto
 
+    // Función para validar y ajustar la hora de fin
+    const validarHoraFin = () => {
+      // Si la horaFin es anterior a la horaInicio, la actualizamos
+      if (horaFin.value < horaInicio.value) {
+        const horaInicioNumerica = parseInt(horaInicio.value.split(':')[0]); // Obtener solo la hora
+        const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
+        horaFin.value = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`; // Formato HH:00
+      }
+    };
+
+    // Función computada para obtener las horas disponibles para horaFin
     const horasFin = computed(() => {
       if (fechaInicio.value === fechaFin.value) {
-        return horas.value.filter(h => h > horaInicio.value);
+        const [horaInicioNumerica] = horaInicio.value.split(':').map(Number);  // Obtener solo la hora
+        const nuevaHora = horaInicioNumerica + 1;  // Sumar 1 a la hora
+
+        const horaInicioMasUno = `${nuevaHora < 10 ? '0' : ''}${nuevaHora}:00`;
+
+        return generarHorasFin().filter(h => h >= horaInicioMasUno && h <= '19:00');
       }
-      return horas.value;
+      return generarHorasFin().filter(h => h <= '19:00');  // Si las fechas no son iguales, permitimos horaFin hasta 19:00
+    });
+
+    // Al cambiar la horaInicio, validamos la horaFin
+    watch(horaInicio, () => {
+      validarHoraFin();
     });
 
     const showUpdated = ref(false);
@@ -148,16 +159,13 @@ export default defineComponent({
 
     // Función para el filtrado
     const filtrar = async (showMsg = true) => {
-      // Aseguramos que la fecha fin no sea anterior a la fecha inicio
       if (fechaFin.value < fechaInicio.value) {
         mensajeError.value = 'La fecha fin no puede ser anterior a la fecha inicio.';
         return;
       }
 
-      // Guardamos los filtros en localStorage
       actualizarLocalStorage();
 
-      // Actualizamos los filtros en el store
       filtrosStore.setFiltros({
         fechaInicio: fechaInicio.value,
         fechaFin: fechaFin.value,
@@ -165,7 +173,6 @@ export default defineComponent({
         horaFin: horaFin.value,
       });
 
-      // Realizamos el fetch para obtener las salas con los filtros correctos
       await salasStore.obtenerSalasDisponibles({
         fechaInicio: fechaInicio.value,
         fechaFin: fechaFin.value,
@@ -173,7 +180,6 @@ export default defineComponent({
         horaFin: horaFin.value,
       });
 
-      // Mostrar mensaje de éxito si es necesario
       if (showMsg) {
         showUpdated.value = true;
         setTimeout(() => {
@@ -183,7 +189,6 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      // Cargar los valores desde localStorage
       const storedFechaInicio = localStorage.getItem('filtroFechaInicio');
       const storedFechaFin = localStorage.getItem('filtroFechaFin');
       const storedHoraInicio = localStorage.getItem('filtroHoraInicio');
@@ -198,6 +203,7 @@ export default defineComponent({
     });
 
     return {
+      getSiguienteHabil,
       fechaMinima,
       fechaInicio,
       fechaFin,
@@ -213,6 +219,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 <style scoped lang="scss">
 .filtro__contenedor {
@@ -268,6 +275,7 @@ export default defineComponent({
       filter: brightness(0) invert(1);
       transition: filter 0.3s ease;
     }
+
     &:hover::-webkit-calendar-picker-indicator {
       filter: brightness(0) invert(1) opacity(0.8);
     }
