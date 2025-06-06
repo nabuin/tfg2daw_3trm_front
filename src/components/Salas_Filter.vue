@@ -14,25 +14,26 @@
             @change="fechaFin = getSiguienteHabil(fechaFin)" class="filtro__input filtro__input--date" />
         </div>
 
-        <div class="filtro__grupo">
-          <label for="horaInicio" class="filtro__label">Hora Inicio:</label>
-          <select id="horaInicio" v-model="horaInicio" required class="filtro__select">
-            <option disabled value="">Selecciona hora</option>
-            <option v-for="hora in horas" :key="hora" :value="hora">
-              {{ hora }}
-            </option>
-          </select>
-        </div>
+<div class="filtro__grupo">
+  <label for="horaInicio" class="filtro__label">Hora Inicio:</label>
+  <select id="horaInicio" v-model="horaInicio" required class="filtro__select" @change="validarHoraFin">
+    <option disabled value="">Selecciona hora</option>
+    <option v-for="hora in horas" :key="hora" :value="hora">
+      {{ hora }}
+    </option>
+  </select>
+</div>
 
-        <div class="filtro__grupo">
-          <label for="horaFin" class="filtro__label">Hora Fin:</label>
-          <select id="horaFin" v-model="horaFin" required class="filtro__select">
-            <option disabled value="">Selecciona hora</option>
-            <option v-for="hora in horasFin" :key="hora" :value="hora">
-              {{ hora }}
-            </option>
-          </select>
-        </div>
+<div class="filtro__grupo">
+  <label for="horaFin" class="filtro__label">Hora Fin:</label>
+  <select id="horaFin" v-model="horaFin" required class="filtro__select">
+    <option disabled value="">Selecciona hora</option>
+    <option v-for="hora in horasFin" :key="hora" :value="hora">
+      {{ hora }}
+    </option>
+  </select>
+</div>
+
 
         <div class="filtro__grupo filtro__grupo--boton">
           <button type="submit" class="filtro__boton filtro__boton--primario">
@@ -66,9 +67,6 @@ export default defineComponent({
     const toDateStr = (d: Date) =>
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-
-
-
     const getSiguienteHabil = (dateStr: string): string => {
       const d = new Date(dateStr);
       while (d.getDay() === 6 || d.getDay() === 0) {
@@ -100,11 +98,25 @@ export default defineComponent({
     const horaInicio = ref('08:00');
     const horaFin = ref('19:00');
 
+    // Aseguramos que la horaFin no sea anterior a horaInicio
+    const validarHoraFin = () => {
+      // Si la horaFin es anterior a la horaInicio, la actualizamos
+      if (horaFin.value < horaInicio.value) {
+        horaFin.value = horaInicio.value + 1;
+      }
+    };
+
     const horasFin = computed(() => {
+      // Si las fechas son iguales, filtramos las horas de fin para que no sea menor que horaInicio
       if (fechaInicio.value === fechaFin.value) {
-        return horas.value.filter(h => h > horaInicio.value);
+        return horas.value.filter(h => h >= horaInicio.value);
       }
       return horas.value;
+    });
+
+    // Al cambiar la horaInicio, validamos la horaFin
+    watch(horaInicio, () => {
+      validarHoraFin();
     });
 
     const showUpdated = ref(false);
